@@ -1,15 +1,14 @@
-import { Button, View, Text, Image} from 'react-native';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Button, View, Text, Image} from 'react-native';
 
 export function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.welcome}>
-        Encuentra planes increibles cerca de ti
+        Encuentra planes increíbles cerca de ti
       </Text>
 
       <Text style={styles.description}>
-        Explora lugares, actividades y experiencias hecahs para ti.
+        Explora lugares, actividades y experiencias hechas para ti.
       </Text>
       
       <Image source={{ uri: "https://example.com/image.jpg" }} />
@@ -22,6 +21,7 @@ export function HomeScreen() {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
