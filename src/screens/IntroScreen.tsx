@@ -1,5 +1,15 @@
 import { useRef, useState } from 'react';
-import { StyleSheet, View, Text, Image, Pressable, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  Pressable,
+  FlatList,
+  Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppStackParamList } from '../types/navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -31,10 +41,10 @@ const slides = [
 
 function Slide({ item }: { item: typeof slides[0] }) {
   return (
-    <View style={styles.slide}>
+    <View style={[styles.slide, { width }]}>
       <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.text}>{item.text}</Text>
       <Image source={item.image} style={styles.image} />
+      <Text style={styles.text}>{item.text}</Text>
     </View>
   );
 }
@@ -50,7 +60,7 @@ export function IntroScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1}}>
       <FlatList
         ref={flatListRef}
         data={slides}
@@ -60,27 +70,32 @@ export function IntroScreen({ navigation }: Props) {
         onScroll={handleScroll}
         scrollEventThrottle={16}
         keyExtractor={(item) => item.key}
-        renderItem={({ item }) => (
-          <View style={{ width }}>
-            <Slide item={item} />
-          </View>
-        )}
+        renderItem={({ item }) => <Slide item={item} />}
       />
 
-      <View style={[styles.paginationContainer, { paddingBottom: insets.bottom + 16 }]}>
-        <View style={styles.dotsRow}>
-          {slides.map((_, index) => (
-            <View
-              key={index}
-              style={[styles.dot, index === activeIndex && styles.activeDot]}
-            />
-          ))}
-        </View>
+      <View style={styles.dotsRow}>
+        {slides.map((_, index) => (
+          <View
+            key={index}
+            style={[styles.dot, index === activeIndex && styles.activeDot]}
+          />
+        ))}
+      </View>
 
+      <View style={[styles.actions, { paddingBottom: insets.bottom + 16 }]}>
         {activeIndex === slides.length - 1 && (
-          <Pressable style={styles.button} onPress={() => navigation.navigate('Home')}>
-            <Text style={styles.buttonText}>Comenzar</Text>
-          </Pressable>
+          <>
+            <Pressable style={styles.button} onPress={() => navigation.navigate('Home')}>
+              <Text style={styles.buttonText}>Comenzar</Text>
+            </Pressable>
+
+            <Text style={styles.loginPrompt}>
+              ¿Ya tienes cuenta?{' '}
+              <Text style={styles.loginLink} onPress={() => navigation.navigate('Login')}>
+                Inicia sesión
+              </Text>
+            </Text>
+          </>
         )}
       </View>
     </View>
@@ -89,37 +104,34 @@ export function IntroScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   slide: {
-    flex: 1,
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingHorizontal: 24,
     backgroundColor: '#fff',
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
-  },
-  text: {
-    fontSize: 14,
-    textAlign: 'center',
-    color: '#666',
-    marginTop: 8,
-    marginBottom: 20,
+    paddingTop: 40,
+    paddingHorizontal: 24,
+    marginTop: 100,
+    marginBottom: 40,
   },
   image: {
-    width: '100%',
-    height: 320,
-    resizeMode: 'contain',
+    width,
+    height: 350,
+    resizeMode: 'cover',
+    marginTop: 20,
   },
-  paginationContainer: {
+  text: {
+    fontSize: 15,
+    textAlign: 'center',
+    color: '#666',
     paddingHorizontal: 24,
-    backgroundColor: '#fff',
+    marginTop: 40,
   },
   dotsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginTop: 18,
   },
   dot: {
     backgroundColor: '#ccc',
@@ -132,6 +144,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#2ecc71',
     width: 20,
   },
+  actions: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingHorizontal: 24,
+  },
   button: {
     backgroundColor: '#2ecc71',
     paddingVertical: 14,
@@ -142,5 +159,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  loginPrompt: {
+    textAlign: 'center',
+    marginTop: 14,
+    fontSize: 13,
+    color: '#666',
+  },
+  loginLink: {
+    color: '#2ecc71',
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
   },
 });
