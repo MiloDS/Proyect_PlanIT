@@ -1,18 +1,10 @@
 import { useRef, useState } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  Pressable,
-  FlatList,
-  Dimensions,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-} from 'react-native';
+import { StyleSheet, View, Text, Image, Pressable, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppStackParamList } from '../types/navigation';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+
+import { AppStackParamList } from '../types/navigation';
+
 
 type Props = NativeStackScreenProps<AppStackParamList, "Intro">;
 
@@ -85,7 +77,7 @@ export function IntroScreen({ navigation }: Props) {
       <View style={[styles.actions, { paddingBottom: insets.bottom + 16 }]}>
         {activeIndex === slides.length - 1 && (
           <>
-            <Pressable style={styles.button} onPress={() => navigation.navigate('Home')}>
+            <Pressable style={styles.button} onPress={() => navigation.navigate('Login')}>
               <Text style={styles.buttonText}>Comenzar</Text>
             </Pressable>
 
