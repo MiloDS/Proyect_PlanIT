@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppStackParamList } from '../types/navigation';
-
+import { setOnboardingSeen } from '../utils/storage';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Intro">;
 
@@ -33,12 +33,12 @@ const slides = [
 
 type SlideItem = typeof slides [0];
 
-function Slide({item, index, activeIndex, navigation, bottomInset}: {
+function Slide({item, index, activeIndex, onFinish, bottomInset}: {
   item: SlideItem;
   index: number;
   activeIndex: number;
-  navigation: Props['navigation'];
   bottomInset: number;
+  onFinish: () => void;
 }) {
   const isLast = index === slides.length - 1;
 
@@ -60,7 +60,7 @@ function Slide({item, index, activeIndex, navigation, bottomInset}: {
 
         {isLast && (
           <>
-            <Pressable style={styles.button} onPress={() => navigation.navigate('Home')}>
+            <Pressable style={styles.button} onPress={onFinish}>
               <Text style={styles.buttonText}>Comenzar</Text>
             </Pressable>
 
@@ -86,6 +86,11 @@ export function IntroScreen({ navigation }: Props) {
     setActiveIndex(index);
   };
 
+  const handleFinishOnboarding = async () => {
+    await setOnboardingSeen();
+    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: '#fff'}}>
       <FlatList
@@ -101,8 +106,8 @@ export function IntroScreen({ navigation }: Props) {
             item={item}
             index={index}
             activeIndex={activeIndex}
-            navigation={navigation}
             bottomInset={insets.bottom}
+            onFinish={handleFinishOnboarding}
           />
         )}
       />

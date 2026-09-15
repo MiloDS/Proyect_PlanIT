@@ -5,6 +5,7 @@ import {useState} from 'react'
 import { AppStackParamList } from '../types/navigation';
 import { InputField } from '../components/InputField'
 import { SocialButton } from '../components/SocialButton';
+import { saveUserSession } from '../utils/storage';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Login">;
 
@@ -12,12 +13,13 @@ export function LoginScreen ({ navigation }: Props) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     
-    const handleLogin = () => {
-        if (email.trim() === '' || password.trim() === ''){
-            return Alert.alert('Campos obligatorios');
-        }
-        navigation.navigate('Home')
-    }
+    const handleLogin = async () => {
+      if (email.trim() === '' || password.trim() === '') {
+        return Alert.alert('Campos obligatorios');
+      }
+      await saveUserSession(email);
+      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+    };
 
     return (
         <KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === 'ios' ? 'padding' : undefined} >
