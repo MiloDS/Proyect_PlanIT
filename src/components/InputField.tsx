@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { View, TextInput, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
 import { CustomInputFieldProps } from "../types/components";
 
-export function InputField({ placeholder, value, onChangeText, secureTextEntry }: CustomInputFieldProps) {
+export function InputField({ placeholder, value, onChangeText, secureTextEntry, keyboardType, autoCapitalize, autoCorrect }: CustomInputFieldProps) {
     
-  const [hidePassword, setHidePassword] = useState(true);
+  const [hidePassword, setHidePassword] = useState(secureTextEntry ?? false);
   const isPassword = secureTextEntry;
 
   return (
@@ -17,6 +18,9 @@ export function InputField({ placeholder, value, onChangeText, secureTextEntry }
         onChangeText={onChangeText}
         secureTextEntry={isPassword ? hidePassword : false}
         style={styles.input}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+        autoCorrect={autoCorrect}
       />
       {isPassword && (
         <Pressable onPress={() => setHidePassword(!hidePassword)} style={styles.icon}>
