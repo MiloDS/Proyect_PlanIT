@@ -10,8 +10,8 @@ type Props = NativeStackScreenProps<AppStackParamList, "Login">;
 
 export function LoginScreen ({ navigation }: Props) {
     const [email, setEmail] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-
+    const [password, setPassword] = useState('');
+    
     const handleLogin = () => {
         if (email.trim() === '' || password.trim() === ''){
             return Alert.alert('Campos obligatorios');
