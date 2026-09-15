@@ -66,7 +66,7 @@ function Slide({item, index, activeIndex, onFinish, bottomInset}: {
 
             <Text style={styles.loginPrompt}>
               ¿Ya tienes cuenta?{' '}
-              <Text style={styles.loginLink} onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.loginLink} onPress={onFinish}>
                 Inicia sesión
               </Text>
             </Text>
