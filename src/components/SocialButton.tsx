@@ -1,5 +1,6 @@
 import { Pressable, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
 import { SocialButtonProps } from '../types/components';
 
 export function SocialButton({ iconName, iconColor, label, onPress }: SocialButtonProps) {

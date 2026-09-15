@@ -1,9 +1,9 @@
-import{NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {AppStackParamList} from '../types/navigation';
+import{ NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import {HomeScreen} from '../screens/HomeScreen';
-import {IntroScreen} from '../screens/IntroScreen';
+import { AppStackParamList } from '../types/navigation';
+import { HomeScreen } from '../screens/HomeScreen';
+import { IntroScreen } from '../screens/IntroScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();

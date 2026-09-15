@@ -1,7 +1,6 @@
-import {StyleSheet, View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView, Alert} from 'react-native'
+import {StyleSheet, View, Text, Pressable, KeyboardAvoidingView, Platform, ScrollView, Alert} from 'react-native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {useState} from 'react'
-import { Ionicons } from '@expo/vector-icons';
 
 import { AppStackParamList } from '../types/navigation';
 import { InputField } from '../components/InputField'
@@ -12,8 +11,7 @@ type Props = NativeStackScreenProps<AppStackParamList, "Login">;
 export function LoginScreen ({ navigation }: Props) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-
+    
     const handleLogin = () => {
         if (email.trim() === '' || password.trim() === ''){
             return Alert.alert('Campos obligatorios');
@@ -48,29 +46,25 @@ export function LoginScreen ({ navigation }: Props) {
                 </View>
 
                 <Text style={styles.label}>Correo electrónico</Text>
-                <TextInput
-                    style={styles.input}
+                  <InputField
                     placeholder="ejemplo@correo.com"
-                    placeholderTextColor="#999"
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
                     autoCapitalize="none"
-                />
+                    autoCorrect={false}
+                    />
 
                 <Text style={styles.label}>Contraseña</Text>
-                <View style={styles.passwordRow}>
-                    <TextInput
-                        style={styles.passwordInput}
-                        placeholder="········"
-                        placeholderTextColor="#999"
-                        value={password}
-                        onChangeText={setPassword}
-                        secureTextEntry={!showPassword}
-                    />
-                    <Pressable onPress={() => setShowPassword((prev) => !prev)}>
-                        <Ionicons name={showPassword ? 'eye-off' : 'eye'} size={20} color="#666" />
-                    </Pressable>
+                <View>
+                    <InputField
+                      placeholder="········"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      />
                 </View>
 
                 <Pressable style={styles.forgotPassword}>
@@ -112,22 +106,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginBottom: 30,
   },
-  socialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingVertical: 12,
-    marginBottom: 12,
-  },
-  socialButtonText: {
-    marginLeft: 10,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-  },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -147,29 +125,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#333',
     marginBottom: 6,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
-    marginBottom: 18,
-  },
-  passwordRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    marginBottom: 8,
-  },
-  passwordInput: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 14,
   },
   forgotPassword: {
     alignSelf: 'flex-end',

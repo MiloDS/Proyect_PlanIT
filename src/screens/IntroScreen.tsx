@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, View, Text, Image, Pressable, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -80,7 +80,6 @@ function Slide({item, index, activeIndex, navigation, bottomInset}: {
 export function IntroScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [activeIndex, setActiveIndex] = useState(0);
-  const flatListRef = useRef<FlatList>(null);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const index = Math.round(event.nativeEvent.contentOffset.x / width);
@@ -90,7 +89,6 @@ export function IntroScreen({ navigation }: Props) {
   return (
     <View style={{ flex: 1, backgroundColor: '#fff'}}>
       <FlatList
-        ref={flatListRef}
         data={slides}
         horizontal
         pagingEnabled

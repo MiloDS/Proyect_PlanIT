@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mi-app",
-    "slug": "mi-app",
+    "name": "PlanIt",
+    "slug": "planit",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
