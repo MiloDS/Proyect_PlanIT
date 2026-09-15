@@ -1,5 +1,6 @@
 export type AppStackParamList = {
   Home: undefined;
+  Login: undefined;
   Intro: {
     item: {
       title: string;
