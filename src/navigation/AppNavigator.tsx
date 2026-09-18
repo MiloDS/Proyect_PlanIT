@@ -7,6 +7,8 @@ import { AppStackParamList } from '../types/navigation';
 import { HomeScreen } from '../screens/HomeScreen';
 import { IntroScreen } from '../screens/IntroScreen';
 import { LoginScreen } from '../screens/LoginScreen';
+import { ProfileScreen } from '../screens/ProfileScreen';
+import { SurpriseMeScreen } from '../screens/SurpriseMeScreen';
 import { hasSeenOnboarding, getUserSession } from '../utils/storage';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -40,6 +42,8 @@ export function AppNavigator() {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Intro" component={IntroScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="SurpriseMe" component={SurpriseMeScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
