@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Image, Alert, } from 'react-native';
 import { User, CreditCard, Bell, Globe, HelpCircle, LogOut, ChevronRight, Pencil, Signal, Wifi, Battery } from 'lucide-react-native';
 
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AppStackParamList } from '../types/navigation';
-import { TabName } from '../types/components';
-import { BottomNavBar } from '../components/BottomNavBar';
-import { TAB_TO_ROUTE } from '../utils/navigation';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { AppStackParamList, MainTabParamList } from '../types/navigation';
 
-type Props = NativeStackScreenProps<AppStackParamList, "Profile">;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, "Profile">,
+  NativeStackScreenProps<AppStackParamList>
+>;
 
 interface MenuItemProps {
   icon: React.ReactNode;
@@ -69,16 +71,10 @@ const MenuItem: React.FC<MenuItemProps> = ({
 };
 
 export function ProfileScreen({ navigation }: Props)  {
-  const [activeTab, setActiveTab] = useState<TabName>('Perfil');
-  
+
   const handleNavigation = (screenName: string) => {
     
     console.log(`Navegando a la pantalla: ${screenName}`);
-  };
-
-  const handleTabPress = (tab: TabName) => {
-    setActiveTab(tab);
-    navigation.navigate(TAB_TO_ROUTE[tab]);
   };
 
   const handleLogout = () => {
@@ -95,7 +91,9 @@ export function ProfileScreen({ navigation }: Props)  {
         style: 'destructive',
         onPress: () => {
           console.log('Sesión cerrada');
-          navigation.replace('Login');
+          navigation
+            .getParent<NativeStackNavigationProp<AppStackParamList>>()
+            ?.reset({ index: 0, routes: [{ name: 'Login' }] });
         },
       },
     ]
@@ -233,11 +231,6 @@ export function ProfileScreen({ navigation }: Props)  {
 
           </ScrollView>
         </View>
-        {/*BARRA DE NAVEGACIÓN INFERIOR */}
-        <BottomNavBar
-          activeTab={activeTab}
-          onTabPress={handleTabPress}
-        />
       </View>
   );
 }
@@ -254,7 +247,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#05A86B',
     marginTop: 50,
-    marginBottom: 50,
   },
 
   /* ---------- Barra de estado ---------- */
@@ -287,6 +279,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 30,
     paddingHorizontal: 24,
+    marginTop: 25,
   },
 
   avatarContainer: {
@@ -415,48 +408,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginRight: 5,
     fontWeight: '400',
-  },
-
-  /* ---------- Navegación inferior ---------- */
-  bottomNavigation: {
-    height: 70,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-
-    elevation: 8,
-
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-  },
-
-  navButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 5,
-  },
-
-  navText: {
-    fontSize: 10,
-    marginTop: 4,
-  },
-
-  navTextActive: {
-    color: '#05A86B',
-    fontWeight: '700',
-  },
-
-  navTextInactive: {
-    color: '#94A3B8',
-    fontWeight: '500',
   },
 });
