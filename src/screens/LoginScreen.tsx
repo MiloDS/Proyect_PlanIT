@@ -18,7 +18,7 @@ export function LoginScreen ({ navigation }: Props) {
         return Alert.alert('Campos obligatorios');
       }
       await saveUserSession(email);
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     };
 
     return (
@@ -79,7 +79,7 @@ export function LoginScreen ({ navigation }: Props) {
 
                 <Text style={styles.registerPrompt}>
                     ¿No tienes cuenta?{' '}
-                    <Text style={styles.registerLink} onPress={() => navigation.navigate('Home')}>
+                    <Text style={styles.registerLink} onPress={() => navigation.navigate('MainTabs')}>
                         Regístrate
                     </Text>
                 </Text>

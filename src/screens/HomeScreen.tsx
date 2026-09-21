@@ -1,15 +1,16 @@
-import { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
 import { MapPin, ChevronDown, Bell, Cloud, Sparkles } from 'lucide-react-native';
+import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
-import { AppStackParamList } from '../types/navigation';
-import { TabName } from '../types/components';
-import { BottomNavBar } from '../components/BottomNavBar';
+import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { PlaceCard } from '../components/PlaceCard';
-import { TAB_TO_ROUTE } from '../utils/navigation';
 
-type Props = NativeStackScreenProps<AppStackParamList, "Home">;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, "Home">,
+  NativeStackScreenProps<AppStackParamList>
+>;
 
 const nearbyPlaces = [
   {
@@ -33,12 +34,7 @@ const nearbyPlaces = [
 ];
 
 export function HomeScreen({ navigation }: Props) {
-  const [activeTab, setActiveTab] = useState<TabName>('Inicio');
 
-  const handleTabPress = (tab: TabName) => {
-    setActiveTab(tab);
-    navigation.navigate(TAB_TO_ROUTE[tab]);
-  };
 
   return (
     <View style={styles.container}>
@@ -103,8 +99,6 @@ export function HomeScreen({ navigation }: Props) {
           ))}
         </ScrollView>
       </ScrollView>
-
-      <BottomNavBar activeTab={activeTab} onTabPress={handleTabPress} />
     </View>
   );
 }
@@ -114,7 +108,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     marginTop: 50,
-    marginBottom: 50,
   },
   scrollContent: {
     paddingHorizontal: 24,

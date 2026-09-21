@@ -18,13 +18,6 @@ export type SocialButtonProps = {
   onPress: () => void;
 };
 
-export type TabName = 'Inicio' | 'Buscar' | 'Planes' | 'Favoritos' | 'Perfil';
-
-export type BottomNavBarProps = {
-  activeTab: TabName;
-  onTabPress: (tab: TabName) => void;
-};
-
 export type PlaceCardProps = {
   imageUrl: string;
   name: string;
@@ -46,6 +39,4 @@ export type CustomSliderProps = {
 
 export type PlaceholderScreenProps = {
   title: string;
-  activeTab: TabName;
-  onTabPress: (tab: TabName) => void;
 };
