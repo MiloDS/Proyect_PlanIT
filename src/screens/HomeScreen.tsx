@@ -7,6 +7,7 @@ import { AppStackParamList } from '../types/navigation';
 import { TabName } from '../types/components';
 import { BottomNavBar } from '../components/BottomNavBar';
 import { PlaceCard } from '../components/PlaceCard';
+import { TAB_TO_ROUTE } from '../utils/navigation';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Home">;
 
@@ -36,7 +37,7 @@ export function HomeScreen({ navigation }: Props) {
 
   const handleTabPress = (tab: TabName) => {
     setActiveTab(tab);
-    // TODO: navegar a la screen correspondiente cuando existan Buscar/Planes/Favoritos
+    navigation.navigate(TAB_TO_ROUTE[tab]);
   };
 
   return (

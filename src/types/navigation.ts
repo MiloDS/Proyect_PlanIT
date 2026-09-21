@@ -4,4 +4,7 @@ export type AppStackParamList = {
   Intro: undefined;
   Profile: undefined;
   SurpriseMe: undefined;
+  Search: undefined;
+  Plans: undefined;
+  Favorites: undefined;
 };
