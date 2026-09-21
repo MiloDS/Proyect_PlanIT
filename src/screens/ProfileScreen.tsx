@@ -9,7 +9,6 @@ import { BottomNavBar } from '../components/BottomNavBar';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Profile">;
 
-const [activeTab, setActiveTab] = useState<TabName>('Perfil');
 interface MenuItemProps {
   icon: React.ReactNode;
   title: string;
@@ -69,10 +68,8 @@ const MenuItem: React.FC<MenuItemProps> = ({
 };
 
 export function ProfileScreen({ navigation }: Props)  {
-  const [activeTab, setActiveTab] = useState<
-    'Inicio' | 'Buscar' | 'Planes' | 'Favoritos' | 'Perfil'
-  >('Perfil');
-
+  const [activeTab, setActiveTab] = useState<TabName>('Perfil');
+  
   const handleNavigation = (screenName: string) => {
     
     console.log(`Navegando a la pantalla: ${screenName}`);
