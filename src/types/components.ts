@@ -17,3 +17,18 @@ export type SocialButtonProps = {
   label: string;
   onPress: () => void;
 };
+
+export type TabName = 'Inicio' | 'Buscar' | 'Planes' | 'Favoritos' | 'Perfil';
+
+export type BottomNavBarProps = {
+  activeTab: TabName;
+  onTabPress: (tab: TabName) => void;
+};
+
+export type PlaceCardProps = {
+  imageUrl: string;
+  name: string;
+  category: string;
+  distanceKm: number;
+  onPress?: () => void;
+};
