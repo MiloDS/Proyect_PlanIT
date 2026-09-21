@@ -32,3 +32,14 @@ export type PlaceCardProps = {
   distanceKm: number;
   onPress?: () => void;
 };
+
+export type CustomSliderProps = {
+  minimumValue: number;
+  maximumValue: number;
+  step?: number;
+  value: number;
+  onValueChange: (value: number) => void;
+  minimumTrackTintColor?: string;
+  maximumTrackTintColor?: string;
+  thumbTintColor?: string;
+};

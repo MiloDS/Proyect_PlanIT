@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Modal, } from 'react-native';
-import Slider from '@react-native-community/slider';
+import { CustomSlider } from '../components/CustomSlider';
 import { ChevronLeft, Signal, Wifi, Battery, Sparkles, MapPin, DollarSign, Users, RefreshCw, X, } from 'lucide-react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../types/navigation';
@@ -255,8 +255,7 @@ export function SurpriseMeScreen({
 
             <View style={styles.sliderContainer}>
 
-              <Slider
-                style={styles.slider}
+              <CustomSlider
                 minimumValue={1}
                 maximumValue={50}
                 step={1}
