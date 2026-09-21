@@ -530,6 +530,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    marginTop: 50,
+    marginBottom: 50,
   },
 
   /*BARRA DE ESTADO*/
