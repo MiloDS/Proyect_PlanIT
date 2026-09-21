@@ -9,6 +9,9 @@ import { IntroScreen } from '../screens/IntroScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { SurpriseMeScreen } from '../screens/SurpriseMeScreen';
+import { SearchScreen } from '../screens/SearchScreen';
+import { PlansScreen } from '../screens/PlansScreen';
+import { FavoritesScreen } from '../screens/FavoritesScreen';
 import { hasSeenOnboarding, getUserSession } from '../utils/storage';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -44,6 +47,9 @@ export function AppNavigator() {
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="SurpriseMe" component={SurpriseMeScreen} />
+        <Stack.Screen name="Search" component={SearchScreen} />
+        <Stack.Screen name="Plans" component={PlansScreen} />
+        <Stack.Screen name="Favorites" component={FavoritesScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

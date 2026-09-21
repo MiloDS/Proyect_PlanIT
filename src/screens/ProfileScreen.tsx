@@ -6,6 +6,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../types/navigation';
 import { TabName } from '../types/components';
 import { BottomNavBar } from '../components/BottomNavBar';
+import { TAB_TO_ROUTE } from '../utils/navigation';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Profile">;
 
@@ -73,6 +74,11 @@ export function ProfileScreen({ navigation }: Props)  {
   const handleNavigation = (screenName: string) => {
     
     console.log(`Navegando a la pantalla: ${screenName}`);
+  };
+
+  const handleTabPress = (tab: TabName) => {
+    setActiveTab(tab);
+    navigation.navigate(TAB_TO_ROUTE[tab]);
   };
 
   const handleLogout = () => {
@@ -230,10 +236,7 @@ export function ProfileScreen({ navigation }: Props)  {
         {/*BARRA DE NAVEGACIÓN INFERIOR */}
         <BottomNavBar
           activeTab={activeTab}
-          onTabPress={(tab) => {
-            setActiveTab(tab);
-            handleNavigation(tab);
-          }}
+          onTabPress={handleTabPress}
         />
       </View>
   );
@@ -250,6 +253,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#05A86B',
+    marginTop: 50,
+    marginBottom: 50,
   },
 
   /* ---------- Barra de estado ---------- */

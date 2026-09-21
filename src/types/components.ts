@@ -43,3 +43,9 @@ export type CustomSliderProps = {
   maximumTrackTintColor?: string;
   thumbTintColor?: string;
 };
+
+export type PlaceholderScreenProps = {
+  title: string;
+  activeTab: TabName;
+  onTabPress: (tab: TabName) => void;
+};
