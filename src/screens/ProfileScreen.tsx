@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Image, Alert, } from 'react-native';
-import { User, CreditCard, Bell, Globe, HelpCircle, LogOut, ChevronRight, Pencil, Home, Search, Calendar, Heart, Signal, Wifi, Battery, } from 'lucide-react-native';
+import { User, CreditCard, Bell, Globe, HelpCircle, LogOut, ChevronRight, Pencil, Signal, Wifi, Battery } from 'lucide-react-native';
+
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../types/navigation';
+import { TabName } from '../types/components';
+import { BottomNavBar } from '../components/BottomNavBar';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Profile">;
 
+const [activeTab, setActiveTab] = useState<TabName>('Perfil');
 interface MenuItemProps {
   icon: React.ReactNode;
   title: string;
@@ -226,157 +230,14 @@ export function ProfileScreen({ navigation }: Props)  {
 
           </ScrollView>
         </View>
-
         {/*BARRA DE NAVEGACIÓN INFERIOR */}
-        <View style={styles.bottomNavigation}>
-
-          {/* Inicio */}
-          <Pressable
-            onPress={() => {
-              setActiveTab('Inicio');
-              handleNavigation('Inicio');
-            }}
-            style={styles.navButton}
-          >
-            <Home
-              size={21}
-              color={
-                activeTab === 'Inicio'
-                  ? '#05A86B'
-                  : '#94A3B8'
-              }
-            />
-
-            <Text
-              style={[
-                styles.navText,
-                activeTab === 'Inicio'
-                  ? styles.navTextActive
-                  : styles.navTextInactive,
-              ]}
-            >
-              Inicio
-            </Text>
-          </Pressable>
-
-          {/* Buscar */}
-          <Pressable
-            onPress={() => {
-              setActiveTab('Buscar');
-              handleNavigation('Buscar');
-            }}
-            style={styles.navButton}
-          >
-            <Search
-              size={21}
-              color={
-                activeTab === 'Buscar'
-                  ? '#05A86B'
-                  : '#94A3B8'
-              }
-            />
-
-            <Text
-              style={[
-                styles.navText,
-                activeTab === 'Buscar'
-                  ? styles.navTextActive
-                  : styles.navTextInactive,
-              ]}
-            >
-              Buscar
-            </Text>
-          </Pressable>
-
-          {/* Planes */}
-          <Pressable
-            onPress={() => {
-              setActiveTab('Planes');
-              handleNavigation('Planes');
-            }}
-            style={styles.navButton}
-          >
-            <Calendar
-              size={21}
-              color={
-                activeTab === 'Planes'
-                  ? '#05A86B'
-                  : '#94A3B8'
-              }
-            />
-
-            <Text
-              style={[
-                styles.navText,
-                activeTab === 'Planes'
-                  ? styles.navTextActive
-                  : styles.navTextInactive,
-              ]}
-            >
-              Planes
-            </Text>
-          </Pressable>
-
-          {/* Favoritos */}
-          <Pressable
-            onPress={() => {
-              setActiveTab('Favoritos');
-              handleNavigation('Favoritos');
-            }}
-            style={styles.navButton}
-          >
-            <Heart
-              size={21}
-              color={
-                activeTab === 'Favoritos'
-                  ? '#05A86B'
-                  : '#94A3B8'
-              }
-            />
-
-            <Text
-              style={[
-                styles.navText,
-                activeTab === 'Favoritos'
-                  ? styles.navTextActive
-                  : styles.navTextInactive,
-              ]}
-            >
-              Favoritos
-            </Text>
-          </Pressable>
-
-          {/* Perfil */}
-          <Pressable
-            onPress={() => {
-              setActiveTab('Perfil');
-              handleNavigation('Perfil');
-            }}
-            style={styles.navButton}
-          >
-            <User
-              size={21}
-              color={
-                activeTab === 'Perfil'
-                  ? '#05A86B'
-                  : '#94A3B8'
-              }
-            />
-
-            <Text
-              style={[
-                styles.navText,
-                activeTab === 'Perfil'
-                  ? styles.navTextActive
-                  : styles.navTextInactive,
-              ]}
-            >
-              Perfil
-            </Text>
-          </Pressable>
-
-        </View>
-
+        <BottomNavBar
+          activeTab={activeTab}
+          onTabPress={(tab) => {
+            setActiveTab(tab);
+            handleNavigation(tab);
+          }}
+        />
       </View>
   );
 }
