@@ -6,6 +6,7 @@ import { AppStackParamList } from '../types/navigation';
 import { InputField } from '../components/InputField'
 import { SocialButton } from '../components/SocialButton';
 import { saveUserSession } from '../utils/storage';
+import { colors } from '../styles/colors';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Login">;
 
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 80,
     paddingBottom: 40,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   title: {
     fontSize: 22,
@@ -133,18 +134,18 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   forgotPasswordText: {
-    color: '#2ecc71',
+    color: colors.primary,
     fontSize: 13,
     fontWeight: '600',
   },
   loginButton: {
-    backgroundColor: '#2ecc71',
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
   },
   loginButtonText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   registerLink: {
-    color: '#2ecc71',
+    color: colors.primary,
     fontWeight: 'bold',
   },
 });

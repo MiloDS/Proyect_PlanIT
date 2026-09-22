@@ -8,6 +8,7 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { PlaceCard } from '../components/PlaceCard';
+import { colors } from '../styles/colors';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, "Home">,
@@ -66,7 +67,7 @@ export function HomeScreen({ navigation }: Props) {
             <Text style={styles.weatherDescription}>Parcialmente nublado</Text>
             <Text style={styles.weatherMinMax}>Máx. 27°   Mín. 18°</Text>
           </View>
-          <Cloud size={40} color="#FFFFFF" />
+          <Cloud size={40} color={colors.white} />
         </View>
 
         <View style={styles.surpriseCard}>
@@ -88,7 +89,7 @@ export function HomeScreen({ navigation }: Props) {
             onPress={() => navigation.navigate('SurpriseMe')}
           >
             <Text style={styles.surpriseButtonText}>Sorpréndeme</Text>
-            <Sparkles size={16} color="#FFFFFF" />
+            <Sparkles size={16} color={colors.white} />
           </Pressable>
         </View>
 
@@ -112,7 +113,7 @@ export function HomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   scrollContent: {
     paddingHorizontal: 24,
@@ -158,11 +159,11 @@ const styles = StyleSheet.create({
   weatherTemp: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.white,
   },
   weatherDescription: {
     fontSize: 13,
-    color: '#FFFFFF',
+    color: colors.white,
     marginTop: 2,
   },
   weatherMinMax: {
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   surpriseButton: {
-    backgroundColor: '#05A86B',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 12,
     flexDirection: 'row',
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   surpriseButtonText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontWeight: '700',
     fontSize: 14,
     marginRight: 6,
@@ -228,7 +229,7 @@ const styles = StyleSheet.create({
   sectionLink: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#05A86B',
+    color: colors.primary,
   },
   placesRow: {
     paddingRight: 24,

@@ -15,6 +15,7 @@ import { PlansScreen } from '../screens/PlansScreen';
 import { FavoritesScreen } from '../screens/FavoritesScreen';
 import { BottomNavBar } from '../components/BottomNavBar';
 import { hasSeenOnboarding, getUserSession } from '../utils/storage';
+import { colors } from '../styles/colors';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -53,7 +54,7 @@ export function AppNavigator() {
   if (initialRoute == null) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center'}} >
-        <ActivityIndicator size="large" color= "#2ecc71"/>
+        <ActivityIndicator size="large" color={colors.primary}/>
       </View>
     );
   }

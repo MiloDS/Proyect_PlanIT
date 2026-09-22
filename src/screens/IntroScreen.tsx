@@ -6,6 +6,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppStackParamList } from '../types/navigation';
 import { setOnboardingSeen } from '../utils/storage';
+import { colors } from '../styles/colors';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Intro">;
 
@@ -130,10 +131,10 @@ export function IntroScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   background: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   title: {
     fontSize: 24,
@@ -150,7 +151,7 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     marginTop: -30,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: 24,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   dotsRow: {
     flexDirection: 'row',
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: '#2ecc71',
+    backgroundColor: colors.primary,
     width: 22,
     borderRadius: 5,
   },
@@ -193,13 +194,13 @@ const styles = StyleSheet.create({
     height: 85,
   },
   button: {
-    backgroundColor: '#2ecc71',
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   loginLink: {
-    color: '#2ecc71',
+    color: colors.primary,
     fontWeight: 'bold',
     textDecorationLine: 'underline',
   },
