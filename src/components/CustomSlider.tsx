@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { View, PanResponder, StyleSheet, LayoutChangeEvent } from 'react-native';
 import { CustomSliderProps } from '../types/components';
+import { colors } from '../styles/colors';
 
 const THUMB_SIZE = 22;
 
@@ -10,9 +11,9 @@ export function CustomSlider({
   step = 1,
   value,
   onValueChange,
-  minimumTrackTintColor = '#05A86B',
+  minimumTrackTintColor = colors.primary,
   maximumTrackTintColor = '#D1FAE5',
-  thumbTintColor = '#05A86B',
+  thumbTintColor = colors.primary,
 }: CustomSliderProps) {
   const [trackWidth, setTrackWidth] = useState(0);
   const trackWidthRef = useRef(0);

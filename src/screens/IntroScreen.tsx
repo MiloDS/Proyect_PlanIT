@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { StyleSheet, View, Text, Image, Pressable, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppStackParamList } from '../types/navigation';
 import { setOnboardingSeen } from '../utils/storage';
+import { colors } from '../styles/colors';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Intro">;
 
@@ -33,15 +35,7 @@ const slides = [
 
 type SlideItem = typeof slides [0];
 
-function Slide({item, index, activeIndex, onFinish, bottomInset}: {
-  item: SlideItem;
-  index: number;
-  activeIndex: number;
-  bottomInset: number;
-  onFinish: () => void;
-}) {
-  const isLast = index === slides.length - 1;
-
+function Slide({ item }: { item: SlideItem }) {
   return (
     <View style={{ width }}>
       <View style={styles.background}>
@@ -49,29 +43,8 @@ function Slide({item, index, activeIndex, onFinish, bottomInset}: {
         <Image source={item.image} style={styles.image} />
       </View>
 
-      <View style={[styles.card, { paddingBottom: bottomInset + 16 }]}>
+      <View style={styles.card}>
         <Text style={styles.text}>{item.text}</Text>
-
-        <View style={styles.dotsRow}>
-          {slides.map((_, i) => (
-            <View key={i} style={[styles.dot, i === activeIndex && styles.activeDot]} />
-          ))}
-        </View>
-
-        {isLast && (
-          <>
-            <Pressable style={styles.button} onPress={onFinish}>
-              <Text style={styles.buttonText}>Comenzar</Text>
-            </Pressable>
-
-            <Text style={styles.loginPrompt}>
-              ¿Ya tienes cuenta?{' '}
-              <Text style={styles.loginLink} onPress={onFinish}>
-                Inicia sesión
-              </Text>
-            </Text>
-          </>
-        )}
       </View>
     </View>
   );
@@ -79,6 +52,7 @@ function Slide({item, index, activeIndex, onFinish, bottomInset}: {
 
 export function IntroScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const flatListRef = useRef<FlatList>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -91,9 +65,13 @@ export function IntroScreen({ navigation }: Props) {
     navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
   };
 
+  const isLast = activeIndex === slides.length - 1;
+
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff'}}>
+    <View style={styles.container}>
+      <StatusBar style="dark" />
       <FlatList
+        ref={flatListRef}
         data={slides}
         horizontal
         pagingEnabled
@@ -101,23 +79,62 @@ export function IntroScreen({ navigation }: Props) {
         onScroll={handleScroll}
         scrollEventThrottle={16}
         keyExtractor={(item) => item.key}
-        renderItem={({ item, index }) => ( 
+        getItemLayout={(_, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
+        renderItem={({ item }) => ( 
           <Slide 
             item={item}
-            index={index}
-            activeIndex={activeIndex}
-            bottomInset={insets.bottom}
-            onFinish={handleFinishOnboarding}
           />
         )}
       />
+
+      {/* Indicadores de puntos y botones estáticos fuera del FlatList */}
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+        <View style={styles.dotsRow}>
+          {slides.map((_, i) => (
+            <Pressable
+              key={i}
+              onPress={() => flatListRef.current?.scrollToIndex({ index: i, animated: true })}
+              hitSlop={8}
+            >
+              <View style={[styles.dot, i === activeIndex && styles.activeDot]} />
+            </Pressable>
+          ))}
+        </View>
+
+        <View style={styles.actionContainer}>
+          {isLast ? (
+            <>
+              <Pressable style={styles.button} onPress={handleFinishOnboarding}>
+                <Text style={styles.buttonText}>Comenzar</Text>
+              </Pressable>
+
+              <Text style={styles.loginPrompt}>
+                ¿Ya tienes cuenta?{' '}
+                <Text style={styles.loginLink} onPress={handleFinishOnboarding}>
+                  Inicia sesión
+                </Text>
+              </Text>
+            </>
+          ) : (
+            <View style={styles.actionSpacer} />
+          )}
+        </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.white,
+  },
   background: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   title: {
     fontSize: 24,
@@ -134,7 +151,7 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     marginTop: -30,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -145,11 +162,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
     color: '#666',
+    lineHeight: 22,
+  },
+  footer: {
+    paddingHorizontal: 24,
+    backgroundColor: colors.white,
   },
   dotsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 18,
+    alignItems: 'center',
+    marginBottom: 16,
   },
   dot: {
     backgroundColor: '#ccc',
@@ -159,29 +182,36 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: '#2ecc71',
-    width: 20,
+    backgroundColor: colors.primary,
+    width: 22,
+    borderRadius: 5,
+  },
+  actionContainer: {
+    minHeight: 85,
+    justifyContent: 'center',
+  },
+  actionSpacer: {
+    height: 85,
   },
   button: {
-    backgroundColor: '#2ecc71',
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 20,
   },
   buttonText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: 16,
     fontWeight: 'bold',
   },
   loginPrompt: {
     textAlign: 'center',
-    marginTop: 14,
+    marginTop: 12,
     fontSize: 13,
     color: '#666',
   },
   loginLink: {
-    color: '#2ecc71',
+    color: colors.primary,
     fontWeight: 'bold',
     textDecorationLine: 'underline',
   },

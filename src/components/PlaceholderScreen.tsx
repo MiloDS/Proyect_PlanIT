@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from "react-native";
 import { PlaceholderScreenProps } from "../types/components";
-import { BottomNavBar } from "./BottomNavBar";
+import { colors } from "../styles/colors";
 
 export function PlaceholderScreen({
     title,
@@ -18,8 +18,7 @@ export function PlaceholderScreen({
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#FFFFFF",
-        marginTop: 50,
+        backgroundColor: colors.white,
     },
     content: {
         flex: 1,

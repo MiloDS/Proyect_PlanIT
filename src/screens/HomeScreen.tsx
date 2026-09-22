@@ -1,4 +1,6 @@
 import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, ChevronDown, Bell, Cloud, Sparkles } from 'lucide-react-native';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -6,6 +8,7 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { PlaceCard } from '../components/PlaceCard';
+import { colors } from '../styles/colors';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, "Home">,
@@ -34,11 +37,15 @@ const nearbyPlaces = [
 ];
 
 export function HomeScreen({ navigation }: Props) {
-
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <StatusBar style="dark" />
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.topBar}>
           <Pressable style={styles.locationRow}>
             <MapPin size={16} color="#1E293B" />
@@ -60,7 +67,7 @@ export function HomeScreen({ navigation }: Props) {
             <Text style={styles.weatherDescription}>Parcialmente nublado</Text>
             <Text style={styles.weatherMinMax}>Máx. 27°   Mín. 18°</Text>
           </View>
-          <Cloud size={40} color="#FFFFFF" />
+          <Cloud size={40} color={colors.white} />
         </View>
 
         <View style={styles.surpriseCard}>
@@ -82,7 +89,7 @@ export function HomeScreen({ navigation }: Props) {
             onPress={() => navigation.navigate('SurpriseMe')}
           >
             <Text style={styles.surpriseButtonText}>Sorpréndeme</Text>
-            <Sparkles size={16} color="#FFFFFF" />
+            <Sparkles size={16} color={colors.white} />
           </Pressable>
         </View>
 
@@ -106,8 +113,7 @@ export function HomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    marginTop: 50,
+    backgroundColor: colors.white,
   },
   scrollContent: {
     paddingHorizontal: 24,
@@ -153,11 +159,11 @@ const styles = StyleSheet.create({
   weatherTemp: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.white,
   },
   weatherDescription: {
     fontSize: 13,
-    color: '#FFFFFF',
+    color: colors.white,
     marginTop: 2,
   },
   weatherMinMax: {
@@ -196,7 +202,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   surpriseButton: {
-    backgroundColor: '#05A86B',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     paddingVertical: 12,
     flexDirection: 'row',
@@ -204,7 +210,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   surpriseButtonText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontWeight: '700',
     fontSize: 14,
     marginRight: 6,
@@ -223,7 +229,7 @@ const styles = StyleSheet.create({
   sectionLink: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#05A86B',
+    color: colors.primary,
   },
   placesRow: {
     paddingRight: 24,

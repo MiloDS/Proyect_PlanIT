@@ -1,6 +1,7 @@
 import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
 import { MapPin } from 'lucide-react-native';
 import { PlaceCardProps } from '../types/components';
+import { colors } from '../styles/colors';
 
 export function PlaceCard({ imageUrl, name, category, distanceKm, onPress }: PlaceCardProps) {
   return (
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
   },
   distance: {
     fontSize: 11,
-    color: '#05A86B',
+    color: colors.primary,
     fontWeight: '600',
     marginLeft: 3,
   },
