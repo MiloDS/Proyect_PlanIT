@@ -8,17 +8,14 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../types/navigation';
 import { colors } from '../styles/colors';
 
-type Props = NativeStackScreenProps<AppStackParamList, "SurpriseMe">;
-
-export interface SurpriseMeScreenProps {
-  onBack?: () => void;
+type Props = NativeStackScreenProps<AppStackParamList, "SurpriseMe"> & {
   onSubmit?: (preferences: any) => void;
-}
+};
 
 export function SurpriseMeScreen({
-  onBack,
+  navigation,
   onSubmit,
-}: SurpriseMeScreenProps) {
+}: Props) {
   const insets = useSafeAreaInsets();
 
   // TIPOS DE ACTIVIDAD
@@ -112,11 +109,7 @@ export function SurpriseMeScreen({
 
           {/* Botón volver */}
           <Pressable
-            onPress={
-              onBack ||
-              (() =>
-                console.log('Regresar'))
-            }
+            onPress={() => navigation.goBack()}
             style={({ pressed }) => [
               styles.backButton,
               { top: insets.top + 8 },
