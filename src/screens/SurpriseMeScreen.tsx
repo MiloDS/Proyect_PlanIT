@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Modal, } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CustomSlider } from '../components/CustomSlider';
 import { ChevronLeft, Signal, Wifi, Battery, Sparkles, MapPin, DollarSign, Users, RefreshCw, X, } from 'lucide-react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -17,6 +19,7 @@ export function SurpriseMeScreen({
   onBack,
   onSubmit,
 }: SurpriseMeScreenProps) {
+  const insets = useSafeAreaInsets();
 
   // TIPOS DE ACTIVIDAD
   const activityOptions = [
@@ -102,9 +105,10 @@ export function SurpriseMeScreen({
   return (
 
       <View style={styles.container}>
+        <StatusBar style="dark" />
 
         {/*HEADER*/}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
 
           {/* Botón volver */}
           <Pressable
@@ -115,6 +119,7 @@ export function SurpriseMeScreen({
             }
             style={({ pressed }) => [
               styles.backButton,
+              { top: insets.top + 8 },
               pressed && styles.backButtonPressed,
             ]}
           >
@@ -338,7 +343,7 @@ export function SurpriseMeScreen({
         </ScrollView>
 
         {/*BOTÓN INFERIOR*/}
-        <View style={styles.bottomAction}>
+        <View style={[styles.bottomAction, { paddingBottom: insets.bottom > 0 ? insets.bottom : 18 }]}>
 
           <Pressable
             onPress={handleVerRecomendaciones}
@@ -558,7 +563,6 @@ const styles = StyleSheet.create({
 
   /*HEADER*/
   header: {
-    paddingTop: 12,
     paddingBottom: 18,
     paddingHorizontal: 20,
     alignItems: 'center',
@@ -570,7 +574,6 @@ const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
     left: 20,
-    top: 10,
     width: 38,
     height: 38,
     borderRadius: 19,
