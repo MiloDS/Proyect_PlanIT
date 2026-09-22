@@ -1,7 +1,6 @@
-import { AppStackParamList } from '../types/navigation';
-import { TabName } from '../types/components';
+import { MainTabParamList } from '../types/navigation';
  
-export const TAB_TO_ROUTE: Record<TabName, keyof AppStackParamList> = {
+export const TAB_TO_ROUTE: Record<string, keyof MainTabParamList> = {
   Inicio: 'Home',
   Buscar: 'Search',
   Planes: 'Plans',

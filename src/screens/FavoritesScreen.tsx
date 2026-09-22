@@ -1,19 +1,9 @@
-import { useState } from 'react';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AppStackParamList } from '../types/navigation';
-import { TabName } from '../types/components';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { MainTabParamList } from '../types/navigation';
 import { PlaceholderScreen } from '../components/PlaceholderScreen';
-import { TAB_TO_ROUTE } from '../utils/navigation';
 
-type Props = NativeStackScreenProps<AppStackParamList, "Favorites">;
+type Props = BottomTabScreenProps<MainTabParamList, "Favorites">;
 
 export function FavoritesScreen({ navigation }: Props) {
-  const [activeTab, setActiveTab] = useState<TabName>('Favoritos');
-
-  const handleTabPress = (tab: TabName) => {
-    setActiveTab(tab);
-    navigation.navigate(TAB_TO_ROUTE[tab]);
-  };
-
-  return <PlaceholderScreen title="Favoritos" activeTab={activeTab} onTabPress={handleTabPress} />;
+  return <PlaceholderScreen title="Favoritos" />;
 }

@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Image, Alert, } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, CreditCard, Bell, Globe, HelpCircle, LogOut, ChevronRight, Pencil, Signal, Wifi, Battery } from 'lucide-react-native';
 
 import { CompositeScreenProps } from '@react-navigation/native';
@@ -71,6 +73,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
 };
 
 export function ProfileScreen({ navigation }: Props)  {
+  const insets = useSafeAreaInsets();
 
   const handleNavigation = (screenName: string) => {
     
@@ -101,12 +104,11 @@ export function ProfileScreen({ navigation }: Props)  {
 };
 
   return (
-
       <View style={styles.container}>
+        <StatusBar style="light" />
 
         {/* ENCABEZADO DEL PERFIL */}
-
-        <View style={styles.profileHeader}>
+        <View style={[styles.profileHeader, { paddingTop: insets.top + 16 }]}>
 
           {/* Avatar */}
           <View style={styles.avatarContainer}>
@@ -246,7 +248,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#05A86B',
-    marginTop: 50,
   },
 
   /* ---------- Barra de estado ---------- */
@@ -276,10 +277,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#05A86B',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 12,
     paddingBottom: 30,
     paddingHorizontal: 24,
-    marginTop: 25,
   },
 
   avatarContainer: {
