@@ -9,6 +9,7 @@ export type CustomInputFieldProps = {
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   autoCorrect?: boolean;
+  error?: string;
 };
 
 export type SocialButtonProps = {
