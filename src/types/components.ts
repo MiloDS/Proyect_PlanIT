@@ -17,3 +17,26 @@ export type SocialButtonProps = {
   label: string;
   onPress: () => void;
 };
+
+export type PlaceCardProps = {
+  imageUrl: string;
+  name: string;
+  category: string;
+  distanceKm: number;
+  onPress?: () => void;
+};
+
+export type CustomSliderProps = {
+  minimumValue: number;
+  maximumValue: number;
+  step?: number;
+  value: number;
+  onValueChange: (value: number) => void;
+  minimumTrackTintColor?: string;
+  maximumTrackTintColor?: string;
+  thumbTintColor?: string;
+};
+
+export type PlaceholderScreenProps = {
+  title: string;
+};

@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Image, Alert, } from 'react-native';
-import { User, CreditCard, Bell, Globe, HelpCircle, LogOut, ChevronRight, Pencil, Home, Search, Calendar, Heart, Signal, Wifi, Battery, } from 'lucide-react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AppStackParamList } from '../types/navigation';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { User, CreditCard, Bell, Globe, HelpCircle, LogOut, ChevronRight, Pencil, Signal, Wifi, Battery } from 'lucide-react-native';
 
-type Props = NativeStackScreenProps<AppStackParamList, "Profile">;
+import { CompositeScreenProps } from '@react-navigation/native';
+import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { AppStackParamList, MainTabParamList } from '../types/navigation';
+
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, "Profile">,
+  NativeStackScreenProps<AppStackParamList>
+>;
 
 interface MenuItemProps {
   icon: React.ReactNode;
@@ -65,9 +73,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
 };
 
 export function ProfileScreen({ navigation }: Props)  {
-  const [activeTab, setActiveTab] = useState<
-    'Inicio' | 'Buscar' | 'Planes' | 'Favoritos' | 'Perfil'
-  >('Perfil');
+  const insets = useSafeAreaInsets();
 
   const handleNavigation = (screenName: string) => {
     
@@ -88,7 +94,9 @@ export function ProfileScreen({ navigation }: Props)  {
         style: 'destructive',
         onPress: () => {
           console.log('Sesión cerrada');
-          navigation.replace('Login');
+          navigation
+            .getParent<NativeStackNavigationProp<AppStackParamList>>()
+            ?.reset({ index: 0, routes: [{ name: 'Login' }] });
         },
       },
     ]
@@ -96,12 +104,11 @@ export function ProfileScreen({ navigation }: Props)  {
 };
 
   return (
-
       <View style={styles.container}>
+        <StatusBar style="light" />
 
         {/* ENCABEZADO DEL PERFIL */}
-
-        <View style={styles.profileHeader}>
+        <View style={[styles.profileHeader, { paddingTop: insets.top + 16 }]}>
 
           {/* Avatar */}
           <View style={styles.avatarContainer}>
@@ -226,157 +233,6 @@ export function ProfileScreen({ navigation }: Props)  {
 
           </ScrollView>
         </View>
-
-        {/*BARRA DE NAVEGACIÓN INFERIOR */}
-        <View style={styles.bottomNavigation}>
-
-          {/* Inicio */}
-          <Pressable
-            onPress={() => {
-              setActiveTab('Inicio');
-              handleNavigation('Inicio');
-            }}
-            style={styles.navButton}
-          >
-            <Home
-              size={21}
-              color={
-                activeTab === 'Inicio'
-                  ? '#05A86B'
-                  : '#94A3B8'
-              }
-            />
-
-            <Text
-              style={[
-                styles.navText,
-                activeTab === 'Inicio'
-                  ? styles.navTextActive
-                  : styles.navTextInactive,
-              ]}
-            >
-              Inicio
-            </Text>
-          </Pressable>
-
-          {/* Buscar */}
-          <Pressable
-            onPress={() => {
-              setActiveTab('Buscar');
-              handleNavigation('Buscar');
-            }}
-            style={styles.navButton}
-          >
-            <Search
-              size={21}
-              color={
-                activeTab === 'Buscar'
-                  ? '#05A86B'
-                  : '#94A3B8'
-              }
-            />
-
-            <Text
-              style={[
-                styles.navText,
-                activeTab === 'Buscar'
-                  ? styles.navTextActive
-                  : styles.navTextInactive,
-              ]}
-            >
-              Buscar
-            </Text>
-          </Pressable>
-
-          {/* Planes */}
-          <Pressable
-            onPress={() => {
-              setActiveTab('Planes');
-              handleNavigation('Planes');
-            }}
-            style={styles.navButton}
-          >
-            <Calendar
-              size={21}
-              color={
-                activeTab === 'Planes'
-                  ? '#05A86B'
-                  : '#94A3B8'
-              }
-            />
-
-            <Text
-              style={[
-                styles.navText,
-                activeTab === 'Planes'
-                  ? styles.navTextActive
-                  : styles.navTextInactive,
-              ]}
-            >
-              Planes
-            </Text>
-          </Pressable>
-
-          {/* Favoritos */}
-          <Pressable
-            onPress={() => {
-              setActiveTab('Favoritos');
-              handleNavigation('Favoritos');
-            }}
-            style={styles.navButton}
-          >
-            <Heart
-              size={21}
-              color={
-                activeTab === 'Favoritos'
-                  ? '#05A86B'
-                  : '#94A3B8'
-              }
-            />
-
-            <Text
-              style={[
-                styles.navText,
-                activeTab === 'Favoritos'
-                  ? styles.navTextActive
-                  : styles.navTextInactive,
-              ]}
-            >
-              Favoritos
-            </Text>
-          </Pressable>
-
-          {/* Perfil */}
-          <Pressable
-            onPress={() => {
-              setActiveTab('Perfil');
-              handleNavigation('Perfil');
-            }}
-            style={styles.navButton}
-          >
-            <User
-              size={21}
-              color={
-                activeTab === 'Perfil'
-                  ? '#05A86B'
-                  : '#94A3B8'
-              }
-            />
-
-            <Text
-              style={[
-                styles.navText,
-                activeTab === 'Perfil'
-                  ? styles.navTextActive
-                  : styles.navTextInactive,
-              ]}
-            >
-              Perfil
-            </Text>
-          </Pressable>
-
-        </View>
-
       </View>
   );
 }
@@ -421,7 +277,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#05A86B',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 12,
     paddingBottom: 30,
     paddingHorizontal: 24,
   },
@@ -552,48 +407,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginRight: 5,
     fontWeight: '400',
-  },
-
-  /* ---------- Navegación inferior ---------- */
-  bottomNavigation: {
-    height: 70,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-
-    elevation: 8,
-
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-  },
-
-  navButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 5,
-  },
-
-  navText: {
-    fontSize: 10,
-    marginTop: 4,
-  },
-
-  navTextActive: {
-    color: '#05A86B',
-    fontWeight: '700',
-  },
-
-  navTextInactive: {
-    color: '#94A3B8',
-    fontWeight: '500',
   },
 });
