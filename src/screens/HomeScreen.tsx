@@ -10,6 +10,7 @@ import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { PlaceCard } from '../components/PlaceCard';
 import { Button } from '../components/Button';
 import { colors } from '../styles/colors';
+import { globalStyles } from '../styles/globalStyles';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, "Home">,
@@ -41,7 +42,7 @@ export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
+    <View style={globalStyles.screen}>
       <StatusBar style="dark" />
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
@@ -112,10 +113,6 @@ export function HomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 16,
