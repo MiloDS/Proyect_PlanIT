@@ -1,6 +1,7 @@
 export type AppStackParamList = {
   Intro: undefined;
   Login: undefined;
+  Register: undefined;
   MainTabs: undefined;
   SurpriseMe: undefined;
 };

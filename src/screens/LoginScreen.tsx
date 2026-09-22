@@ -1,4 +1,4 @@
-import {StyleSheet, View, Text, Pressable, KeyboardAvoidingView, Platform, ScrollView, Alert} from 'react-native'
+import {StyleSheet, View, Text, Pressable, KeyboardAvoidingView, Platform, ScrollView} from 'react-native'
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {useState} from 'react'
 
@@ -7,17 +7,32 @@ import { InputField } from '../components/InputField'
 import { SocialButton } from '../components/SocialButton';
 import { saveUserSession } from '../utils/storage';
 import { colors } from '../styles/colors';
+import { isValidEmail, isEmpty } from '../utils/validation';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Login">;
 
 export function LoginScreen ({ navigation }: Props) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    
+    const [emailError, setEmailError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+
     const handleLogin = async () => {
-      if (email.trim() === '' || password.trim() === '') {
-        return Alert.alert('Campos obligatorios');
+      const nextEmailError = isEmpty(email)
+        ? 'El correo es obligatorio'
+        : !isValidEmail(email)
+        ? 'Ingresa un correo válido (ejemplo@dominio.com)'
+        : '';
+
+      const nextPasswordError = isEmpty(password) ? 'La contraseña es obligatoria' : '';
+
+      setEmailError(nextEmailError);
+      setPasswordError(nextPasswordError);
+
+      if (nextEmailError || nextPasswordError) {
+        return;
       }
+
       await saveUserSession(email);
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     };
@@ -52,10 +67,11 @@ export function LoginScreen ({ navigation }: Props) {
                   <InputField
                     placeholder="ejemplo@correo.com"
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={(text) => { setEmail(text); setEmailError(''); }}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
+                    error={emailError}
                     />
 
                 <Text style={styles.label}>Contraseña</Text>
@@ -63,10 +79,11 @@ export function LoginScreen ({ navigation }: Props) {
                     <InputField
                       placeholder="········"
                       value={password}
-                      onChangeText={setPassword}
+                      onChangeText={(text) => { setPassword(text); setPasswordError(''); }}
                       secureTextEntry
                       autoCapitalize="none"
                       autoCorrect={false}
+                      error={passwordError}
                       />
                 </View>
 
@@ -74,13 +91,16 @@ export function LoginScreen ({ navigation }: Props) {
                     <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
                 </Pressable>
 
-                <Pressable style={styles.loginButton} onPress={handleLogin}>
+                <Pressable
+                    style={({ pressed }) => [styles.loginButton, pressed && styles.loginButtonPressed]}
+                    onPress={handleLogin}
+                >
                     <Text style={styles.loginButtonText}>Iniciar sesión</Text>
                 </Pressable>
 
                 <Text style={styles.registerPrompt}>
                     ¿No tienes cuenta?{' '}
-                    <Text style={styles.registerLink} onPress={() => navigation.navigate('MainTabs')}>
+                    <Text style={styles.registerLink} onPress={() => navigation.navigate('Register')}>
                         Regístrate
                     </Text>
                 </Text>
@@ -143,6 +163,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
+  },
+  loginButtonPressed: {
+    opacity: 0.7,
   },
   loginButtonText: {
     color: colors.white,
