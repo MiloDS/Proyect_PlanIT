@@ -5,6 +5,7 @@ import {useState} from 'react'
 import { AppStackParamList } from '../types/navigation';
 import { InputField } from '../components/InputField'
 import { SocialButton } from '../components/SocialButton';
+import { Button } from '../components/Button';
 import { saveUserSession } from '../utils/storage';
 import { colors } from '../styles/colors';
 import { isValidEmail, isEmpty } from '../utils/validation';
@@ -91,12 +92,9 @@ export function LoginScreen ({ navigation }: Props) {
                     <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
                 </Pressable>
 
-                <Pressable
-                    style={({ pressed }) => [styles.loginButton, pressed && styles.loginButtonPressed]}
-                    onPress={handleLogin}
-                >
+                <Button style={styles.loginButton} onPress={handleLogin}>
                     <Text style={styles.loginButtonText}>Iniciar sesión</Text>
-                </Pressable>
+                </Button>
 
                 <Text style={styles.registerPrompt}>
                     ¿No tienes cuenta?{' '}
@@ -163,9 +161,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-  },
-  loginButtonPressed: {
-    opacity: 0.7,
   },
   loginButtonText: {
     color: colors.white,
