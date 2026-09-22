@@ -8,6 +8,7 @@ import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { HomeScreen } from '../screens/HomeScreen';
 import { IntroScreen } from '../screens/IntroScreen';
 import { LoginScreen } from '../screens/LoginScreen';
+import { RegisterScreen } from '../screens/RegisterScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { SurpriseMeScreen } from '../screens/SurpriseMeScreen';
 import { SearchScreen } from '../screens/SearchScreen';
@@ -15,6 +16,7 @@ import { PlansScreen } from '../screens/PlansScreen';
 import { FavoritesScreen } from '../screens/FavoritesScreen';
 import { BottomNavBar } from '../components/BottomNavBar';
 import { hasSeenOnboarding, getUserSession } from '../utils/storage';
+import { colors } from '../styles/colors';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -53,7 +55,7 @@ export function AppNavigator() {
   if (initialRoute == null) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center'}} >
-        <ActivityIndicator size="large" color= "#2ecc71"/>
+        <ActivityIndicator size="large" color={colors.primary}/>
       </View>
     );
   }
@@ -62,6 +64,7 @@ export function AppNavigator() {
       <Stack.Navigator initialRouteName="Intro" screenOptions={{headerShown: false}}>
         <Stack.Screen name="Intro" component={IntroScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="SurpriseMe" component={SurpriseMeScreen} />
       </Stack.Navigator>

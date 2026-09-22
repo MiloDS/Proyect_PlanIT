@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { View, TextInput, StyleSheet, Pressable } from "react-native";
+import { View, TextInput, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { CustomInputFieldProps } from "../types/components";
+import { Button } from "./Button";
+import { colors } from "../styles/colors";
 
-export function InputField({ placeholder, value, onChangeText, secureTextEntry, keyboardType, autoCapitalize, autoCorrect }: CustomInputFieldProps) {
+export function InputField({ placeholder, value, onChangeText, secureTextEntry, keyboardType, autoCapitalize, autoCorrect, error }: CustomInputFieldProps) {
     
   const [hidePassword, setHidePassword] = useState(secureTextEntry ?? false);
   const isPassword = secureTextEntry;
@@ -17,16 +19,17 @@ export function InputField({ placeholder, value, onChangeText, secureTextEntry, 
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={isPassword ? hidePassword : false}
-        style={styles.input}
+        style={[styles.input, error && styles.inputError]}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         autoCorrect={autoCorrect}
       />
       {isPassword && (
-        <Pressable onPress={() => setHidePassword(!hidePassword)} style={styles.icon}>
+        <Button onPress={() => setHidePassword(!hidePassword)} style={styles.icon}>
           <Ionicons name={hidePassword ? "eye-off" : "eye"} size={22} color="#64748B" />
-        </Pressable>
+        </Button>
       )}
+      {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
 }
@@ -43,6 +46,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff8f8ee",
     color: "#000000ee",
     fontSize: 16,
+  },
+  inputError: {
+    borderColor: colors.danger,
+  },
+  errorText: {
+    color: colors.danger,
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
   },
   icon: {
     position: "absolute",

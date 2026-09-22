@@ -6,18 +6,16 @@ import { CustomSlider } from '../components/CustomSlider';
 import { ChevronLeft, Signal, Wifi, Battery, Sparkles, MapPin, DollarSign, Users, RefreshCw, X, } from 'lucide-react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../types/navigation';
+import { colors } from '../styles/colors';
 
-type Props = NativeStackScreenProps<AppStackParamList, "SurpriseMe">;
-
-export interface SurpriseMeScreenProps {
-  onBack?: () => void;
+type Props = NativeStackScreenProps<AppStackParamList, "SurpriseMe"> & {
   onSubmit?: (preferences: any) => void;
-}
+};
 
 export function SurpriseMeScreen({
-  onBack,
+  navigation,
   onSubmit,
-}: SurpriseMeScreenProps) {
+}: Props) {
   const insets = useSafeAreaInsets();
 
   // TIPOS DE ACTIVIDAD
@@ -111,11 +109,7 @@ export function SurpriseMeScreen({
 
           {/* Botón volver */}
           <Pressable
-            onPress={
-              onBack ||
-              (() =>
-                console.log('Regresar'))
-            }
+            onPress={() => navigation.goBack()}
             style={({ pressed }) => [
               styles.backButton,
               { top: insets.top + 8 },
@@ -268,9 +262,9 @@ export function SurpriseMeScreen({
                 onValueChange={(value) =>
                   setMaxDistance(Math.round(value))
                 }
-                minimumTrackTintColor="#05A86B"
-                maximumTrackTintColor="#D1FAE5"
-                thumbTintColor="#05A86B"
+                minimumTrackTintColor={colors.primary}
+                maximumTrackTintColor={colors.primaryLight}
+                thumbTintColor={colors.primary}
               />
 
               <View style={styles.sliderLabels}>
@@ -355,7 +349,7 @@ export function SurpriseMeScreen({
 
             <Sparkles
               size={18}
-              color="#FFFFFF"
+              color={colors.white}
             />
 
             <Text style={styles.recommendButtonText}>
@@ -405,7 +399,7 @@ export function SurpriseMeScreen({
 
                   <Sparkles
                     size={25}
-                    color="#05A86B"
+                    color={colors.primary}
                   />
                 </View>
 
@@ -527,14 +521,11 @@ export function SurpriseMeScreen({
 /*----------ESTILOS------------*/
 const styles = StyleSheet.create({
 
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
+    marginTop: 50,
+    marginBottom: 50,
   },
 
   /*BARRA DE ESTADO*/
@@ -649,10 +640,10 @@ const styles = StyleSheet.create({
 
   /*BOTONES SELECCIONADOS*/
   selectedButton: {
-    backgroundColor: '#05A86B',
+    backgroundColor: colors.primary,
     elevation: 3,
 
-    shadowColor: '#05A86B',
+    shadowColor: colors.primary,
     shadowOffset: {
       width: 0,
       height: 3,
@@ -662,13 +653,13 @@ const styles = StyleSheet.create({
   },
 
   unselectedButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
 
   selectedButtonText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -747,7 +738,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
 
@@ -764,7 +755,7 @@ const styles = StyleSheet.create({
 
   recommendButton: {
     height: 52,
-    backgroundColor: '#05A86B',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -773,7 +764,7 @@ const styles = StyleSheet.create({
 
     elevation: 4,
 
-    shadowColor: '#05A86B',
+    shadowColor: colors.primary,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -788,7 +779,7 @@ const styles = StyleSheet.create({
   },
 
   recommendButtonText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontSize: 14,
     fontWeight: '700',
   },
@@ -801,7 +792,7 @@ const styles = StyleSheet.create({
   },
 
   modalContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     paddingHorizontal: 24,
@@ -889,7 +880,7 @@ const styles = StyleSheet.create({
   },
 
   activityBadgeText: {
-    color: '#05A86B',
+    color: colors.primary,
     fontSize: 9,
     fontWeight: '700',
   },
@@ -939,14 +930,14 @@ const styles = StyleSheet.create({
 
   exploreButton: {
     height: 50,
-    backgroundColor: '#05A86B',
+    backgroundColor: colors.primary,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
 
     elevation: 3,
 
-    shadowColor: '#05A86B',
+    shadowColor: colors.primary,
     shadowOffset: {
       width: 0,
       height: 3,
@@ -956,7 +947,7 @@ const styles = StyleSheet.create({
   },
 
   exploreButtonText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontSize: 12,
     fontWeight: '700',
   },

@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet } from "react-native";
 import { PlaceholderScreenProps } from "../types/components";
-import { BottomNavBar } from "./BottomNavBar";
+import { globalStyles } from "../styles/globalStyles";
 
 export function PlaceholderScreen({
     title,
 }: PlaceholderScreenProps) {
     return (
-        <View style={styles.container}>
+        <View style={globalStyles.screen}>
             <View style={styles.content}>
                 <Text style={styles.title}>{title}</Text>
                 <Text style={styles.subtitle}>Próximamente</Text>
@@ -16,10 +16,6 @@ export function PlaceholderScreen({
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#FFFFFF",
-    },
     content: {
         flex: 1,
         justifyContent: "center",

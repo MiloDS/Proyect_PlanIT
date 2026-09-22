@@ -8,8 +8,9 @@ import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
+import { colors } from '../styles/colors';
 
-type Props = CompositeScreenProps<
+type Props = CompositeScreenProps <
   BottomTabScreenProps<MainTabParamList, "Profile">,
   NativeStackScreenProps<AppStackParamList>
 >;
@@ -135,7 +136,7 @@ export function ProfileScreen({ navigation }: Props)  {
             >
               <Pencil
                 size={17}
-                color="#FFFFFF"
+                color={colors.white}
               />
             </Pressable>
           </View>
@@ -247,7 +248,7 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#05A86B',
+    backgroundColor: colors.primary,
   },
 
   /* ---------- Barra de estado ---------- */
@@ -257,11 +258,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#05A86B',
+    backgroundColor: colors.primary,
   },
 
   statusTime: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
 
   /* ---------- Perfil ---------- */
   profileHeader: {
-    backgroundColor: '#05A86B',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     paddingBottom: 30,
@@ -286,7 +287,7 @@ const styles = StyleSheet.create({
     height: 96,
     borderRadius: 48,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: colors.white,
     overflow: 'hidden',
     marginBottom: 12,
     backgroundColor: '#048A58',
@@ -316,7 +317,7 @@ const styles = StyleSheet.create({
   },
 
   userName: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontSize: 21,
     fontWeight: '700',
   },
@@ -340,7 +341,7 @@ const styles = StyleSheet.create({
   /* ---------- Contenido ---------- */
   contentContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     marginTop: -16,

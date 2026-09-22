@@ -1,8 +1,10 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Home, Search, Calendar, Heart, User } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MainTabParamList } from "../types/navigation";
+import { colors } from '../styles/colors';
+import { Button } from './Button';
 
 const TAB_ICONS: Record<keyof MainTabParamList, typeof Home> = {
     Home,
@@ -42,8 +44,8 @@ export function BottomNavBar({
                 };
 
                 return (
-                    <Pressable key={route.key} onPress={onPress} style={styles.navButton}>
-                        <Icon size={21} color={isFocused ? "#05A86B" : "#94A3B8"} />
+                    <Button key={route.key} onPress={onPress} style={styles.navButton}>
+                        <Icon size={21} color={isFocused ? colors.primary : "#94A3B8"} />
                         <Text
                             style={[
                                 styles.navText,
@@ -52,7 +54,7 @@ export function BottomNavBar({
                         >
                             {label}
                         </Text>
-                    </Pressable>
+                    </Button>
                 );
             })}
         </View>
@@ -61,7 +63,7 @@ export function BottomNavBar({
 
 const styles = StyleSheet.create({
     bottomNavigation: {
-        backgroundColor: "#FFFFFF",
+        backgroundColor: colors.white,
         borderTopWidth: 1,
         borderTopColor: "#F1F5F9",
         flexDirection: "row",
@@ -85,7 +87,7 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     navTextActive: {
-        color: "#05A86B",
+        color: colors.primary,
         fontWeight: "700",
     },
     navTextInactive: {
