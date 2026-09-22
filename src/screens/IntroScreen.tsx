@@ -8,6 +8,7 @@ import { AppStackParamList } from '../types/navigation';
 import { setOnboardingSeen } from '../utils/storage';
 import { colors } from '../styles/colors';
 import { Button } from '../components/Button';
+import { globalStyles } from '../styles/globalStyles';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Intro">;
 
@@ -69,7 +70,7 @@ export function IntroScreen({ navigation }: Props) {
   const isLast = activeIndex === slides.length - 1;
 
   return (
-    <View style={styles.container}>
+    <View style={globalStyles.screen}>
       <StatusBar style="dark" />
       <FlatList
         ref={flatListRef}
@@ -130,10 +131,6 @@ export function IntroScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
   background: {
     backgroundColor: colors.white,
   },
