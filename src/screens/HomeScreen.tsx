@@ -1,4 +1,6 @@
 import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, ChevronDown, Bell, Cloud, Sparkles } from 'lucide-react-native';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -34,11 +36,15 @@ const nearbyPlaces = [
 ];
 
 export function HomeScreen({ navigation }: Props) {
-
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <StatusBar style="dark" />
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.topBar}>
           <Pressable style={styles.locationRow}>
             <MapPin size={16} color="#1E293B" />
@@ -107,7 +113,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    marginTop: 50,
   },
   scrollContent: {
     paddingHorizontal: 24,
