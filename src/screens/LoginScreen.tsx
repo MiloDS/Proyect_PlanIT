@@ -91,7 +91,10 @@ export function LoginScreen ({ navigation }: Props) {
                     <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
                 </Pressable>
 
-                <Pressable style={styles.loginButton} onPress={handleLogin}>
+                <Pressable
+                    style={({ pressed }) => [styles.loginButton, pressed && styles.loginButtonPressed]}
+                    onPress={handleLogin}
+                >
                     <Text style={styles.loginButtonText}>Iniciar sesión</Text>
                 </Pressable>
 
@@ -160,6 +163,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
+  },
+  loginButtonPressed: {
+    opacity: 0.7,
   },
   loginButtonText: {
     color: colors.white,
