@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { View, TextInput, Text, StyleSheet, Pressable } from "react-native";
+import { View, TextInput, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { CustomInputFieldProps } from "../types/components";
+import { Button } from "./Button";
 import { colors } from "../styles/colors";
 
 export function InputField({ placeholder, value, onChangeText, secureTextEntry, keyboardType, autoCapitalize, autoCorrect, error }: CustomInputFieldProps) {
@@ -24,9 +25,9 @@ export function InputField({ placeholder, value, onChangeText, secureTextEntry, 
         autoCorrect={autoCorrect}
       />
       {isPassword && (
-        <Pressable onPress={() => setHidePassword(!hidePassword)} style={styles.icon}>
+        <Button onPress={() => setHidePassword(!hidePassword)} style={styles.icon}>
           <Ionicons name={hidePassword ? "eye-off" : "eye"} size={22} color="#64748B" />
-        </Pressable>
+        </Button>
       )}
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>

@@ -1,9 +1,10 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Home, Search, Calendar, Heart, User } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MainTabParamList } from "../types/navigation";
 import { colors } from '../styles/colors';
+import { Button } from './Button';
 
 const TAB_ICONS: Record<keyof MainTabParamList, typeof Home> = {
     Home,
@@ -43,7 +44,7 @@ export function BottomNavBar({
                 };
 
                 return (
-                    <Pressable key={route.key} onPress={onPress} style={styles.navButton}>
+                    <Button key={route.key} onPress={onPress} style={styles.navButton}>
                         <Icon size={21} color={isFocused ? colors.primary : "#94A3B8"} />
                         <Text
                             style={[
@@ -53,7 +54,7 @@ export function BottomNavBar({
                         >
                             {label}
                         </Text>
-                    </Pressable>
+                    </Button>
                 );
             })}
         </View>

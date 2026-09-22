@@ -7,6 +7,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AppStackParamList } from '../types/navigation';
 import { setOnboardingSeen } from '../utils/storage';
 import { colors } from '../styles/colors';
+import { Button } from '../components/Button';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Intro">;
 
@@ -108,9 +109,9 @@ export function IntroScreen({ navigation }: Props) {
         <View style={styles.actionContainer}>
           {isLast ? (
             <>
-              <Pressable style={styles.button} onPress={handleFinishOnboarding}>
+              <Button style={styles.button} onPress={handleFinishOnboarding}>
                 <Text style={styles.buttonText}>Comenzar</Text>
-              </Pressable>
+              </Button>
 
               <Text style={styles.loginPrompt}>
                 ¿Ya tienes cuenta?{' '}

@@ -8,6 +8,7 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { PlaceCard } from '../components/PlaceCard';
+import { Button } from '../components/Button';
 import { colors } from '../styles/colors';
 
 type Props = CompositeScreenProps<
@@ -84,13 +85,13 @@ export function HomeScreen({ navigation }: Props) {
             </View>
           </View>
 
-          <Pressable
+          <Button
             style={styles.surpriseButton}
             onPress={() => navigation.navigate('SurpriseMe')}
           >
             <Text style={styles.surpriseButtonText}>Sorpréndeme</Text>
             <Sparkles size={16} color={colors.white} />
-          </Pressable>
+          </Button>
         </View>
 
         <View style={styles.sectionHeader}>

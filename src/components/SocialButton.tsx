@@ -1,14 +1,15 @@
-import { Pressable, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { SocialButtonProps } from '../types/components';
+import { Button } from './Button';
 
 export function SocialButton({ iconName, iconColor, label, onPress }: SocialButtonProps) {
   return (
-    <Pressable style={styles.button} onPress={onPress}>
+    <Button style={styles.button} onPress={onPress}>
       <Ionicons name={iconName} size={20} color={iconColor} />
       <Text style={styles.text}>{label}</Text>
-    </Pressable>
+    </Button>
   );
 }
 
