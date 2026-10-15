@@ -1,6 +1,6 @@
 // Edge Function de Supabase: lugares cercanos con Google Places API (New).
 // La API key vive en los secretos de Supabase (GOOGLE_PLACES_API_KEY), nunca en la app.
-// Supabase exige el JWT del usuario para invocarla, así que solo la usan personas con sesión.
+// Solo responde a usuarios con sesión iniciada (ver isSignedIn).
 
 const SEARCH_NEARBY_URL = 'https://places.googleapis.com/v1/places:searchNearby';
 const FIELD_MASK = [
@@ -51,6 +51,24 @@ function isCoordinate(value: unknown, limit: number): value is number {
   return typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= limit;
 }
 
+// "Verify JWT" también deja pasar la clave pública de la app (rol anónimo), que cualquiera
+// puede extraer del APK. Auth solo devuelve un usuario si el token es de una sesión real.
+async function isSignedIn(req: Request): Promise<boolean> {
+  const authorization = req.headers.get('Authorization');
+  if (!authorization?.startsWith('Bearer ')) return false;
+
+  const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/auth/v1/user`, {
+    headers: {
+      Authorization: authorization,
+      apikey: req.headers.get('apikey') ?? Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    },
+  });
+  if (!response.ok) return false;
+
+  const user = await response.json();
+  return typeof user?.id === 'string';
+}
+
 // skipHttpRedirect devuelve la URL pública de la imagen en lugar de la imagen,
 // así la app puede mostrarla sin conocer la API key
 async function getPhotoUrl(photoName: string, apiKey: string): Promise<string | null> {
@@ -86,6 +104,10 @@ async function toPlace(
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return json({ error: 'Método no permitido' }, 405);
+  }
+
+  if (!(await isSignedIn(req))) {
+    return json({ error: 'Inicia sesión para buscar lugares' }, 401);
   }
 
   const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
