@@ -25,13 +25,12 @@ PlanIt/
 ├── assets/                 # Illustrations, icons, splash screen
 ├── src/
 │   ├── components/         # Reusable components (Button, InputField, BottomNavBar...)
-│   ├── context/            # AuthContext: Supabase session available to the whole app
 │   ├── navigation/         # React Navigation setup
 │   ├── screens/            # App screens
-│   ├── services/           # AuthService (Supabase Auth)
+│   ├── services/           # Supabase Auth: AuthService, AuthContext (session) and useGoogleSignIn
 │   ├── styles/             # Colors and global styles
 │   ├── types/              # Shared types (navigation, component props, auth)
-│   └── utils/              # Utilities (Supabase client, validation, AsyncStorage, user data)
+│   └── utils/              # Utilities (Supabase client, validation, AsyncStorage, user data, sample data)
 ├── supabase/migrations/    # Database schema and Row Level Security policies
 ├── .env.example            # Environment variables template
 ├── App.tsx
@@ -162,13 +161,12 @@ PlanIt/
 ├── assets/                 # Ilustraciones, íconos y splash screen
 ├── src/
 │   ├── components/         # Componentes reutilizables (Button, InputField, BottomNavBar...)
-│   ├── context/            # AuthContext: sesión de Supabase disponible en toda la app
 │   ├── navigation/         # Configuración de React Navigation
 │   ├── screens/            # Pantallas de la app
-│   ├── services/           # AuthService (Supabase Auth)
+│   ├── services/           # Supabase Auth: AuthService, AuthContext (sesión) y useGoogleSignIn
 │   ├── styles/             # Colores y estilos globales
 │   ├── types/              # Tipos compartidos (navegación, props de componentes, auth)
-│   └── utils/              # Utilidades (cliente de Supabase, validación, AsyncStorage, datos del usuario)
+│   └── utils/              # Utilidades (cliente de Supabase, validación, AsyncStorage, datos del usuario y de ejemplo)
 ├── supabase/migrations/    # Esquema de la base de datos y políticas de Row Level Security
 ├── .env.example            # Plantilla de variables de entorno
 ├── App.tsx

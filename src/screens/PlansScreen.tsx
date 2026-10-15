@@ -7,7 +7,7 @@ import { Plus } from 'lucide-react-native';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { Button } from '../components/Button';
-import { UPCOMING_PLANS, PAST_PLANS } from '../data/mockData';
+import { UPCOMING_PLANS, PAST_PLANS } from '../utils/mockData';
 
 export function PlansScreen() {
   const insets = useSafeAreaInsets();

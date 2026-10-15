@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, CreditCard, Bell, Globe, HelpCircle, LogOut, ChevronRight, Pencil } from 'lucide-react-native';
 
 import { colors } from '../styles/colors';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../services/AuthContext';
 import { AuthService } from '../services/authService';
 import { getAvatarUrl, getFullName } from '../utils/user';
 

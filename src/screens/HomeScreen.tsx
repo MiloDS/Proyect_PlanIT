@@ -11,9 +11,9 @@ import { PlaceCard } from '../components/PlaceCard';
 import { Button } from '../components/Button';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../services/AuthContext';
 import { getFirstName } from '../utils/user';
-import { NEARBY_PLACES } from '../data/mockData';
+import { NEARBY_PLACES } from '../utils/mockData';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, "Home">,

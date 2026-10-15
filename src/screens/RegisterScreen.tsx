@@ -11,7 +11,7 @@ import { GoogleLogo } from '../components/GoogleLogo';
 import { InputField } from '../components/InputField';
 import { PromptLink } from '../components/PromptLink';
 import { SocialButton } from '../components/SocialButton';
-import { useGoogleSignIn } from '../hooks/useGoogleSignIn';
+import { useGoogleSignIn } from '../services/useGoogleSignIn';
 import { globalStyles } from '../styles/globalStyles';
 import { isValidEmail, isEmpty } from '../utils/validation';
 import { AuthService } from '../services/authService';

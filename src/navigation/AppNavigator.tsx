@@ -15,7 +15,7 @@ import { SearchScreen } from '../screens/SearchScreen';
 import { PlansScreen } from '../screens/PlansScreen';
 import { FavoritesScreen } from '../screens/FavoritesScreen';
 import { BottomNavBar } from '../components/BottomNavBar';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../services/AuthContext';
 import { hasSeenOnboarding } from '../utils/storage';
 import { colors } from '../styles/colors';
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { AuthService } from '../services/authService';
+import { AuthService } from './authService';
 
 /**
  * Login con Google para las pantallas de autenticación.
