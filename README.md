@@ -119,7 +119,7 @@ npx expo start -c
 | `npm run typecheck` | Checks TypeScript types |
 | `npm run test:db` | Runs the migrations on a local Postgres (PGlite) and tests the Row Level Security policies |
 
-Run `lint`, `format:check` and `typecheck` before opening a pull request.
+GitHub Actions runs `lint`, `format:check`, `typecheck` and `test:db` on every pull request (`.github/workflows/ci.yml`); run them locally before pushing.
 
 ### Branching convention
 
@@ -265,7 +265,7 @@ npx expo start -c
 | `npm run typecheck` | Revisa los tipos de TypeScript |
 | `npm run test:db` | Ejecuta las migraciones en un Postgres local (PGlite) y prueba las políticas de Row Level Security |
 
-Antes de abrir un pull request, corre `lint`, `format:check` y `typecheck`.
+GitHub Actions corre `lint`, `format:check`, `typecheck` y `test:db` en cada pull request (`.github/workflows/ci.yml`); córrelos localmente antes de subir cambios.
 
 ### Convención de ramas
 
