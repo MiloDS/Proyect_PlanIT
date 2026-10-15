@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 import { AuthLayoutProps } from '../types/components';
@@ -6,10 +6,9 @@ import { colors } from '../styles/colors';
 
 export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardView}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    // Con edge-to-edge (activo en Expo) Android ya no redimensiona la ventana al abrir el
+    // teclado, así que el ajuste se hace también ahí; el ScrollView lleva al campo enfocado
+    <KeyboardAvoidingView style={styles.keyboardView} behavior="padding">
       <StatusBar style="dark" />
       <ScrollView
         contentContainerStyle={styles.container}

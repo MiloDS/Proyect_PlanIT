@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, ChevronDown, Bell, Cloud, Sparkles } from 'lucide-react-native';
@@ -12,8 +20,10 @@ import { Button } from '../components/Button';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { useAuth } from '../services/AuthContext';
+import { PlacesService } from '../services/placesService';
+import { useNearbyPlaces } from '../services/useNearbyPlaces';
+import { distanceKm } from '../utils/geo';
 import { getFirstName } from '../utils/user';
-import { NEARBY_PLACES } from '../utils/mockData';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Home'>,
@@ -23,6 +33,9 @@ type Props = CompositeScreenProps<
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const nearby = useNearbyPlaces();
+  const locationLabel = nearby.locationLabel || 'Buscando ubicación…';
+  const origin = nearby.position?.coordinates;
 
   return (
     <View style={globalStyles.screen}>
@@ -35,10 +48,10 @@ export function HomeScreen({ navigation }: Props) {
           <Pressable
             style={styles.locationRow}
             accessibilityRole="button"
-            accessibilityLabel="Cambiar ubicación: Medellín, Colombia"
+            accessibilityLabel={`Ubicación: ${locationLabel}`}
           >
             <MapPin size={16} color={colors.textPrimary} />
-            <Text style={styles.locationText}>Medellín, Colombia</Text>
+            <Text style={styles.locationText}>{locationLabel}</Text>
             <ChevronDown size={16} color={colors.textPrimary} />
           </Pressable>
 
@@ -90,15 +103,50 @@ export function HomeScreen({ navigation }: Props) {
           </Pressable>
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.placesRow}
-        >
-          {NEARBY_PLACES.map((place) => (
-            <PlaceCard key={place.name} {...place} />
-          ))}
-        </ScrollView>
+        {nearby.status === 'loading' && (
+          <ActivityIndicator color={colors.primary} style={styles.placesStatus} />
+        )}
+
+        {nearby.status === 'error' && (
+          <View style={styles.placesStatus}>
+            <Text style={styles.placesMessage}>{nearby.error}</Text>
+            <Pressable onPress={nearby.reload} accessibilityRole="button" hitSlop={8}>
+              <Text style={styles.sectionLink}>Reintentar</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {nearby.status === 'ready' && nearby.places.length === 0 && (
+          <Text style={[styles.placesMessage, styles.placesStatus]}>
+            No encontramos lugares cerca de ti.
+          </Text>
+        )}
+
+        {nearby.status === 'ready' && origin && nearby.places.length > 0 && (
+          <>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.placesRow}
+            >
+              {nearby.places.map((place) => (
+                <PlaceCard
+                  key={place.id}
+                  name={place.name}
+                  category={place.category}
+                  imageUrl={place.photoUrl}
+                  distanceKm={distanceKm(origin, place.location)}
+                  onPress={() => PlacesService.openInMaps(place)}
+                />
+              ))}
+            </ScrollView>
+            <Text style={styles.attribution}>
+              {nearby.position?.isApproximate
+                ? 'Ubicación aproximada. Datos de Google Maps'
+                : 'Datos de Google Maps'}
+            </Text>
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -220,5 +268,20 @@ const styles = StyleSheet.create({
   },
   placesRow: {
     paddingRight: 24,
+  },
+  placesStatus: {
+    paddingVertical: 24,
+    alignItems: 'center',
+    gap: 8,
+  },
+  placesMessage: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  attribution: {
+    fontSize: 10,
+    color: colors.textMuted,
+    marginTop: 8,
   },
 });

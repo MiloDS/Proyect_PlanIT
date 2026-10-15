@@ -31,7 +31,7 @@ PlanIt/
 │   ├── styles/             # Colors and global styles
 │   ├── types/              # Shared types (navigation, component props, auth)
 │   └── utils/              # Utilities (Supabase client, validation, AsyncStorage, user data, sample data)
-├── supabase/migrations/    # Database schema and Row Level Security policies
+├── supabase/               # Migrations, RLS tests and the `places` Edge Function (Google Places)
 ├── .env.example            # Environment variables template
 ├── App.tsx
 ├── index.ts
@@ -61,6 +61,8 @@ PlanIt/
 
 Logging in or out switches the group automatically; screens don't need to call `navigation.reset`.
 
+The Intro is shown only once per install. To see it again during development, use **Profile → "Ver la Intro de nuevo (desarrollo)"**: it clears the onboarding flag, signs out and reloads the app. The option only exists in development builds (`__DEV__`).
+
 ### Installation
 
 ```bash
@@ -82,7 +84,7 @@ npm install
 
 ### Database
 
-Places come from an external API, so the database only stores their `place_id`.
+Places come from the Google Places API, so the database only stores their `place_id`.
 
 | Table | Content | Who can access it |
 |---|---|---|
@@ -93,6 +95,19 @@ Places come from an external API, so the database only stores their `place_id`.
 | `plan_places` | Places of each plan and their order | Plan members |
 
 To invite someone to a plan by email, call the `add_plan_member_by_email` function: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`.
+
+### Google Places
+
+"Nearby" on Home and the Surprise me recommendation use the Google Places API (New) through the `places` Supabase Edge Function (`supabase/functions/places/index.ts`). The API key stays in Supabase's secrets and never ships inside the app; only signed-in users can call the function.
+
+1. In Google Cloud Console, create a project, link a billing account, and enable **Places API (New)**.
+2. Create an API key and, under **API restrictions**, allow only **Places API (New)**. Optionally cap the daily quota so a bug cannot run up costs.
+3. In Supabase → **Edge Functions → Secrets**, add `GOOGLE_PLACES_API_KEY` with that key.
+4. Deploy the function, keeping **Verify JWT** enabled:
+   - CLI: `npx supabase login`, `npx supabase link --project-ref <project-ref>` and `npx supabase functions deploy places`.
+   - Or in Supabase → **Edge Functions → Deploy a new function → Via Editor**, name it `places` and paste the contents of `index.ts`.
+
+Each Home load makes 1 Nearby Search plus up to 10 photo requests; each Surprise me recommendation makes 1 Nearby Search. If the user denies location access, the app searches around the center of Medellín.
 
 ### Running the app
 
@@ -177,7 +192,7 @@ PlanIt/
 │   ├── styles/             # Colores y estilos globales
 │   ├── types/              # Tipos compartidos (navegación, props de componentes, auth)
 │   └── utils/              # Utilidades (cliente de Supabase, validación, AsyncStorage, datos del usuario y de ejemplo)
-├── supabase/migrations/    # Esquema de la base de datos y políticas de Row Level Security
+├── supabase/               # Migraciones, pruebas de RLS y la Edge Function `places` (Google Places)
 ├── .env.example            # Plantilla de variables de entorno
 ├── App.tsx
 ├── index.ts
@@ -207,6 +222,8 @@ PlanIt/
 
 Al iniciar o cerrar sesión el grupo cambia solo; las pantallas no necesitan llamar a `navigation.reset`.
 
+La Intro se muestra una sola vez por instalación. Para verla de nuevo mientras desarrollas, usa **Perfil → "Ver la Intro de nuevo (desarrollo)"**: borra la marca del onboarding, cierra sesión y recarga la app. La opción solo existe en desarrollo (`__DEV__`).
+
 ### Instalación
 
 ```bash
@@ -228,7 +245,7 @@ npm install
 
 ### Base de datos
 
-Los lugares vienen de una API externa, así que la base de datos solo guarda su `place_id`.
+Los lugares vienen de la API de Google Places, así que la base de datos solo guarda su `place_id`.
 
 | Tabla | Contenido | Quién puede acceder |
 |---|---|---|
@@ -239,6 +256,19 @@ Los lugares vienen de una API externa, así que la base de datos solo guarda su 
 | `plan_places` | Lugares de cada plan y su orden | Los miembros del plan |
 
 Para invitar a alguien a un plan por correo se usa la función `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`.
+
+### Google Places
+
+"Cerca de ti" en Inicio y la recomendación de Sorpréndeme usan Google Places API (New) a través de la Edge Function `places` de Supabase (`supabase/functions/places/index.ts`). La API key queda en los secretos de Supabase y nunca viaja dentro de la app; solo los usuarios con sesión pueden llamar la función.
+
+1. En Google Cloud Console, crea un proyecto, vincula una cuenta de facturación y activa **Places API (New)**.
+2. Crea una API key y, en **API restrictions**, permite solo **Places API (New)**. Opcionalmente limita la cuota diaria para que un error no dispare los costos.
+3. En Supabase → **Edge Functions → Secrets**, agrega `GOOGLE_PLACES_API_KEY` con esa key.
+4. Despliega la función dejando activo **Verify JWT**:
+   - CLI: `npx supabase login`, `npx supabase link --project-ref <project-ref>` y `npx supabase functions deploy places`.
+   - O en Supabase → **Edge Functions → Deploy a new function → Via Editor**, con el nombre `places`, pegando el contenido de `index.ts`.
+
+Cada carga de Inicio hace 1 búsqueda Nearby Search y hasta 10 pedidos de fotos; cada recomendación de Sorpréndeme hace 1 Nearby Search. Si el usuario no da permiso de ubicación, la app busca alrededor del centro de Medellín.
 
 ### Ejecución
 

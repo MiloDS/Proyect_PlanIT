@@ -1,5 +1,14 @@
 import { ReactNode } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Image, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Image,
+  Alert,
+  DevSettings,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -11,11 +20,13 @@ import {
   LogOut,
   ChevronRight,
   Pencil,
+  RotateCcw,
 } from 'lucide-react-native';
 
 import { colors } from '../styles/colors';
 import { useAuth } from '../services/AuthContext';
 import { AuthService } from '../services/authService';
+import { resetOnboarding } from '../utils/storage';
 import { getAvatarUrl, getFullName } from '../utils/user';
 
 type MenuItemProps = {
@@ -57,6 +68,18 @@ function MenuItem({ icon, title, value, isDestructive = false, onPress }: MenuIt
 // Las pantallas de ajustes aún no existen
 function showComingSoon(title: string) {
   Alert.alert(title, 'Próximamente');
+}
+
+// Solo en desarrollo: la Intro aparece únicamente sin sesión y sin la marca de onboarding,
+// así que se borran ambas y se recarga la app
+async function replayOnboarding() {
+  try {
+    await resetOnboarding();
+    await AuthService.logout();
+    DevSettings.reload();
+  } catch (err: any) {
+    Alert.alert('Error', err.message || 'No se pudo reiniciar el onboarding');
+  }
 }
 
 export function ProfileScreen() {
@@ -125,6 +148,14 @@ export function ProfileScreen() {
               onPress={() => showComingSoon(title)}
             />
           ))}
+
+          {__DEV__ && (
+            <MenuItem
+              icon={<RotateCcw size={21} color={colors.textBody} />}
+              title="Ver la Intro de nuevo (desarrollo)"
+              onPress={replayOnboarding}
+            />
+          )}
 
           <MenuItem
             icon={<LogOut size={21} color={colors.danger} />}
