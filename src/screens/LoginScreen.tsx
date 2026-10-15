@@ -1,6 +1,6 @@
 import { StyleSheet, Text, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import { AppStackParamList } from '../types/navigation';
 import { AuthLayout } from '../components/AuthLayout';
@@ -25,17 +25,20 @@ export function LoginScreen({ navigation, route }: Props) {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [generalError, setGeneralError] = useState('');
-  const [infoMessage, setInfoMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const google = useGoogleSignIn();
 
-  // Prellenar email si viene redirigido desde el registro exitoso
-  useEffect(() => {
-    if (route.params?.registeredEmail) {
-      setEmail(route.params.registeredEmail);
-      setInfoMessage('¡Cuenta creada! Revisa tu correo para confirmarla y luego inicia sesión.');
-    }
-  }, [route.params?.registeredEmail]);
+  // Prellenar el correo cuando Register redirige aquí tras crear la cuenta.
+  // Se ajusta durante el render porque Login puede seguir montado debajo de Register.
+  const registeredEmail = route.params?.registeredEmail;
+  const [prefilledEmail, setPrefilledEmail] = useState<string>();
+  if (registeredEmail && registeredEmail !== prefilledEmail) {
+    setPrefilledEmail(registeredEmail);
+    setEmail(registeredEmail);
+  }
+  const infoMessage = registeredEmail
+    ? '¡Cuenta creada! Revisa tu correo para confirmarla y luego inicia sesión.'
+    : '';
 
   const handleLogin = async () => {
     const nextEmailError = isEmpty(email)

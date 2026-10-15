@@ -46,9 +46,9 @@ export function AppNavigator() {
   }, []);
 
   // Quien ya inició sesión pasó por el onboarding: al cerrar sesión debe ver Login, no Intro
-  useEffect(() => {
-    if (session) setSeenOnboarding(true);
-  }, [session]);
+  if (session && seenOnboarding === false) {
+    setSeenOnboarding(true);
+  }
 
   if (isLoading || seenOnboarding === null) {
     return (
