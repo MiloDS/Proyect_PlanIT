@@ -1,0 +1,9 @@
+node_modules
+dist
+.expo
+android
+ios
+assets
+supabase/migrations
+package-lock.json
+*.md

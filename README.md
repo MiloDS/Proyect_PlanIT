@@ -102,14 +102,24 @@ npx expo start
 
 From there you can open the project on:
 - Android: `npx expo start --android` (emulator or Expo Go)
-- iOS: `npx expo start --ios`
-- Web: `npx expo start --web`
+- iOS: `npx expo start --ios` (simulator or Expo Go)
 
 If you run into cache issues after installing new dependencies or changing `.env`:
 
 ```bash
 npx expo start -c
 ```
+
+### Code quality
+
+| Command | What it does |
+|---|---|
+| `npm run lint` | ESLint with the Expo rules (includes the React hooks rules) |
+| `npm run format` | Formats the code with Prettier (`npm run format:check` only checks) |
+| `npm run typecheck` | Checks TypeScript types |
+| `npm run test:db` | Runs the migrations on a local Postgres (PGlite) and tests the Row Level Security policies |
+
+Run `lint`, `format:check` and `typecheck` before opening a pull request.
 
 ### Branching convention
 
@@ -238,14 +248,24 @@ npx expo start
 
 Desde ahí puedes abrir el proyecto en:
 - Android: `npx expo start --android` (emulador o Expo Go)
-- iOS: `npx expo start --ios`
-- Web: `npx expo start --web`
+- iOS: `npx expo start --ios` (simulador o Expo Go)
 
 Si hay problemas de caché tras instalar dependencias nuevas o cambiar el `.env`:
 
 ```bash
 npx expo start -c
 ```
+
+### Calidad del código
+
+| Comando | Qué hace |
+|---|---|
+| `npm run lint` | ESLint con las reglas de Expo (incluye las reglas de hooks de React) |
+| `npm run format` | Formatea el código con Prettier (`npm run format:check` solo revisa) |
+| `npm run typecheck` | Revisa los tipos de TypeScript |
+| `npm run test:db` | Ejecuta las migraciones en un Postgres local (PGlite) y prueba las políticas de Row Level Security |
+
+Antes de abrir un pull request, corre `lint`, `format:check` y `typecheck`.
 
 ### Convención de ramas
 
