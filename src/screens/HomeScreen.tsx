@@ -53,13 +53,13 @@ export function HomeScreen({ navigation }: Props) {
       >
         <View style={styles.topBar}>
           <Pressable style={styles.locationRow}>
-            <MapPin size={16} color="#1E293B" />
+            <MapPin size={16} color={colors.textPrimary} />
             <Text style={styles.locationText}>Medellín, Colombia</Text>
-            <ChevronDown size={16} color="#1E293B" />
+            <ChevronDown size={16} color={colors.textPrimary} />
           </Pressable>
 
           <Pressable>
-            <Bell size={22} color="#1E293B" />
+            <Bell size={22} color={colors.textPrimary} />
           </Pressable>
         </View>
 
@@ -134,22 +134,22 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1E293B',
+    color: colors.textPrimary,
     marginHorizontal: 4,
   },
   greeting: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.textPrimary,
   },
   subGreeting: {
     fontSize: 14,
-    color: '#64748B',
+    color: colors.textSecondary,
     marginTop: 2,
     marginBottom: 20,
   },
   weatherCard: {
-    backgroundColor: '#38BDF8',
+    backgroundColor: colors.weather,
     borderRadius: 16,
     padding: 18,
     flexDirection: 'row',
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   surpriseCard: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 24,
@@ -195,11 +195,11 @@ const styles = StyleSheet.create({
   surpriseTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.textPrimary,
   },
   surpriseDescription: {
     fontSize: 12,
-    color: '#64748B',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   surpriseButton: {
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.textPrimary,
   },
   sectionLink: {
     fontSize: 13,

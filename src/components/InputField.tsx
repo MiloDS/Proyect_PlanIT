@@ -15,7 +15,7 @@ export function InputField({ placeholder, value, onChangeText, secureTextEntry, 
     <View style={styles.container}>
       <TextInput
         placeholder={placeholder}
-        placeholderTextColor="#797373ee"
+        placeholderTextColor={colors.textMuted}
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={isPassword ? hidePassword : false}
@@ -26,7 +26,7 @@ export function InputField({ placeholder, value, onChangeText, secureTextEntry, 
       />
       {isPassword && (
         <Button onPress={() => setHidePassword(!hidePassword)} style={styles.icon}>
-          <Ionicons name={hidePassword ? "eye-off" : "eye"} size={22} color="#64748B" />
+          <Ionicons name={hidePassword ? "eye-off" : "eye"} size={22} color={colors.textSecondary} />
         </Button>
       )}
       {error && <Text style={styles.errorText}>{error}</Text>}
@@ -38,13 +38,13 @@ const styles = StyleSheet.create({
   container: { marginBottom: 16, position: "relative" },
   input: {
     borderWidth: 1,
-    borderColor: "#fff8f8ee",
+    borderColor: colors.borderStrong,
     borderRadius: 12,
     minHeight: 52,
     paddingHorizontal: 14,
     paddingRight: 40,
-    backgroundColor: "#fff8f8ee",
-    color: "#000000ee",
+    backgroundColor: colors.surface,
+    color: colors.textPrimary,
     fontSize: 16,
   },
   inputError: {

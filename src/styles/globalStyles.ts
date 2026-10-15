@@ -9,7 +9,7 @@ export const globalStyles = StyleSheet.create({
   card: {
     backgroundColor: colors.white,
     borderRadius: 16,
-    shadowColor: '#000000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,

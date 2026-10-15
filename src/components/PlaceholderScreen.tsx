@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
 import { PlaceholderScreenProps } from "../types/components";
 import { globalStyles } from "../styles/globalStyles";
+import { colors } from "../styles/colors";
 
 export function PlaceholderScreen({
     title,
@@ -24,11 +25,11 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 18,
         fontWeight: "700",
-        color: "#1E293B",
+        color: colors.textPrimary,
     },
     subtitle: {
         fontSize: 13,
-        color: "#94A3B8",
+        color: colors.textMuted,
         marginTop: 6,
     },
 });

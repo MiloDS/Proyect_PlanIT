@@ -41,7 +41,7 @@ export function BottomNavBar({ state, descriptors, navigation }: BottomTabBarPro
 
                 return (
                     <Button key={route.key} onPress={onPress} style={styles.navButton}>
-                        <Icon size={21} color={isFocused ? colors.primary : "#94A3B8"} />
+                        <Icon size={21} color={isFocused ? colors.primary : colors.textMuted} />
                         <Text
                             style={[
                                 styles.navText,
@@ -61,13 +61,13 @@ const styles = StyleSheet.create({
     bottomNavigation: {
         backgroundColor: colors.white,
         borderTopWidth: 1,
-        borderTopColor: "#F1F5F9",
+        borderTopColor: colors.border,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-around",
         paddingTop: 8,
         elevation: 8,
-        shadowColor: "#000000",
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: -2 },
         shadowOpacity: 0.08,
         shadowRadius: 4,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
         fontWeight: "700",
     },
     navTextInactive: {
-        color: "#94A3B8",
+        color: colors.textMuted,
         fontWeight: "500",
     },
 });

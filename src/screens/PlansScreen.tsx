@@ -168,12 +168,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.textPrimary,
     marginBottom: 18,
   },
   segmentContainer: {
     flexDirection: 'row',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: colors.surfaceMuted,
     borderRadius: 24,
     padding: 4,
     marginBottom: 20,
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   segmentButtonActive: {
     backgroundColor: colors.primary,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.12,
     shadowRadius: 2,
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
   segmentText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#64748B',
+    color: colors.textSecondary,
   },
   segmentTextActive: {
     color: colors.white,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     height: 142,
     borderRadius: 18,
     overflow: 'hidden',
-    shadowColor: '#000000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -230,12 +230,12 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.textPrimary,
   },
   cardSubtitle: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#475569',
+    color: colors.textBody,
     marginTop: 4,
     marginBottom: 12,
   },
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: colors.white,
     marginRight: 6,
   },
   fabContainer: {
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 14,
     borderRadius: 24,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.18,
     shadowRadius: 6,

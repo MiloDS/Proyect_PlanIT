@@ -12,7 +12,7 @@ export function CustomSlider({
   value,
   onValueChange,
   minimumTrackTintColor = colors.primary,
-  maximumTrackTintColor = '#D1FAE5',
+  maximumTrackTintColor = colors.primaryLight,
   thumbTintColor = colors.primary,
 }: CustomSliderProps) {
   const [trackWidth, setTrackWidth] = useState(0);
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     borderRadius: THUMB_SIZE / 2,
     position: 'absolute',
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,

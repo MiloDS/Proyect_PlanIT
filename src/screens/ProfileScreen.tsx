@@ -68,7 +68,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
         {!isDestructive && (
           <ChevronRight
             size={18}
-            color="#94A3B8"
+            color={colors.textMuted}
           />
         )}
       </View>
@@ -164,7 +164,7 @@ export function ProfileScreen({ navigation }: Props)  {
               icon={
                 <User
                   size={21}
-                  color="#334155"
+                  color={colors.textBody}
                 />
               }
               title="Información personal"
@@ -177,7 +177,7 @@ export function ProfileScreen({ navigation }: Props)  {
               icon={
                 <CreditCard
                   size={21}
-                  color="#334155"
+                  color={colors.textBody}
                 />
               }
               title="Métodos de pago"
@@ -190,7 +190,7 @@ export function ProfileScreen({ navigation }: Props)  {
               icon={
                 <Bell
                   size={21}
-                  color="#334155"
+                  color={colors.textBody}
                 />
               }
               title="Notificaciones"
@@ -203,7 +203,7 @@ export function ProfileScreen({ navigation }: Props)  {
               icon={
                 <Globe
                   size={21}
-                  color="#334155"
+                  color={colors.textBody}
                 />
               }
               title="Idioma"
@@ -217,7 +217,7 @@ export function ProfileScreen({ navigation }: Props)  {
               icon={
                 <HelpCircle
                   size={21}
-                  color="#334155"
+                  color={colors.textBody}
                 />
               }
               title="Ayuda y soporte"
@@ -230,7 +230,7 @@ export function ProfileScreen({ navigation }: Props)  {
               icon={
                 <LogOut
                   size={21}
-                  color="#DC2626"
+                  color={colors.danger}
                 />
               }
               title="Cerrar sesión"
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
 
   safeArea: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: colors.textPrimary,
   },
 
   container: {
@@ -298,13 +298,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#048A58',
+    backgroundColor: colors.primaryDark,
 
     // Sombra para Android
     elevation: 5,
 
     // Sombra para iOS
-    shadowColor: '#000000',
+    shadowColor: colors.black,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -375,11 +375,11 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 2,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: colors.border,
   },
 
   menuItemPressed: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.surface,
   },
 
   menuLeft: {
@@ -396,13 +396,13 @@ const styles = StyleSheet.create({
   },
 
   menuTitle: {
-    color: '#1E293B',
+    color: colors.textPrimary,
     fontSize: 14,
     fontWeight: '500',
   },
 
   destructiveText: {
-    color: '#DC2626',
+    color: colors.danger,
     fontWeight: '600',
   },
 
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
   },
 
   menuValue: {
-    color: '#94A3B8',
+    color: colors.textMuted,
     fontSize: 12,
     marginRight: 5,
     fontWeight: '400',

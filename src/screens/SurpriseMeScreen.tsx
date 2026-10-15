@@ -119,7 +119,7 @@ export function SurpriseMeScreen({
 
             <ChevronLeft
               size={21}
-              color="#374151"
+              color={colors.textBody}
             />
 
           </Pressable>
@@ -385,7 +385,7 @@ export function SurpriseMeScreen({
               >
                 <X
                   size={18}
-                  color="#6B7280"
+                  color={colors.textSecondary}
                 />
               </Pressable>
 
@@ -450,7 +450,7 @@ export function SurpriseMeScreen({
 
                     <MapPin
                       size={16}
-                      color="#9CA3AF"
+                      color={colors.textMuted}
                     />
 
                     <Text style={styles.detailText}>
@@ -463,7 +463,7 @@ export function SurpriseMeScreen({
 
                     <DollarSign
                       size={16}
-                      color="#9CA3AF"
+                      color={colors.textMuted}
                     />
 
                     <Text style={styles.detailText}>
@@ -473,7 +473,7 @@ export function SurpriseMeScreen({
                   </View>
 
                   <View style={styles.detailRow}>
-                    <Users size={16}color="#9CA3AF"/>
+                    <Users size={16}color={colors.textMuted}/>
                     <Text style={styles.detailText}>Plan para: {selectedCompany}</Text>
                   </View>
                 </View>
@@ -507,7 +507,7 @@ export function SurpriseMeScreen({
                       styles.buttonPressed,
                   ]}
                 >
-                  <RefreshCw size={15} color="#4B5563"/>
+                  <RefreshCw size={15} color={colors.textBody}/>
                   <Text style={styles.tryAgainText}>Probar con otras opciones</Text>
                 </Pressable>
               </View>
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
   },
 
   statusTime: {
-    color: '#1F2937',
+    color: colors.textPrimary,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: colors.border,
     position: 'relative',
   },
 
@@ -565,24 +565,24 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.surfaceMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   backButtonPressed: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.borderStrong,
     transform: [{ scale: 0.95 }],
   },
 
   headerTitle: {
-    color: '#111827',
+    color: colors.textPrimary,
     fontSize: 21,
     fontWeight: '700',
   },
 
   headerSubtitle: {
-    color: '#9CA3AF',
+    color: colors.textMuted,
     fontSize: 12,
     fontWeight: '500',
     marginTop: 3,
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    color: '#111827',
+    color: colors.textPrimary,
     fontSize: 14,
     fontWeight: '700',
     marginBottom: 12,
@@ -655,7 +655,7 @@ const styles = StyleSheet.create({
   unselectedButton: {
     backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.borderStrong,
   },
 
   selectedButtonText: {
@@ -665,7 +665,7 @@ const styles = StyleSheet.create({
   },
 
   unselectedButtonText: {
-    color: '#374151',
+    color: colors.textBody,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -683,16 +683,16 @@ const styles = StyleSheet.create({
   },
 
   distanceBadge: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: colors.surfaceMuted,
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: colors.borderStrong,
   },
 
   distanceText: {
-    color: '#111827',
+    color: colors.textPrimary,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -714,7 +714,7 @@ const styles = StyleSheet.create({
   },
 
   sliderLabel: {
-    color: '#9CA3AF',
+    color: colors.textMuted,
     fontSize: 10,
     fontWeight: '500',
   },
@@ -740,11 +740,11 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
     backgroundColor: colors.white,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: colors.border,
 
     elevation: 6,
 
-    shadowColor: '#000000',
+    shadowColor: colors.black,
     shadowOffset: {
       width: 0,
       height: -2,
@@ -774,7 +774,7 @@ const styles = StyleSheet.create({
   },
 
   recommendButtonPressed: {
-    backgroundColor: '#048A58',
+    backgroundColor: colors.primaryDark,
     transform: [{ scale: 0.98 }],
   },
 
@@ -787,7 +787,7 @@ const styles = StyleSheet.create({
   /*MODAL*/
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: colors.overlay,
     justifyContent: 'flex-end',
   },
 
@@ -805,7 +805,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 5,
     borderRadius: 3,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.borderStrong,
     alignSelf: 'center',
     marginBottom: 18,
   },
@@ -817,7 +817,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.surfaceMuted,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
@@ -833,29 +833,29 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#D1FAE5',
+    backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 9,
   },
 
   resultTitle: {
-    color: '#111827',
+    color: colors.textPrimary,
     fontSize: 18,
     fontWeight: '700',
   },
 
   resultSubtitle: {
-    color: '#6B7280',
+    color: colors.textSecondary,
     fontSize: 12,
     marginTop: 4,
   },
 
   /*TARJETA DEL PLAN*/
   planCard: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: colors.border,
     borderRadius: 18,
     padding: 16,
   },
@@ -873,7 +873,7 @@ const styles = StyleSheet.create({
 
   activityBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: colors.primaryLight,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -886,21 +886,21 @@ const styles = StyleSheet.create({
   },
 
   planTitle: {
-    color: '#1F2937',
+    color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '700',
     marginTop: 6,
   },
 
   ratingBadge: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: colors.primaryLight,
     paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: 8,
   },
 
   ratingText: {
-    color: '#047857',
+    color: colors.primaryDark,
     fontSize: 11,
     fontWeight: '700',
   },
@@ -918,7 +918,7 @@ const styles = StyleSheet.create({
   },
 
   detailText: {
-    color: '#4B5563',
+    color: colors.textBody,
     fontSize: 12,
   },
 
@@ -954,7 +954,7 @@ const styles = StyleSheet.create({
 
   tryAgainButton: {
     height: 46,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.surfaceMuted,
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -963,7 +963,7 @@ const styles = StyleSheet.create({
   },
 
   tryAgainText: {
-    color: '#4B5563',
+    color: colors.textBody,
     fontSize: 12,
     fontWeight: '600',
   },

@@ -228,11 +228,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#000',
+    color: colors.textPrimary,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 6,
     marginBottom: 30,
@@ -245,23 +245,23 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#ddd',
+    backgroundColor: colors.borderStrong,
   },
   dividerText: {
     marginHorizontal: 10,
-    color: '#999',
+    color: colors.textMuted,
     fontSize: 13,
   },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEE2E2',
+    backgroundColor: colors.dangerSurface,
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 10,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#FCA5A5',
+    borderColor: colors.dangerBorder,
     gap: 8,
   },
   generalErrorText: {
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    color: '#333',
+    color: colors.textBody,
     marginBottom: 6,
   },
   registerButton: {
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   },
   loginPromptText: {
     fontSize: 13,
-    color: '#666',
+    color: colors.textSecondary,
   },
   loginLink: {
     color: colors.primary,

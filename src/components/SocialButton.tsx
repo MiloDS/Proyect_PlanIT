@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { SocialButtonProps } from '../types/components';
 import { Button } from './Button';
+import { colors } from '../styles/colors';
 
 export function SocialButton({ iconName, iconColor, label, onPress }: SocialButtonProps) {
   return (
@@ -19,7 +20,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.borderStrong,
     borderRadius: 10,
     paddingVertical: 12,
     marginBottom: 12,
@@ -28,6 +29,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: colors.textBody,
   },
 });

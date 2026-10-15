@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 15,
     textAlign: 'center',
-    color: '#666',
+    color: colors.textSecondary,
     lineHeight: 22,
   },
   footer: {
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   dot: {
-    backgroundColor: '#ccc',
+    backgroundColor: colors.inactive,
     width: 8,
     height: 8,
     borderRadius: 4,
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 12,
     fontSize: 13,
-    color: '#666',
+    color: colors.textSecondary,
   },
   loginLink: {
     color: colors.primary,

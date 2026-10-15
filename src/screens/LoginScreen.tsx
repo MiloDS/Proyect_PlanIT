@@ -107,7 +107,7 @@ export function LoginScreen({ navigation, route }: Props) {
         {/* Mensaje informativo de registro exitoso previo */}
         {!!infoMessage && (
           <View style={styles.infoContainer}>
-            <Ionicons name="checkmark-circle" size={18} color="#15803D" />
+            <Ionicons name="checkmark-circle" size={18} color={colors.success} />
             <Text style={styles.infoText}>{infoMessage}</Text>
           </View>
         )}
@@ -195,11 +195,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#000',
+    color: colors.textPrimary,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginTop: 6,
     marginBottom: 30,
@@ -212,19 +212,19 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#ddd',
+    backgroundColor: colors.borderStrong,
   },
   dividerText: {
     marginHorizontal: 10,
-    color: '#999',
+    color: colors.textMuted,
     fontSize: 13,
   },
   infoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#DCFCE7',
+    backgroundColor: colors.successSurface,
     borderWidth: 1,
-    borderColor: '#86EFAC',
+    borderColor: colors.successBorder,
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 14,
@@ -233,20 +233,20 @@ const styles = StyleSheet.create({
   },
   infoText: {
     flex: 1,
-    color: '#15803D',
+    color: colors.success,
     fontSize: 13,
     fontWeight: '600',
   },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEE2E2',
+    backgroundColor: colors.dangerSurface,
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 10,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#FCA5A5',
+    borderColor: colors.dangerBorder,
     gap: 8,
   },
   generalErrorText: {
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    color: '#333',
+    color: colors.textBody,
     marginBottom: 6,
   },
   forgotPassword: {
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   },
   registerPromptText: {
     fontSize: 13,
-    color: '#666',
+    color: colors.textSecondary,
   },
   registerLink: {
     color: colors.primary,
