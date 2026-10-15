@@ -57,7 +57,7 @@ export type PromptLinkProps = {
 };
 
 export type PlaceCardProps = {
-  imageUrl: string;
+  imageUrl: string | null;
   name: string;
   category: string;
   distanceKm: number;

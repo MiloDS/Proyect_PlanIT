@@ -23,6 +23,15 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-font", "expo-web-browser"]
+    "plugins": [
+      "expo-font",
+      "expo-web-browser",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "PlanIt usa tu ubicación para mostrarte lugares y planes cerca de ti."
+        }
+      ]
+    ]
   }
 }

@@ -23,14 +23,29 @@ import {
 } from 'lucide-react-native';
 
 import { AppStackParamList } from '../types/navigation';
+import { Place } from '../types/places';
+import { Banner } from '../components/Banner';
 import { Button } from '../components/Button';
 import { CustomSlider } from '../components/CustomSlider';
+import { LocationService } from '../services/locationService';
+import {
+  ACTIVITY_PLACE_TYPES,
+  BUDGET_PRICE_LEVELS,
+  PRICE_LEVEL_LABELS,
+  PlacesService,
+} from '../services/placesService';
 import { colors } from '../styles/colors';
+import { distanceKm } from '../utils/geo';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'SurpriseMe'>;
 
-const ACTIVITY_OPTIONS = ['Aire libre', 'Cultural', 'Relajación', 'Gastronomía', 'Entretenimiento'];
-const BUDGET_OPTIONS = ['Bajo', 'Medio', 'Alto'];
+type Recommendation = {
+  place: Place;
+  distanceKm: number;
+};
+
+const ACTIVITY_OPTIONS = Object.keys(ACTIVITY_PLACE_TYPES);
+const BUDGET_OPTIONS = Object.keys(BUDGET_PRICE_LEVELS);
 const COMPANY_OPTIONS = ['Solo', 'Pareja', 'Amigos', 'Familia'];
 const MIN_DISTANCE_KM = 1;
 const MAX_DISTANCE_KM = 50;
@@ -67,7 +82,9 @@ export function SurpriseMeScreen({ navigation }: Props) {
   const [selectedBudget, setSelectedBudget] = useState('Bajo');
   const [maxDistance, setMaxDistance] = useState(5);
   const [selectedCompany, setSelectedCompany] = useState('Amigos');
-  const [showResults, setShowResults] = useState(false);
+  const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const toggleActivity = (activity: string) => {
     if (!selectedActivities.includes(activity)) {
@@ -76,6 +93,37 @@ export function SurpriseMeScreen({ navigation }: Props) {
       // Siempre debe quedar al menos una actividad
       setSelectedActivities(selectedActivities.filter((item) => item !== activity));
     }
+  };
+
+  const handleRecommend = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const { coordinates } = await LocationService.getCurrentLocation();
+      const place = await PlacesService.recommend(coordinates, {
+        activities: selectedActivities,
+        budget: selectedBudget,
+        maxDistanceKm: maxDistance,
+      });
+
+      if (!place) {
+        setError(
+          'No encontramos lugares con esos filtros. Prueba con más distancia u otra actividad.'
+        );
+        return;
+      }
+
+      setRecommendation({ place, distanceKm: distanceKm(coordinates, place.location) });
+    } catch (err: any) {
+      setError(err.message || 'No se pudo obtener una recomendación');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenInMaps = () => {
+    if (recommendation) PlacesService.openInMaps(recommendation.place);
+    setRecommendation(null);
   };
 
   return (
@@ -180,10 +228,12 @@ export function SurpriseMeScreen({ navigation }: Props) {
       </ScrollView>
 
       <View style={[styles.bottomAction, { paddingBottom: Math.max(insets.bottom, 18) }]}>
+        {!!error && <Banner type="error" message={error} />}
         <Button
           variant="primary"
           style={styles.recommendButton}
-          onPress={() => setShowResults(true)}
+          loading={loading}
+          onPress={handleRecommend}
         >
           <Sparkles size={18} color={colors.white} />
           <Text style={styles.recommendButtonText}>Ver recomendaciones</Text>
@@ -191,15 +241,15 @@ export function SurpriseMeScreen({ navigation }: Props) {
       </View>
 
       <Modal
-        visible={showResults}
+        visible={recommendation !== null}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowResults(false)}
+        onRequestClose={() => setRecommendation(null)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Pressable
-              onPress={() => setShowResults(false)}
+              onPress={() => setRecommendation(null)}
               accessibilityRole="button"
               accessibilityLabel="Cerrar"
               style={({ pressed }) => [styles.closeButton, pressed && styles.buttonPressed]}
@@ -217,48 +267,65 @@ export function SurpriseMeScreen({ navigation }: Props) {
               <Text style={styles.resultSubtitle}>Seleccionado para ti y tus filtros</Text>
             </View>
 
-            {/* Recomendación de ejemplo hasta conectar la API de lugares */}
-            <View style={styles.planCard}>
-              <View style={styles.planHeader}>
-                <View style={styles.planInfo}>
-                  <View style={styles.activityBadge}>
-                    <Text style={styles.activityBadgeText}>{selectedActivities.join(', ')}</Text>
+            {recommendation && (
+              <View style={styles.planCard}>
+                <View style={styles.planHeader}>
+                  <View style={styles.planInfo}>
+                    <View style={styles.activityBadge}>
+                      <Text style={styles.activityBadgeText}>
+                        {recommendation.place.category || selectedActivities.join(', ')}
+                      </Text>
+                    </View>
+                    <Text style={styles.planTitle}>{recommendation.place.name}</Text>
+                    {!!recommendation.place.address && (
+                      <Text style={styles.planAddress} numberOfLines={2}>
+                        {recommendation.place.address}
+                      </Text>
+                    )}
                   </View>
-                  <Text style={styles.planTitle}>Parque Ecológico Arví</Text>
+
+                  {recommendation.place.rating !== null && (
+                    <View style={styles.ratingBadge}>
+                      <Text style={styles.ratingText}>
+                        {recommendation.place.rating.toFixed(1)} ★
+                      </Text>
+                    </View>
+                  )}
                 </View>
 
-                <View style={styles.ratingBadge}>
-                  <Text style={styles.ratingText}>4.8 ★</Text>
+                <View style={styles.planDetails}>
+                  <View style={styles.detailRow}>
+                    <MapPin size={16} color={colors.textMuted} />
+                    <Text style={styles.detailText}>
+                      A {recommendation.distanceKm.toFixed(1)} km de tu ubicación
+                    </Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <DollarSign size={16} color={colors.textMuted} />
+                    <Text style={styles.detailText}>
+                      Precio:{' '}
+                      {recommendation.place.priceLevel
+                        ? PRICE_LEVEL_LABELS[recommendation.place.priceLevel]
+                        : 'sin información'}
+                    </Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <Users size={16} color={colors.textMuted} />
+                    <Text style={styles.detailText}>Plan para: {selectedCompany}</Text>
+                  </View>
                 </View>
-              </View>
 
-              <View style={styles.planDetails}>
-                <View style={styles.detailRow}>
-                  <MapPin size={16} color={colors.textMuted} />
-                  <Text style={styles.detailText}>A 3.2 km de tu ubicación</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <DollarSign size={16} color={colors.textMuted} />
-                  <Text style={styles.detailText}>Presupuesto: {selectedBudget}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Users size={16} color={colors.textMuted} />
-                  <Text style={styles.detailText}>Plan para: {selectedCompany}</Text>
-                </View>
+                <Text style={styles.attribution}>Datos de Google Maps</Text>
               </View>
-            </View>
+            )}
 
             <View style={styles.modalActions}>
-              <Button
-                variant="primary"
-                style={styles.exploreButton}
-                onPress={() => setShowResults(false)}
-              >
-                <Text style={styles.exploreButtonText}>Explorar este plan</Text>
+              <Button variant="primary" style={styles.exploreButton} onPress={handleOpenInMaps}>
+                <Text style={styles.exploreButtonText}>Ver en Google Maps</Text>
               </Button>
 
               <Pressable
-                onPress={() => setShowResults(false)}
+                onPress={() => setRecommendation(null)}
                 accessibilityRole="button"
                 style={({ pressed }) => [styles.tryAgainButton, pressed && styles.buttonPressed]}
               >
@@ -549,6 +616,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 6,
   },
+  planAddress: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    marginTop: 2,
+  },
   ratingBadge: {
     backgroundColor: colors.primaryLight,
     paddingHorizontal: 8,
@@ -572,6 +644,11 @@ const styles = StyleSheet.create({
   detailText: {
     color: colors.textBody,
     fontSize: 12,
+  },
+  attribution: {
+    color: colors.textMuted,
+    fontSize: 10,
+    marginTop: 12,
   },
 
   /* Acciones del modal */
