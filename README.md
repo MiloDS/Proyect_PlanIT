@@ -12,10 +12,11 @@ Mobile app to discover activities and places based on location, weather, and per
 
 - **React Native** 0.86 + **Expo** SDK 57
 - **TypeScript**
-- **React Navigation** (`@react-navigation/native-stack`) for screen navigation
-- **AsyncStorage** (`@react-native-async-storage/async-storage`) to persist onboarding state and user session
+- **React Navigation** (`native-stack` + `bottom-tabs`) for screen navigation
+- **Supabase** (`@supabase/supabase-js`) for authentication (email/password and Google) and the database
+- **AsyncStorage** (`@react-native-async-storage/async-storage`) to persist onboarding state and the Supabase session
 - **react-native-safe-area-context** for safe area handling (notch, navigation bar)
-- **@expo/vector-icons** for icons
+- **lucide-react-native** and **@expo/vector-icons** for icons
 
 ### Project structure
 
@@ -23,11 +24,15 @@ Mobile app to discover activities and places based on location, weather, and per
 PlanIt/
 ├── assets/                 # Illustrations, icons, splash screen
 ├── src/
-│   ├── components/         # Reusable components (InputField, SocialButton)
-│   ├── navigation/          # React Navigation setup
-│   ├── screens/             # App screens
-│   ├── types/                # Shared types (navigation, component props)
-│   └── utils/                 # Utilities (AsyncStorage)
+│   ├── components/         # Reusable components (Button, InputField, BottomNavBar...)
+│   ├── context/            # AuthContext: Supabase session available to the whole app
+│   ├── navigation/         # React Navigation setup
+│   ├── screens/            # App screens
+│   ├── services/           # AuthService (Supabase Auth)
+│   ├── styles/             # Colors and global styles
+│   ├── types/              # Shared types (navigation, component props, auth)
+│   └── utils/              # Utilities (Supabase client, validation, AsyncStorage, user data)
+├── .env.example            # Environment variables template
 ├── App.tsx
 ├── index.ts
 └── app.json
@@ -38,16 +43,23 @@ PlanIt/
 | Screen | Description |
 |---|---|
 | `IntroScreen` | Onboarding carousel (3 slides), swipe navigation, pagination dots, and start button |
-| `LoginScreen` | Email/password login, Google and Apple options, field validation |
-| `HomeScreen` | Main screen (in progress) |
+| `LoginScreen` | Email/password login and Google login, field validation |
+| `RegisterScreen` | Sign up with name, email, and password, or with Google |
+| `HomeScreen` | Greeting, weather card, "Surprise me" shortcut, and nearby places |
+| `SurpriseMeScreen` | Preference form (activity, budget, distance, company) and recommendation |
+| `PlansScreen` | Upcoming and past plans |
+| `ProfileScreen` | User data, settings menu, and logout |
+| `SearchScreen` / `FavoritesScreen` | Placeholders |
 
 ### Navigation flow
 
-The entry point (`AppNavigator`) decides the initial screen based on what's stored in `AsyncStorage`:
+`AppNavigator` renders a different group of screens depending on the Supabase session (`AuthContext`):
 
-1. **First time opening the app** → shows `IntroScreen`.
-2. **Onboarding already seen, no active session** → shows `LoginScreen`.
-3. **Onboarding seen and active session** → goes straight to `HomeScreen`.
+1. **No session, first time opening the app** → `IntroScreen`, then `LoginScreen`.
+2. **No session, onboarding already seen** → `LoginScreen` / `RegisterScreen`.
+3. **Active session** → `MainTabs` (Home, Search, Plans, Favorites, Profile) and `SurpriseMeScreen`.
+
+Logging in or out switches the group automatically; screens don't need to call `navigation.reset`.
 
 ### Installation
 
@@ -56,6 +68,16 @@ git clone https://github.com/MiloDS/Proyect_PlanIT.git
 cd Proyect_PlanIT
 npm install
 ```
+
+### Supabase setup
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Copy `.env.example` to `.env` and fill in the project URL and the **anon/publishable** key (Project Settings → API). Never use the `service_role`/secret key in the app. `.env` is ignored by git.
+3. In **Authentication → Sign In / Providers → Email**, keep the provider enabled. If **Confirm email** is on, new users must confirm their email before logging in.
+4. Google login:
+   1. In Google Cloud Console, create an OAuth client ID of type **Web application** with the authorized redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`.
+   2. In Supabase → **Authentication → Sign In / Providers → Google**, enable it and paste the Client ID and Client Secret.
+   3. In Supabase → **Authentication → URL Configuration → Redirect URLs**, add `exp://**` (Expo Go) and `planit://**` (development builds).
 
 ### Running the app
 
@@ -66,9 +88,8 @@ npx expo start
 From there you can open the project on:
 - Android: `npx expo start --android` (emulator or Expo Go)
 - iOS: `npx expo start --ios`
-- Web: `npx expo start --web`
 
-If you run into cache issues after installing new dependencies:
+If you run into cache issues after installing new dependencies or changing `.env`:
 
 ```bash
 npx expo start -c
@@ -93,9 +114,9 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Project status
 
-Actively in development. `HomeScreen` and new user registration are still pending.
+Actively in development. Authentication works with Supabase; Search and Favorites are placeholders, and Home, Plans, and Surprise me still use sample data.
 
-### Author
+### Authors
 Juan Esteban
 Juan Pablo Orozco
 Alexander Vargas Mejía
@@ -111,10 +132,11 @@ Aplicación móvil para descubrir actividades y lugares según ubicación, clima
 
 - **React Native** 0.86 + **Expo** SDK 57
 - **TypeScript**
-- **React Navigation** (`@react-navigation/native-stack`) para la navegación entre pantallas
-- **AsyncStorage** (`@react-native-async-storage/async-storage`) para persistir el estado de onboarding y la sesión del usuario
+- **React Navigation** (`native-stack` + `bottom-tabs`) para la navegación entre pantallas
+- **Supabase** (`@supabase/supabase-js`) para la autenticación (correo/contraseña y Google) y la base de datos
+- **AsyncStorage** (`@react-native-async-storage/async-storage`) para persistir el estado de onboarding y la sesión de Supabase
 - **react-native-safe-area-context** para manejo de áreas seguras (notch, barra de navegación)
-- **@expo/vector-icons** para iconografía
+- **lucide-react-native** y **@expo/vector-icons** para iconografía
 
 ### Estructura del proyecto
 
@@ -122,11 +144,15 @@ Aplicación móvil para descubrir actividades y lugares según ubicación, clima
 PlanIt/
 ├── assets/                 # Ilustraciones, íconos y splash screen
 ├── src/
-│   ├── components/         # Componentes reutilizables (InputField, SocialButton)
-│   ├── navigation/          # Configuración de React Navigation
-│   ├── screens/             # Pantallas de la app
-│   ├── types/                # Tipos compartidos (navegación, props de componentes)
-│   └── utils/                 # Utilidades (AsyncStorage)
+│   ├── components/         # Componentes reutilizables (Button, InputField, BottomNavBar...)
+│   ├── context/            # AuthContext: sesión de Supabase disponible en toda la app
+│   ├── navigation/         # Configuración de React Navigation
+│   ├── screens/            # Pantallas de la app
+│   ├── services/           # AuthService (Supabase Auth)
+│   ├── styles/             # Colores y estilos globales
+│   ├── types/              # Tipos compartidos (navegación, props de componentes, auth)
+│   └── utils/              # Utilidades (cliente de Supabase, validación, AsyncStorage, datos del usuario)
+├── .env.example            # Plantilla de variables de entorno
 ├── App.tsx
 ├── index.ts
 └── app.json
@@ -137,16 +163,23 @@ PlanIt/
 | Pantalla | Descripción |
 |---|---|
 | `IntroScreen` | Onboarding con carrusel de bienvenida (3 slides), navegación por swipe, indicador de puntos y botón de inicio |
-| `LoginScreen` | Inicio de sesión con correo/contraseña, opciones de Google y Apple, validación de campos |
-| `HomeScreen` | Pantalla principal (en desarrollo) |
+| `LoginScreen` | Inicio de sesión con correo/contraseña y con Google, validación de campos |
+| `RegisterScreen` | Registro con nombre, correo y contraseña, o con Google |
+| `HomeScreen` | Saludo, clima, acceso a "Sorpréndeme" y lugares cercanos |
+| `SurpriseMeScreen` | Formulario de preferencias (actividad, presupuesto, distancia, compañía) y recomendación |
+| `PlansScreen` | Planes próximos y pasados |
+| `ProfileScreen` | Datos del usuario, menú de ajustes y cierre de sesión |
+| `SearchScreen` / `FavoritesScreen` | Pantallas provisionales |
 
 ### Flujo de navegación
 
-El punto de entrada (`AppNavigator`) decide la pantalla inicial según lo guardado en `AsyncStorage`:
+`AppNavigator` muestra un grupo de pantallas distinto según la sesión de Supabase (`AuthContext`):
 
-1. **Primera vez que se abre la app** → se muestra `IntroScreen`.
-2. **Onboarding ya visto, sin sesión iniciada** → se muestra `LoginScreen`.
-3. **Onboarding visto y sesión activa** → se entra directo a `HomeScreen`.
+1. **Sin sesión, primera vez que se abre la app** → `IntroScreen` y luego `LoginScreen`.
+2. **Sin sesión, onboarding ya visto** → `LoginScreen` / `RegisterScreen`.
+3. **Sesión activa** → `MainTabs` (Inicio, Buscar, Planes, Favoritos, Perfil) y `SurpriseMeScreen`.
+
+Al iniciar o cerrar sesión el grupo cambia solo; las pantallas no necesitan llamar a `navigation.reset`.
 
 ### Instalación
 
@@ -155,6 +188,16 @@ git clone https://github.com/MiloDS/Proyect_PlanIT.git
 cd Proyect_PlanIT
 npm install
 ```
+
+### Configuración de Supabase
+
+1. Crea un proyecto en [supabase.com](https://supabase.com).
+2. Copia `.env.example` como `.env` y completa la URL del proyecto y la clave **anon/publishable** (Project Settings → API). Nunca uses la clave `service_role`/secret en la app. `.env` está ignorado por git.
+3. En **Authentication → Sign In / Providers → Email**, deja el proveedor activo. Si **Confirm email** está activado, los usuarios nuevos deben confirmar su correo antes de iniciar sesión.
+4. Login con Google:
+   1. En Google Cloud Console, crea un OAuth client ID de tipo **Web application** con la URI de redirección autorizada `https://<project-ref>.supabase.co/auth/v1/callback`.
+   2. En Supabase → **Authentication → Sign In / Providers → Google**, actívalo y pega el Client ID y el Client Secret.
+   3. En Supabase → **Authentication → URL Configuration → Redirect URLs**, agrega `exp://**` (Expo Go) y `planit://**` (development builds).
 
 ### Ejecución
 
@@ -165,9 +208,8 @@ npx expo start
 Desde ahí puedes abrir el proyecto en:
 - Android: `npx expo start --android` (emulador o Expo Go)
 - iOS: `npx expo start --ios`
-- Web: `npx expo start --web`
 
-Si hay problemas de caché tras instalar dependencias nuevas:
+Si hay problemas de caché tras instalar dependencias nuevas o cambiar el `.env`:
 
 ```bash
 npx expo start -c
@@ -192,10 +234,10 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Estado del proyecto
 
-En desarrollo activo. `HomeScreen` y el registro de nuevos usuarios aún están pendientes.
+En desarrollo activo. La autenticación funciona con Supabase; Buscar y Favoritos son pantallas provisionales, e Inicio, Planes y Sorpréndeme todavía usan datos de ejemplo.
 
-### Autor
+### Autores
 Juan Esteban
 Juan Pablo Orozco
-Alexander Vargas Mejía 
+Alexander Vargas Mejía
 Institución Universitaria Pascual Bravo, Tecnología en Desarrollo de Software
