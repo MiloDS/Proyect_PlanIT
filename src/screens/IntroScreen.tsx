@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { StyleSheet, View, Text, Image, Pressable, FlatList, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { StyleSheet, View, Text, Image, Pressable, FlatList, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -12,8 +12,6 @@ import { PromptLink } from '../components/PromptLink';
 import { globalStyles } from '../styles/globalStyles';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Intro">;
-
-const { width } = Dimensions.get('window');
 
 const slides = [
   {
@@ -31,19 +29,19 @@ const slides = [
   {
     key: '3',
     title: 'Guarda tus favoritos',
-    text: 'Repetir las buenas experiencias',
+    text: 'Repite las buenas experiencias.',
     image: require('../../assets/slide3.png'),
   },
 ];
 
-type SlideItem = typeof slides [0];
+type SlideItem = (typeof slides)[number];
 
-function Slide({ item }: { item: SlideItem }) {
+function Slide({ item, width }: { item: SlideItem; width: number }) {
   return (
     <View style={{ width }}>
       <View style={styles.background}>
         <Text style={styles.title}>{item.title}</Text>
-        <Image source={item.image} style={styles.image} />
+        <Image source={item.image} style={[styles.image, { width }]} />
       </View>
 
       <View style={styles.card}>
@@ -55,6 +53,8 @@ function Slide({ item }: { item: SlideItem }) {
 
 export function IntroScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  // Se recalcula si cambia el tamaño de la ventana (rotación, tablets, web)
+  const { width } = useWindowDimensions();
   const flatListRef = useRef<FlatList>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -63,9 +63,14 @@ export function IntroScreen({ navigation }: Props) {
     setActiveIndex(index);
   };
 
-  const handleFinishOnboarding = async () => {
+  const finishOnboarding = async (destination: 'Login' | 'Register') => {
     await setOnboardingSeen();
-    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    // Register queda encima de Login para que "volver" lleve al inicio de sesión
+    if (destination === 'Register') {
+      navigation.reset({ index: 1, routes: [{ name: 'Login' }, { name: 'Register' }] });
+    } else {
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    }
   };
 
   const isLast = activeIndex === slides.length - 1;
@@ -87,21 +92,20 @@ export function IntroScreen({ navigation }: Props) {
           offset: width * index,
           index,
         })}
-        renderItem={({ item }) => ( 
-          <Slide 
-            item={item}
-          />
-        )}
+        renderItem={({ item }) => <Slide item={item} width={width} />}
       />
 
       {/* Indicadores de puntos y botones estáticos fuera del FlatList */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <View style={styles.dotsRow}>
-          {slides.map((_, i) => (
+          {slides.map((slide, i) => (
             <Pressable
-              key={i}
+              key={slide.key}
               onPress={() => flatListRef.current?.scrollToIndex({ index: i, animated: true })}
               hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={`Ir a la diapositiva ${i + 1}`}
+              accessibilityState={{ selected: i === activeIndex }}
             >
               <View style={[styles.dot, i === activeIndex && styles.activeDot]} />
             </Pressable>
@@ -111,14 +115,14 @@ export function IntroScreen({ navigation }: Props) {
         <View style={styles.actionContainer}>
           {isLast ? (
             <>
-              <Button variant="primary" onPress={handleFinishOnboarding}>
+              <Button variant="primary" onPress={() => finishOnboarding('Register')}>
                 <Text style={globalStyles.primaryButtonText}>Comenzar</Text>
               </Button>
 
               <PromptLink
                 prompt="¿Ya tienes cuenta?"
                 linkLabel="Inicia sesión"
-                onPress={handleFinishOnboarding}
+                onPress={() => finishOnboarding('Login')}
                 style={styles.loginPrompt}
               />
             </>
@@ -139,13 +143,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
+    color: colors.textPrimary,
     paddingTop: 40,
     paddingHorizontal: 24,
     marginBottom: 40,
     marginTop: 140,
   },
   image: {
-    width,
     height: 340,
     resizeMode: 'cover',
   },

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { View, PanResponder, StyleSheet, LayoutChangeEvent } from 'react-native';
+import { View, PanResponder, StyleSheet, LayoutChangeEvent, AccessibilityActionEvent } from 'react-native';
 import { CustomSliderProps } from '../types/components';
 import { colors } from '../styles/colors';
 
@@ -17,6 +17,11 @@ export function CustomSlider({
 }: CustomSliderProps) {
   const [trackWidth, setTrackWidth] = useState(0);
   const trackWidthRef = useRef(0);
+  const startXRef = useRef(0);
+
+  // El PanResponder se crea una sola vez: lee las props más recientes desde esta ref
+  const propsRef = useRef({ minimumValue, maximumValue, step, onValueChange });
+  propsRef.current = { minimumValue, maximumValue, step, onValueChange };
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const width = event.nativeEvent.layout.width;
@@ -25,44 +30,53 @@ export function CustomSlider({
   };
 
   const positionToValue = (x: number) => {
+    const { minimumValue: min, maximumValue: max, step: stepSize } = propsRef.current;
     const width = trackWidthRef.current;
-    if (width <= 0) return minimumValue;
+    if (width <= 0) return min;
 
     const ratio = Math.min(Math.max(x / width, 0), 1);
-    const rawValue = minimumValue + ratio * (maximumValue - minimumValue);
-    const steppedValue = Math.round(rawValue / step) * step;
+    const rawValue = min + ratio * (max - min);
+    const steppedValue = Math.round(rawValue / stepSize) * stepSize;
 
-    return Math.min(Math.max(steppedValue, minimumValue), maximumValue);
+    return Math.min(Math.max(steppedValue, min), max);
   };
-
-  const startXRef = useRef(0);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (event) => {
+        // locationX es relativo al contenedor porque la barra y el círculo no reciben toques
         const touchX = event.nativeEvent.locationX;
         startXRef.current = touchX;
-        onValueChange(positionToValue(touchX));
+        propsRef.current.onValueChange(positionToValue(touchX));
       },
       onPanResponderMove: (_, gestureState) => {
         const newX = startXRef.current + gestureState.dx;
-        onValueChange(positionToValue(newX));
+        propsRef.current.onValueChange(positionToValue(newX));
       },
     })
   ).current;
+
+  const handleAccessibilityAction = (event: AccessibilityActionEvent) => {
+    const delta = event.nativeEvent.actionName === 'increment' ? step : -step;
+    onValueChange(Math.min(Math.max(value + delta, minimumValue), maximumValue));
+  };
 
   const percentage = (value - minimumValue) / (maximumValue - minimumValue);
   const thumbPosition = percentage * trackWidth;
 
   return (
-    <View style={styles.container}>
-      <View
-        style={[styles.track, { backgroundColor: maximumTrackTintColor }]}
-        onLayout={handleLayout}
-        {...panResponder.panHandlers}
-      >
+    <View
+      style={styles.container}
+      onLayout={handleLayout}
+      accessibilityRole="adjustable"
+      accessibilityValue={{ min: minimumValue, max: maximumValue, now: value }}
+      accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+      onAccessibilityAction={handleAccessibilityAction}
+      {...panResponder.panHandlers}
+    >
+      <View style={[styles.track, { backgroundColor: maximumTrackTintColor }]}>
         <View
           style={[
             styles.filledTrack,
@@ -92,6 +106,7 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     justifyContent: 'center',
+    pointerEvents: 'none',
   },
   filledTrack: {
     height: 6,
