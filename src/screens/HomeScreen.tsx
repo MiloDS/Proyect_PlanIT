@@ -11,7 +11,8 @@ import { PlaceCard } from '../components/PlaceCard';
 import { Button } from '../components/Button';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
-import { BottomNavBar } from '../components/BottomNavBar';
+import { useAuth } from '../context/AuthContext';
+import { getFirstName } from '../utils/user';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, "Home">,
@@ -41,7 +42,7 @@ const nearbyPlaces = [
 
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const isStandalone = !navigation.getParent();
+  const { user } = useAuth();
 
   return (
     <View style={globalStyles.screen}>
@@ -62,7 +63,7 @@ export function HomeScreen({ navigation }: Props) {
           </Pressable>
         </View>
 
-        <Text style={styles.greeting}>¡Hola, Laura! 👋</Text>
+        <Text style={styles.greeting}>¡Hola, {getFirstName(user)}! 👋</Text>
         <Text style={styles.subGreeting}>¿Qué plan tienes hoy?</Text>
 
         <View style={styles.weatherCard}>
@@ -110,9 +111,6 @@ export function HomeScreen({ navigation }: Props) {
           ))}
         </ScrollView>
       </ScrollView>
-      {isStandalone && (
-        <BottomNavBar activeTab="Home" navigation={navigation} />
-      )}
     </View>
   );
 }

@@ -7,9 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppStackParamList } from '../types/navigation';
 import { InputField } from '../components/InputField';
 import { SocialButton } from '../components/SocialButton';
-import { SocialAuthModal } from '../components/SocialAuthModal';
 import { Button } from '../components/Button';
-import { saveAuthSession } from '../utils/storage';
 import { colors } from '../styles/colors';
 import { isValidEmail, isEmpty } from '../utils/validation';
 import { AuthService } from '../services/authService';
@@ -27,13 +25,8 @@ export function RegisterScreen({ navigation }: Props) {
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [generalError, setGeneralError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Estados para el modal de autenticación social real
-  const [socialModalVisible, setSocialModalVisible] = useState(false);
-  const [socialProvider, setSocialProvider] = useState<'google' | 'apple' | null>(null);
-  const [socialLoading, setSocialLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleRegister = async () => {
     const nextNameError = isEmpty(name) ? 'El nombre es obligatorio' : '';
@@ -58,7 +51,6 @@ export function RegisterScreen({ navigation }: Props) {
     setPasswordError(nextPasswordError);
     setConfirmPasswordError(nextConfirmPasswordError);
     setGeneralError('');
-    setSuccessMessage('');
 
     if (nextNameError || nextEmailError || nextPasswordError || nextConfirmPasswordError || loading) {
       return;
@@ -66,20 +58,19 @@ export function RegisterScreen({ navigation }: Props) {
 
     setLoading(true);
     try {
-      await AuthService.register({
+      const { needsEmailConfirmation } = await AuthService.register({
         name: name.trim(),
         email: email.trim(),
         password,
       });
 
-      // Mensaje de éxito en verde y redirección al Login
-      setSuccessMessage('¡Éxito al registrarse! Redirigiendo al inicio de sesión...');
-      setTimeout(() => {
+      // Sin confirmación de correo, Supabase ya inició sesión y AppNavigator muestra MainTabs
+      if (needsEmailConfirmation) {
         navigation.navigate('Login', { registeredEmail: email.trim() });
-      }, 1500);
+      }
     } catch (err: any) {
-      if (err.code === 'EMAIL_ALREADY_EXISTS') {
-        setEmailError('Este correo electrónico ya está registrado.');
+      if (err.code === 'user_already_exists') {
+        setEmailError(err.message);
       } else {
         setGeneralError(err.message || 'Error al crear la cuenta');
       }
@@ -88,45 +79,17 @@ export function RegisterScreen({ navigation }: Props) {
     }
   };
 
-  const handleOpenGoogle = () => {
-    setSocialProvider('google');
-    setSocialModalVisible(true);
-  };
+  const handleGoogleLogin = async () => {
+    if (googleLoading) return;
 
-  const handleOpenApple = () => {
-    setSocialProvider('apple');
-    setSocialModalVisible(true);
-  };
-
-  const handleSocialSubmit = async (socialEmail: string, socialName?: string) => {
-    setSocialLoading(true);
     setGeneralError('');
+    setGoogleLoading(true);
     try {
-      let response;
-      if (socialProvider === 'google') {
-        response = await AuthService.loginWithGoogle({
-          email: socialEmail,
-          name: socialName || name.trim() || undefined,
-          token: `google_${socialEmail}`,
-        });
-      } else {
-        response = await AuthService.loginWithApple({
-          email: socialEmail,
-          name: socialName || name.trim() || undefined,
-          token: `apple_${socialEmail}`,
-        });
-      }
-
-      setSocialModalVisible(false);
-      setSuccessMessage('¡Autenticación exitosa! Entrando a la app...');
-      await saveAuthSession(response.tokens, response.user);
-      setTimeout(() => {
-        navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-      }, 1000);
+      await AuthService.loginWithGoogle();
     } catch (err: any) {
-      throw err; // El modal maneja y muestra el error
+      setGeneralError(err.message || 'Error al registrarse con Google');
     } finally {
-      setSocialLoading(false);
+      setGoogleLoading(false);
     }
   };
 
@@ -148,14 +111,7 @@ export function RegisterScreen({ navigation }: Props) {
           iconName="logo-google"
           iconColor="#4285F4"
           label="Continuar con Google"
-          onPress={handleOpenGoogle}
-        />
-
-        <SocialButton
-          iconName="logo-apple"
-          iconColor="#000"
-          label="Continuar con Apple"
-          onPress={handleOpenApple}
+          onPress={handleGoogleLogin}
         />
 
         <View style={styles.dividerRow}>
@@ -163,14 +119,6 @@ export function RegisterScreen({ navigation }: Props) {
           <Text style={styles.dividerText}>o</Text>
           <View style={styles.dividerLine} />
         </View>
-
-        {/* Mensaje de éxito en verde */}
-        {!!successMessage && (
-          <View style={styles.successContainer}>
-            <Ionicons name="checkmark-circle" size={20} color="#15803D" />
-            <Text style={styles.successText}>{successMessage}</Text>
-          </View>
-        )}
 
         {/* Mensaje de error general en rojo */}
         {!!generalError && (
@@ -260,15 +208,6 @@ export function RegisterScreen({ navigation }: Props) {
           </Pressable>
         </View>
       </ScrollView>
-
-      {/* Modal para solicitar correo real de Google o Apple */}
-      <SocialAuthModal
-        visible={socialModalVisible}
-        provider={socialProvider}
-        loading={socialLoading}
-        onClose={() => setSocialModalVisible(false)}
-        onSubmit={handleSocialSubmit}
-      />
     </KeyboardAvoidingView>
   );
 }
@@ -312,24 +251,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     color: '#999',
     fontSize: 13,
-  },
-  successContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#DCFCE7',
-    borderWidth: 1,
-    borderColor: '#86EFAC',
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginBottom: 16,
-    gap: 8,
-  },
-  successText: {
-    flex: 1,
-    color: '#15803D',
-    fontSize: 14,
-    fontWeight: '600',
   },
   errorContainer: {
     flexDirection: 'row',

@@ -7,9 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppStackParamList } from '../types/navigation';
 import { InputField } from '../components/InputField';
 import { SocialButton } from '../components/SocialButton';
-import { SocialAuthModal } from '../components/SocialAuthModal';
 import { Button } from '../components/Button';
-import { saveAuthSession } from '../utils/storage';
 import { colors } from '../styles/colors';
 import { isValidEmail, isEmpty } from '../utils/validation';
 import { AuthService } from '../services/authService';
@@ -24,17 +22,13 @@ export function LoginScreen({ navigation, route }: Props) {
   const [generalError, setGeneralError] = useState('');
   const [infoMessage, setInfoMessage] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Estados para el modal de autenticación social real
-  const [socialModalVisible, setSocialModalVisible] = useState(false);
-  const [socialProvider, setSocialProvider] = useState<'google' | 'apple' | null>(null);
-  const [socialLoading, setSocialLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   // Prellenar email si viene redirigido desde el registro exitoso
   useEffect(() => {
     if (route.params?.registeredEmail) {
       setEmail(route.params.registeredEmail);
-      setInfoMessage('¡Cuenta creada exitosamente! Por favor ingresa tu contraseña.');
+      setInfoMessage('¡Cuenta creada! Revisa tu correo para confirmarla y luego inicia sesión.');
     }
   }, [route.params?.registeredEmail]);
 
@@ -57,13 +51,11 @@ export function LoginScreen({ navigation, route }: Props) {
 
     setLoading(true);
     try {
-      const response = await AuthService.login({
+      // Con la sesión iniciada, AppNavigator muestra MainTabs automáticamente
+      await AuthService.login({
         email: email.trim(),
         password,
       });
-
-      await saveAuthSession(response.tokens, response.user);
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (err: any) {
       setGeneralError(err.message || 'Error al iniciar sesión');
     } finally {
@@ -71,42 +63,17 @@ export function LoginScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleOpenGoogle = () => {
-    setSocialProvider('google');
-    setSocialModalVisible(true);
-  };
+  const handleGoogleLogin = async () => {
+    if (googleLoading) return;
 
-  const handleOpenApple = () => {
-    setSocialProvider('apple');
-    setSocialModalVisible(true);
-  };
-
-  const handleSocialSubmit = async (socialEmail: string, socialName?: string) => {
-    setSocialLoading(true);
     setGeneralError('');
+    setGoogleLoading(true);
     try {
-      let response;
-      if (socialProvider === 'google') {
-        response = await AuthService.loginWithGoogle({
-          email: socialEmail,
-          name: socialName || undefined,
-          token: `google_${socialEmail}`,
-        });
-      } else {
-        response = await AuthService.loginWithApple({
-          email: socialEmail,
-          name: socialName || undefined,
-          token: `apple_${socialEmail}`,
-        });
-      }
-
-      setSocialModalVisible(false);
-      await saveAuthSession(response.tokens, response.user);
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+      await AuthService.loginWithGoogle();
     } catch (err: any) {
-      throw err;
+      setGeneralError(err.message || 'Error al iniciar sesión con Google');
     } finally {
-      setSocialLoading(false);
+      setGoogleLoading(false);
     }
   };
 
@@ -128,14 +95,7 @@ export function LoginScreen({ navigation, route }: Props) {
           iconName="logo-google"
           iconColor="#4285F4"
           label="Continuar con Google"
-          onPress={handleOpenGoogle}
-        />
-
-        <SocialButton
-          iconName="logo-apple"
-          iconColor="#000"
-          label="Continuar con Apple"
-          onPress={handleOpenApple}
+          onPress={handleGoogleLogin}
         />
 
         <View style={styles.dividerRow}>
@@ -215,15 +175,6 @@ export function LoginScreen({ navigation, route }: Props) {
           </Pressable>
         </View>
       </ScrollView>
-
-      {/* Modal para solicitar correo real de Google o Apple */}
-      <SocialAuthModal
-        visible={socialModalVisible}
-        provider={socialProvider}
-        loading={socialLoading}
-        onClose={() => setSocialModalVisible(false)}
-        onSubmit={handleSocialSubmit}
-      />
     </KeyboardAvoidingView>
   );
 }

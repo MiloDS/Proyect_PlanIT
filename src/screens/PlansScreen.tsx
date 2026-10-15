@@ -11,7 +11,6 @@ import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { Button } from '../components/Button';
-import { BottomNavBar } from '../components/BottomNavBar';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Plans'>,
@@ -83,23 +82,13 @@ export function PlansScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
 
-  const isStandalone = !navigation.getParent();
-  const bottomBarPadding = Math.max(insets.bottom, 10);
-  const bottomBarHeight = 56 + bottomBarPadding;
-
   const currentPlans = activeTab === 'upcoming' ? upcomingPlans : pastPlans;
 
   return (
     <View style={globalStyles.screen}>
       <StatusBar style="dark" />
       <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingTop: insets.top + 16,
-            paddingBottom: isStandalone ? bottomBarHeight + 70 : 96,
-          },
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16 }]}
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.headerTitle}>Mis planes</Text>
@@ -161,21 +150,12 @@ export function PlansScreen({ navigation }: Props) {
         </View>
       </ScrollView>
 
-      <View
-        style={[
-          styles.fabContainer,
-          { bottom: isStandalone ? bottomBarHeight + 12 : 16 },
-        ]}
-      >
+      <View style={styles.fabContainer}>
         <Button style={styles.fabButton} onPress={() => {}}>
           <Plus size={18} color={colors.white} strokeWidth={2.5} style={styles.fabIcon} />
           <Text style={styles.fabText}>Nuevo plan</Text>
         </Button>
       </View>
-
-      {isStandalone && (
-        <BottomNavBar activeTab="Plans" navigation={navigation} />
-      )}
     </View>
   );
 }
@@ -275,6 +255,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 24,
     right: 24,
+    bottom: 16,
   },
   fabButton: {
     backgroundColor: colors.primary,

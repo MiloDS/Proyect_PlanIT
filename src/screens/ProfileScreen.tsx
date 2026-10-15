@@ -5,11 +5,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, CreditCard, Bell, Globe, HelpCircle, LogOut, ChevronRight, Pencil, Signal, Wifi, Battery } from 'lucide-react-native';
 
 import { CompositeScreenProps } from '@react-navigation/native';
-import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { colors } from '../styles/colors';
-import { BottomNavBar } from '../components/BottomNavBar';
+import { useAuth } from '../context/AuthContext';
+import { AuthService } from '../services/authService';
+import { getAvatarUrl, getFullName } from '../utils/user';
 
 type Props = CompositeScreenProps <
   BottomTabScreenProps<MainTabParamList, "Profile">,
@@ -76,7 +78,8 @@ const MenuItem: React.FC<MenuItemProps> = ({
 
 export function ProfileScreen({ navigation }: Props)  {
   const insets = useSafeAreaInsets();
-  const isStandalone = !navigation.getParent();
+  const { user } = useAuth();
+  const avatarUrl = getAvatarUrl(user);
 
   const handleNavigation = (screenName: string) => {
     
@@ -95,11 +98,13 @@ export function ProfileScreen({ navigation }: Props)  {
       {
         text: 'Cerrar sesión',
         style: 'destructive',
-        onPress: () => {
-          console.log('Sesión cerrada');
-          navigation
-            .getParent<NativeStackNavigationProp<AppStackParamList>>()
-            ?.reset({ index: 0, routes: [{ name: 'Login' }] });
+        onPress: async () => {
+          // Al cerrar sesión, AppNavigator vuelve a mostrar Login
+          try {
+            await AuthService.logout();
+          } catch (err: any) {
+            Alert.alert('Error', err.message || 'No se pudo cerrar sesión');
+          }
         },
       },
     ]
@@ -115,17 +120,16 @@ export function ProfileScreen({ navigation }: Props)  {
 
           {/* Avatar */}
           <View style={styles.avatarContainer}>
-            <Image
-              source={{
-                uri: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=300&auto=format&fit=crop',
-              }}
-              style={styles.avatar}
-            />
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+            ) : (
+              <User size={44} color={colors.white} />
+            )}
           </View>
 
           {/* Nombre + editar */}
           <View style={styles.nameContainer}>
-            <Text style={styles.userName}>Laura Gómez</Text>
+            <Text style={styles.userName}>{getFullName(user)}</Text>
 
             <Pressable
               onPress={() =>
@@ -144,7 +148,7 @@ export function ProfileScreen({ navigation }: Props)  {
           </View>
 
           {/* Correo */}
-          <Text style={styles.userEmail}>laura.gomez@email.com</Text>
+          <Text style={styles.userEmail}>{user?.email}</Text>
         </View>
 
         {/* CONTENIDO */}
@@ -236,10 +240,6 @@ export function ProfileScreen({ navigation }: Props)  {
 
           </ScrollView>
         </View>
-
-        {isStandalone && (
-          <BottomNavBar activeTab="Profile" navigation={navigation} />
-        )}
       </View>
   );
 }
@@ -296,6 +296,8 @@ const styles = StyleSheet.create({
     borderColor: colors.white,
     overflow: 'hidden',
     marginBottom: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#048A58',
 
     // Sombra para Android

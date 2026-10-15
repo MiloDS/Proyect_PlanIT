@@ -14,103 +14,33 @@ const TAB_ICONS: Record<keyof MainTabParamList, typeof Home> = {
     Profile: User,
 };
 
-type TabBarModeProps = BottomTabBarProps & {
-    activeTab?: never;
-    onTabPress?: never;
-};
-
-type StandaloneModeProps = {
-    state?: undefined;
-    descriptors?: undefined;
-    activeTab?: keyof MainTabParamList;
-    navigation?: any;
-    onTabPress?: (tab: keyof MainTabParamList) => void;
-};
-
-export type BottomNavBarProps = TabBarModeProps | StandaloneModeProps;
-
-const DEFAULT_TABS: { name: keyof MainTabParamList; label: string }[] = [
-    { name: 'Home', label: 'Inicio' },
-    { name: 'Search', label: 'Buscar' },
-    { name: 'Plans', label: 'Planes' },
-    { name: 'Favorites', label: 'Favoritos' },
-    { name: 'Profile', label: 'Perfil' },
-];
-
-export function BottomNavBar(props: BottomNavBarProps) {
+export function BottomNavBar({ state, descriptors, navigation }: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
     const bottomPadding = Math.max(insets.bottom, 10);
 
-    // If rendered by Tab.Navigator
-    if (props.state && props.descriptors && props.navigation) {
-        const { state, descriptors, navigation } = props;
-        return (
-            <View style={[styles.bottomNavigation, { paddingBottom: bottomPadding, height: 56 + bottomPadding }]}>
-                {state.routes.map((route, index) => {
-                    const { options } = descriptors[route.key];
-                    const label =
-                        (options.tabBarLabel as string) ?? options.title ?? route.name;
-                    const isFocused = state.index === index;
-                    const Icon = TAB_ICONS[route.name as keyof MainTabParamList];
-
-                    const onPress = () => {
-                        const event = navigation.emit({
-                            type: "tabPress",
-                            target: route.key,
-                            canPreventDefault: true,
-                        });
-
-                        if (!isFocused && !event.defaultPrevented) {
-                            navigation.navigate(route.name);
-                        }
-                    };
-
-                    return (
-                        <Button key={route.key} onPress={onPress} style={styles.navButton}>
-                            <Icon size={21} color={isFocused ? colors.primary : "#94A3B8"} />
-                            <Text
-                                style={[
-                                    styles.navText,
-                                    isFocused ? styles.navTextActive : styles.navTextInactive,
-                                ]}
-                            >
-                                {label}
-                            </Text>
-                        </Button>
-                    );
-                })}
-            </View>
-        );
-    }
-
-    // Standalone usage (inside PlansScreen or any Stack Screen)
-    const currentTab = props.activeTab ?? 'Plans';
-    const nav = props.navigation;
-
-    const handlePress = (tabName: keyof MainTabParamList) => {
-        if (props.onTabPress) {
-            props.onTabPress(tabName);
-            return;
-        }
-
-        if (!nav) return;
-        if (currentTab === tabName) return;
-
-        try {
-            nav.navigate('MainTabs', { screen: tabName });
-        } catch {
-            nav.navigate(tabName);
-        }
-    };
-
     return (
         <View style={[styles.bottomNavigation, { paddingBottom: bottomPadding, height: 56 + bottomPadding }]}>
-            {DEFAULT_TABS.map((tab) => {
-                const isFocused = currentTab === tab.name;
-                const Icon = TAB_ICONS[tab.name];
+            {state.routes.map((route, index) => {
+                const { options } = descriptors[route.key];
+                const label =
+                    (options.tabBarLabel as string) ?? options.title ?? route.name;
+                const isFocused = state.index === index;
+                const Icon = TAB_ICONS[route.name as keyof MainTabParamList];
+
+                const onPress = () => {
+                    const event = navigation.emit({
+                        type: "tabPress",
+                        target: route.key,
+                        canPreventDefault: true,
+                    });
+
+                    if (!isFocused && !event.defaultPrevented) {
+                        navigation.navigate(route.name);
+                    }
+                };
 
                 return (
-                    <Button key={tab.name} onPress={() => handlePress(tab.name)} style={styles.navButton}>
+                    <Button key={route.key} onPress={onPress} style={styles.navButton}>
                         <Icon size={21} color={isFocused ? colors.primary : "#94A3B8"} />
                         <Text
                             style={[
@@ -118,7 +48,7 @@ export function BottomNavBar(props: BottomNavBarProps) {
                                 isFocused ? styles.navTextActive : styles.navTextInactive,
                             ]}
                         >
-                            {tab.label}
+                            {label}
                         </Text>
                     </Button>
                 );
