@@ -9,6 +9,7 @@ import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-naviga
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { colors } from '../styles/colors';
+import { BottomNavBar } from '../components/BottomNavBar';
 
 type Props = CompositeScreenProps <
   BottomTabScreenProps<MainTabParamList, "Profile">,
@@ -75,6 +76,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
 
 export function ProfileScreen({ navigation }: Props)  {
   const insets = useSafeAreaInsets();
+  const isStandalone = !navigation.getParent();
 
   const handleNavigation = (screenName: string) => {
     
@@ -234,6 +236,10 @@ export function ProfileScreen({ navigation }: Props)  {
 
           </ScrollView>
         </View>
+
+        {isStandalone && (
+          <BottomNavBar activeTab="Profile" navigation={navigation} />
+        )}
       </View>
   );
 }

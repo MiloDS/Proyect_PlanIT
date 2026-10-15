@@ -1,7 +1,10 @@
 export type AppStackParamList = {
   Intro: undefined;
-  Login: undefined;
+  Login: { registeredEmail?: string } | undefined;
   Register: undefined;
+  Home: undefined;
+  Profile: undefined;
+  Plans: undefined;
   MainTabs: undefined;
   SurpriseMe: undefined;
 };

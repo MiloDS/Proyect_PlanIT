@@ -11,6 +11,7 @@ import { PlaceCard } from '../components/PlaceCard';
 import { Button } from '../components/Button';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { BottomNavBar } from '../components/BottomNavBar';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, "Home">,
@@ -40,6 +41,7 @@ const nearbyPlaces = [
 
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const isStandalone = !navigation.getParent();
 
   return (
     <View style={globalStyles.screen}>
@@ -108,6 +110,9 @@ export function HomeScreen({ navigation }: Props) {
           ))}
         </ScrollView>
       </ScrollView>
+      {isStandalone && (
+        <BottomNavBar activeTab="Home" navigation={navigation} />
+      )}
     </View>
   );
 }
