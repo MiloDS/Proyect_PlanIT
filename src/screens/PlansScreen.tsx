@@ -151,7 +151,7 @@ export function PlansScreen({ navigation }: Props) {
       </ScrollView>
 
       <View style={styles.fabContainer}>
-        <Button style={styles.fabButton} onPress={() => {}}>
+        <Button variant="primary" style={styles.fabButton} onPress={() => {}}>
           <Plus size={18} color={colors.white} strokeWidth={2.5} style={styles.fabIcon} />
           <Text style={styles.fabText}>Nuevo plan</Text>
         </Button>
@@ -258,11 +258,7 @@ const styles = StyleSheet.create({
     bottom: 16,
   },
   fabButton: {
-    backgroundColor: colors.primary,
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
     borderRadius: 24,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 3 },

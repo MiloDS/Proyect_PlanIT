@@ -20,6 +20,8 @@ export const globalStyles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 50,
   },
   primaryButtonText: {
     color: colors.white,

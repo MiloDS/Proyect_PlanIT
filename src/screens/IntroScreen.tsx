@@ -8,6 +8,7 @@ import { AppStackParamList } from '../types/navigation';
 import { setOnboardingSeen } from '../utils/storage';
 import { colors } from '../styles/colors';
 import { Button } from '../components/Button';
+import { PromptLink } from '../components/PromptLink';
 import { globalStyles } from '../styles/globalStyles';
 
 type Props = NativeStackScreenProps<AppStackParamList, "Intro">;
@@ -110,16 +111,16 @@ export function IntroScreen({ navigation }: Props) {
         <View style={styles.actionContainer}>
           {isLast ? (
             <>
-              <Button style={styles.button} onPress={handleFinishOnboarding}>
-                <Text style={styles.buttonText}>Comenzar</Text>
+              <Button variant="primary" onPress={handleFinishOnboarding}>
+                <Text style={globalStyles.primaryButtonText}>Comenzar</Text>
               </Button>
 
-              <Text style={styles.loginPrompt}>
-                ¿Ya tienes cuenta?{' '}
-                <Text style={styles.loginLink} onPress={handleFinishOnboarding}>
-                  Inicia sesión
-                </Text>
-              </Text>
+              <PromptLink
+                prompt="¿Ya tienes cuenta?"
+                linkLabel="Inicia sesión"
+                onPress={handleFinishOnboarding}
+                style={styles.loginPrompt}
+              />
             </>
           ) : (
             <View style={styles.actionSpacer} />
@@ -191,26 +192,7 @@ const styles = StyleSheet.create({
   actionSpacer: {
     height: 85,
   },
-  button: {
-    backgroundColor: colors.primary,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   loginPrompt: {
-    textAlign: 'center',
     marginTop: 12,
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  loginLink: {
-    color: colors.primary,
-    fontWeight: 'bold',
-    textDecorationLine: 'underline',
   },
 });

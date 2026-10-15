@@ -1,7 +1,18 @@
-import { Ionicons } from '@expo/vector-icons';
-import type { KeyboardTypeOptions } from 'react-native';
+import type { ReactNode } from 'react';
+import type { KeyboardTypeOptions, StyleProp, ViewStyle } from 'react-native';
+
+export type ButtonProps = {
+  onPress: () => void;
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+  variant?: 'plain' | 'primary';
+  loading?: boolean;
+  disabled?: boolean;
+  accessibilityLabel?: string;
+};
 
 export type CustomInputFieldProps = {
+  label?: string;
   placeholder: string;
   value: string;
   onChangeText: (text: string) => void;
@@ -13,10 +24,36 @@ export type CustomInputFieldProps = {
 };
 
 export type SocialButtonProps = {
-  iconName: keyof typeof Ionicons.glyphMap;
-  iconColor: string;
+  icon: ReactNode;
   label: string;
   onPress: () => void;
+  loading?: boolean;
+};
+
+export type GoogleLogoProps = {
+  size?: number;
+};
+
+export type AuthLayoutProps = {
+  title: string;
+  subtitle: string;
+  children: ReactNode;
+};
+
+export type DividerProps = {
+  label?: string;
+};
+
+export type BannerProps = {
+  type: 'error' | 'success';
+  message: string;
+};
+
+export type PromptLinkProps = {
+  prompt: string;
+  linkLabel: string;
+  onPress: () => void;
+  style?: StyleProp<ViewStyle>;
 };
 
 export type PlaceCardProps = {

@@ -16,7 +16,7 @@ Mobile app to discover activities and places based on location, weather, and per
 - **Supabase** (`@supabase/supabase-js`) for authentication (email/password and Google) and the database
 - **AsyncStorage** (`@react-native-async-storage/async-storage`) to persist onboarding state and the Supabase session
 - **react-native-safe-area-context** for safe area handling (notch, navigation bar)
-- **lucide-react-native** and **@expo/vector-icons** for icons
+- **lucide-react-native** for icons
 
 ### Project structure
 
@@ -104,6 +104,7 @@ npx expo start
 From there you can open the project on:
 - Android: `npx expo start --android` (emulator or Expo Go)
 - iOS: `npx expo start --ios`
+- Web: `npx expo start --web`
 
 If you run into cache issues after installing new dependencies or changing `.env`:
 
@@ -152,7 +153,7 @@ Aplicación móvil para descubrir actividades y lugares según ubicación, clima
 - **Supabase** (`@supabase/supabase-js`) para la autenticación (correo/contraseña y Google) y la base de datos
 - **AsyncStorage** (`@react-native-async-storage/async-storage`) para persistir el estado de onboarding y la sesión de Supabase
 - **react-native-safe-area-context** para manejo de áreas seguras (notch, barra de navegación)
-- **lucide-react-native** y **@expo/vector-icons** para iconografía
+- **lucide-react-native** para iconografía
 
 ### Estructura del proyecto
 
@@ -240,6 +241,7 @@ npx expo start
 Desde ahí puedes abrir el proyecto en:
 - Android: `npx expo start --android` (emulador o Expo Go)
 - iOS: `npx expo start --ios`
+- Web: `npx expo start --web`
 
 Si hay problemas de caché tras instalar dependencias nuevas o cambiar el `.env`:
 

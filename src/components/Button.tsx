@@ -1,19 +1,48 @@
-// src/components/Button.tsx
-import { Pressable, StyleProp, ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 
-type ButtonProps = {
-  onPress: () => void;
-  style?: StyleProp<ViewStyle>;
-  children: React.ReactNode;
-};
+import { ButtonProps } from '../types/components';
+import { colors } from '../styles/colors';
+import { globalStyles } from '../styles/globalStyles';
 
-export function Button({ onPress, style, children }: ButtonProps) {
+export function Button({
+  onPress,
+  children,
+  style,
+  variant = 'plain',
+  loading = false,
+  disabled = false,
+  accessibilityLabel,
+}: ButtonProps) {
+  const isDisabled = disabled || loading;
+
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [style, pressed && { opacity: 0.7 }]}
+      disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
+      style={({ pressed }) => [
+        variant === 'primary' && globalStyles.primaryButton,
+        style,
+        pressed && styles.pressed,
+        disabled && styles.disabled,
+      ]}
     >
-      {children}
+      {loading ? (
+        <ActivityIndicator size="small" color={variant === 'primary' ? colors.white : colors.primary} />
+      ) : (
+        children
+      )}
     </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  pressed: {
+    opacity: 0.7,
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+});

@@ -52,13 +52,17 @@ export function HomeScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.topBar}>
-          <Pressable style={styles.locationRow}>
+          <Pressable
+            style={styles.locationRow}
+            accessibilityRole="button"
+            accessibilityLabel="Cambiar ubicación: Medellín, Colombia"
+          >
             <MapPin size={16} color={colors.textPrimary} />
             <Text style={styles.locationText}>Medellín, Colombia</Text>
             <ChevronDown size={16} color={colors.textPrimary} />
           </Pressable>
 
-          <Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Notificaciones" hitSlop={8}>
             <Bell size={22} color={colors.textPrimary} />
           </Pressable>
         </View>
@@ -90,6 +94,7 @@ export function HomeScreen({ navigation }: Props) {
           </View>
 
           <Button
+            variant="primary"
             style={styles.surpriseButton}
             onPress={() => navigation.navigate('SurpriseMe')}
           >
@@ -203,12 +208,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   surpriseButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 12,
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 12,
+    minHeight: 44,
   },
   surpriseButtonText: {
     color: colors.white,
