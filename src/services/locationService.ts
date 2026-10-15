@@ -1,3 +1,4 @@
+import { AppState } from 'react-native';
 import * as Location from 'expo-location';
 
 import { DevicePosition } from '../types/places';
@@ -14,6 +15,21 @@ const DEFAULT_LABEL = 'Medellín, Colombia';
 const LAST_KNOWN_MAX_AGE_MS = 30 * 60 * 1000;
 const POSITION_TIMEOUT_MS = 8000;
 
+// Android no muestra el diálogo de permisos si la app está detrás de otra (por ejemplo, la
+// pestaña de Google tras iniciar sesión) y la solicitud queda pendiente para siempre
+function waitUntilActive(): Promise<void> {
+  if (AppState.currentState === 'active') return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        subscription.remove();
+        resolve();
+      }
+    });
+  });
+}
+
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<null>((resolve) => {
@@ -29,6 +45,7 @@ export class LocationService {
    */
   static async getCurrentPosition(): Promise<DevicePosition> {
     try {
+      await waitUntilActive();
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') return DEFAULT_POSITION;
 

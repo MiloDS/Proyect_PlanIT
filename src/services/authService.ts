@@ -103,7 +103,11 @@ export class AuthService {
 
     if (error) throw toAuthServiceError(error);
 
-    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    // En Android la pestaña del navegador no se puede cerrar desde la app. Abriéndola en la
+    // misma tarea, Android la cierra sola cuando la redirección vuelve a traer la app al frente
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo, {
+      createTask: false,
+    });
     if (result.type !== 'success') return false;
 
     const params = getRedirectParams(result.url);
