@@ -1,161 +1,151 @@
-import {StyleSheet, View, Text, Pressable, KeyboardAvoidingView, Platform, ScrollView, Alert} from 'react-native'
+import { StyleSheet, Text, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {useState} from 'react'
+import { useState } from 'react';
 
 import { AppStackParamList } from '../types/navigation';
-import { InputField } from '../components/InputField'
+import { AuthLayout } from '../components/AuthLayout';
+import { Banner } from '../components/Banner';
+import { Button } from '../components/Button';
+import { Divider } from '../components/Divider';
+import { GoogleLogo } from '../components/GoogleLogo';
+import { InputField } from '../components/InputField';
+import { PromptLink } from '../components/PromptLink';
 import { SocialButton } from '../components/SocialButton';
-import { saveUserSession } from '../utils/storage';
+import { useGoogleSignIn } from '../services/useGoogleSignIn';
+import { colors } from '../styles/colors';
+import { globalStyles } from '../styles/globalStyles';
+import { isValidEmail, isEmpty } from '../utils/validation';
+import { AuthService } from '../services/authService';
 
-type Props = NativeStackScreenProps<AppStackParamList, "Login">;
+type Props = NativeStackScreenProps<AppStackParamList, 'Login'>;
 
-export function LoginScreen ({ navigation }: Props) {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    
-    const handleLogin = async () => {
-      if (email.trim() === '' || password.trim() === '') {
-        return Alert.alert('Campos obligatorios');
-      }
-      await saveUserSession(email);
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-    };
+export function LoginScreen({ navigation, route }: Props) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [generalError, setGeneralError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const google = useGoogleSignIn();
 
-    return (
-        <KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === 'ios' ? 'padding' : undefined} >
-            <ScrollView style={{marginTop: 120, marginHorizontal: 25}}>
-                <Text style={styles.title}>¡Bienvenido a PlanIt!</Text>
-                <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
+  // Prellenar el correo cuando Register redirige aquí tras crear la cuenta.
+  // Se ajusta durante el render porque Login puede seguir montado debajo de Register.
+  const registeredEmail = route.params?.registeredEmail;
+  const [prefilledEmail, setPrefilledEmail] = useState<string>();
+  if (registeredEmail && registeredEmail !== prefilledEmail) {
+    setPrefilledEmail(registeredEmail);
+    setEmail(registeredEmail);
+  }
+  const infoMessage = registeredEmail
+    ? '¡Cuenta creada! Revisa tu correo para confirmarla y luego inicia sesión.'
+    : '';
 
-                <SocialButton
-                    iconName='logo-google'
-                    iconColor='#4285F4'
-                    label="Continuar con Google"
-                    onPress={() => {}}
-                />
+  const handleLogin = async () => {
+    const nextEmailError = isEmpty(email)
+      ? 'El correo es obligatorio'
+      : !isValidEmail(email)
+        ? 'Ingresa un correo válido (ejemplo@dominio.com)'
+        : '';
 
-                <SocialButton
-                    iconName='logo-apple'
-                    iconColor='#000'
-                    label="Continuar con Apple"
-                    onPress={() => {}}
-                />
+    const nextPasswordError = isEmpty(password) ? 'La contraseña es obligatoria' : '';
 
-                <View style={styles.dividerRow}>
-                    <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>o</Text>
-                    <View style={styles.dividerLine} />
-                </View>
+    setEmailError(nextEmailError);
+    setPasswordError(nextPasswordError);
+    setGeneralError('');
 
-                <Text style={styles.label}>Correo electrónico</Text>
-                  <InputField
-                    placeholder="ejemplo@correo.com"
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    />
+    if (nextEmailError || nextPasswordError || loading) {
+      return;
+    }
 
-                <Text style={styles.label}>Contraseña</Text>
-                <View>
-                    <InputField
-                      placeholder="········"
-                      value={password}
-                      onChangeText={setPassword}
-                      secureTextEntry
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      />
-                </View>
+    setLoading(true);
+    try {
+      // Con la sesión iniciada, AppNavigator muestra MainTabs automáticamente
+      await AuthService.login({
+        email: email.trim(),
+        password,
+      });
+    } catch (err: any) {
+      setGeneralError(err.message || 'Error al iniciar sesión');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                <Pressable style={styles.forgotPassword}>
-                    <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
-                </Pressable>
+  const handleGoogleLogin = async () => {
+    setGeneralError('');
+    const error = await google.signIn();
+    if (error) setGeneralError(error);
+  };
 
-                <Pressable style={styles.loginButton} onPress={handleLogin}>
-                    <Text style={styles.loginButtonText}>Iniciar sesión</Text>
-                </Pressable>
+  return (
+    <AuthLayout title="¡Bienvenido a PlanIt!" subtitle="Inicia sesión para continuar">
+      <SocialButton
+        icon={<GoogleLogo />}
+        label="Continuar con Google"
+        loading={google.loading}
+        onPress={handleGoogleLogin}
+      />
 
-                <Text style={styles.registerPrompt}>
-                    ¿No tienes cuenta?{' '}
-                    <Text style={styles.registerLink} onPress={() => navigation.navigate('MainTabs')}>
-                        Regístrate
-                    </Text>
-                </Text>
-            </ScrollView>
-        </KeyboardAvoidingView>
-    )
+      <Divider label="o" />
+
+      {!!infoMessage && <Banner type="success" message={infoMessage} />}
+      {!!generalError && <Banner type="error" message={generalError} />}
+
+      <InputField
+        label="Correo electrónico"
+        placeholder="ejemplo@correo.com"
+        value={email}
+        onChangeText={(text) => {
+          setEmail(text);
+          setEmailError('');
+          setGeneralError('');
+        }}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
+        error={emailError}
+      />
+
+      <InputField
+        label="Contraseña"
+        placeholder="········"
+        value={password}
+        onChangeText={(text) => {
+          setPassword(text);
+          setPasswordError('');
+          setGeneralError('');
+        }}
+        secureTextEntry
+        autoCapitalize="none"
+        autoCorrect={false}
+        error={passwordError}
+      />
+
+      <Pressable style={styles.forgotPassword}>
+        <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+      </Pressable>
+
+      <Button variant="primary" loading={loading} onPress={handleLogin}>
+        <Text style={globalStyles.primaryButtonText}>Iniciar sesión</Text>
+      </Button>
+
+      <PromptLink
+        prompt="¿No tienes cuenta?"
+        linkLabel="Regístrate"
+        onPress={() => navigation.navigate('Register')}
+      />
+    </AuthLayout>
+  );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 80,
-    paddingBottom: 40,
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 6,
-    marginBottom: 30,
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#ddd',
-  },
-  dividerText: {
-    marginHorizontal: 10,
-    color: '#999',
-    fontSize: 13,
-  },
-  label: {
-    fontSize: 13,
-    color: '#333',
-    marginBottom: 6,
-  },
   forgotPassword: {
     alignSelf: 'flex-end',
     marginBottom: 24,
   },
   forgotPasswordText: {
-    color: '#2ecc71',
+    color: colors.primary,
     fontSize: 13,
     fontWeight: '600',
-  },
-  loginButton: {
-    backgroundColor: '#2ecc71',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  registerPrompt: {
-    textAlign: 'center',
-    marginTop: 20,
-    fontSize: 13,
-    color: '#666',
-  },
-  registerLink: {
-    color: '#2ecc71',
-    fontWeight: 'bold',
   },
 });

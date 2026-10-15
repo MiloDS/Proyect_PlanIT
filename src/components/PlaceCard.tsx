@@ -1,16 +1,19 @@
 import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
 import { MapPin } from 'lucide-react-native';
 import { PlaceCardProps } from '../types/components';
+import { colors } from '../styles/colors';
 
 export function PlaceCard({ imageUrl, name, category, distanceKm, onPress }: PlaceCardProps) {
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <Image source={{ uri: imageUrl }} style={styles.image} />
       <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>{name}</Text>
+        <Text style={styles.name} numberOfLines={1}>
+          {name}
+        </Text>
         <Text style={styles.category}>{category}</Text>
         <View style={styles.distanceRow}>
-          <MapPin size={12} color="#94A3B8" />
+          <MapPin size={12} color={colors.textMuted} />
           <Text style={styles.distance}>{distanceKm} km</Text>
         </View>
       </View>
@@ -35,11 +38,11 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#1E293B',
+    color: colors.textPrimary,
   },
   category: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: colors.textMuted,
     marginTop: 1,
   },
   distanceRow: {
@@ -49,7 +52,7 @@ const styles = StyleSheet.create({
   },
   distance: {
     fontSize: 11,
-    color: '#05A86B',
+    color: colors.primary,
     fontWeight: '600',
     marginLeft: 3,
   },

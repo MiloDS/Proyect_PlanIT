@@ -8,65 +8,55 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { PlaceCard } from '../components/PlaceCard';
+import { Button } from '../components/Button';
+import { colors } from '../styles/colors';
+import { globalStyles } from '../styles/globalStyles';
+import { useAuth } from '../services/AuthContext';
+import { getFirstName } from '../utils/user';
+import { NEARBY_PLACES } from '../utils/mockData';
 
 type Props = CompositeScreenProps<
-  BottomTabScreenProps<MainTabParamList, "Home">,
+  BottomTabScreenProps<MainTabParamList, 'Home'>,
   NativeStackScreenProps<AppStackParamList>
 >;
 
-const nearbyPlaces = [
-  {
-    name: 'Parque Arví',
-    category: 'Parque',
-    distanceKm: 2.4,
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=400&auto=format&fit=crop',
-  },
-  {
-    name: 'Museo de Antioquia',
-    category: 'Museo',
-    distanceKm: 3.1,
-    imageUrl: 'https://images.unsplash.com/photo-1554907984-15263bfd63bd?q=80&w=400&auto=format&fit=crop',
-  },
-  {
-    name: 'Café Amor',
-    category: 'Cafetería',
-    distanceKm: 1.8,
-    imageUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=400&auto=format&fit=crop',
-  },
-];
-
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
 
   return (
-    <View style={styles.container}>
+    <View style={globalStyles.screen}>
       <StatusBar style="dark" />
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.topBar}>
-          <Pressable style={styles.locationRow}>
-            <MapPin size={16} color="#1E293B" />
+          <Pressable
+            style={styles.locationRow}
+            accessibilityRole="button"
+            accessibilityLabel="Cambiar ubicación: Medellín, Colombia"
+          >
+            <MapPin size={16} color={colors.textPrimary} />
             <Text style={styles.locationText}>Medellín, Colombia</Text>
-            <ChevronDown size={16} color="#1E293B" />
+            <ChevronDown size={16} color={colors.textPrimary} />
           </Pressable>
 
-          <Pressable>
-            <Bell size={22} color="#1E293B" />
+          <Pressable accessibilityRole="button" accessibilityLabel="Notificaciones" hitSlop={8}>
+            <Bell size={22} color={colors.textPrimary} />
           </Pressable>
         </View>
 
-        <Text style={styles.greeting}>¡Hola, Laura! 👋</Text>
+        <Text style={styles.greeting}>¡Hola, {getFirstName(user)}! 👋</Text>
         <Text style={styles.subGreeting}>¿Qué plan tienes hoy?</Text>
 
         <View style={styles.weatherCard}>
           <View>
             <Text style={styles.weatherTemp}>24°C</Text>
             <Text style={styles.weatherDescription}>Parcialmente nublado</Text>
-            <Text style={styles.weatherMinMax}>Máx. 27°   Mín. 18°</Text>
+            <Text style={styles.weatherMinMax}>Máx. 27° Mín. 18°</Text>
           </View>
-          <Cloud size={40} color="#FFFFFF" />
+          <Cloud size={40} color={colors.white} />
         </View>
 
         <View style={styles.surpriseCard}>
@@ -83,13 +73,14 @@ export function HomeScreen({ navigation }: Props) {
             </View>
           </View>
 
-          <Pressable
+          <Button
+            variant="primary"
             style={styles.surpriseButton}
             onPress={() => navigation.navigate('SurpriseMe')}
           >
             <Text style={styles.surpriseButtonText}>Sorpréndeme</Text>
-            <Sparkles size={16} color="#FFFFFF" />
-          </Pressable>
+            <Sparkles size={16} color={colors.white} />
+          </Button>
         </View>
 
         <View style={styles.sectionHeader}>
@@ -99,8 +90,12 @@ export function HomeScreen({ navigation }: Props) {
           </Pressable>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.placesRow}>
-          {nearbyPlaces.map((place) => (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.placesRow}
+        >
+          {NEARBY_PLACES.map((place) => (
             <PlaceCard key={place.name} {...place} />
           ))}
         </ScrollView>
@@ -110,10 +105,6 @@ export function HomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 16,
@@ -132,22 +123,22 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1E293B',
+    color: colors.textPrimary,
     marginHorizontal: 4,
   },
   greeting: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.textPrimary,
   },
   subGreeting: {
     fontSize: 14,
-    color: '#64748B',
+    color: colors.textSecondary,
     marginTop: 2,
     marginBottom: 20,
   },
   weatherCard: {
-    backgroundColor: '#38BDF8',
+    backgroundColor: colors.weather,
     borderRadius: 16,
     padding: 18,
     flexDirection: 'row',
@@ -158,11 +149,11 @@ const styles = StyleSheet.create({
   weatherTemp: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.white,
   },
   weatherDescription: {
     fontSize: 13,
-    color: '#FFFFFF',
+    color: colors.white,
     marginTop: 2,
   },
   weatherMinMax: {
@@ -171,7 +162,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   surpriseCard: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 24,
@@ -193,23 +184,20 @@ const styles = StyleSheet.create({
   surpriseTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.textPrimary,
   },
   surpriseDescription: {
     fontSize: 12,
-    color: '#64748B',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   surpriseButton: {
-    backgroundColor: '#05A86B',
-    borderRadius: 12,
-    paddingVertical: 12,
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 12,
+    minHeight: 44,
   },
   surpriseButtonText: {
-    color: '#FFFFFF',
+    color: colors.white,
     fontWeight: '700',
     fontSize: 14,
     marginRight: 6,
@@ -223,12 +211,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.textPrimary,
   },
   sectionLink: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#05A86B',
+    color: colors.primary,
   },
   placesRow: {
     paddingRight: 24,

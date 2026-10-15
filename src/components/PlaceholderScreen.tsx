@@ -1,38 +1,33 @@
-import { View, Text, StyleSheet } from "react-native";
-import { PlaceholderScreenProps } from "../types/components";
-import { BottomNavBar } from "./BottomNavBar";
+import { View, Text, StyleSheet } from 'react-native';
+import { PlaceholderScreenProps } from '../types/components';
+import { globalStyles } from '../styles/globalStyles';
+import { colors } from '../styles/colors';
 
-export function PlaceholderScreen({
-    title,
-}: PlaceholderScreenProps) {
-    return (
-        <View style={styles.container}>
-            <View style={styles.content}>
-                <Text style={styles.title}>{title}</Text>
-                <Text style={styles.subtitle}>Próximamente</Text>
-            </View>
-        </View>
-    );
+export function PlaceholderScreen({ title }: PlaceholderScreenProps) {
+  return (
+    <View style={globalStyles.screen}>
+      <View style={styles.content}>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.subtitle}>Próximamente</Text>
+      </View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#FFFFFF",
-    },
-    content: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: "#1E293B",
-    },
-    subtitle: {
-        fontSize: 13,
-        color: "#94A3B8",
-        marginTop: 6,
-    },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: colors.textMuted,
+    marginTop: 6,
+  },
 });
