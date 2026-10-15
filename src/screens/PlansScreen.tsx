@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, ImageBackground, Pressable } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  ImageBackground,
+  Pressable,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Plus } from 'lucide-react-native';
@@ -40,9 +48,7 @@ export function PlansScreen() {
             style={[styles.segmentButton, activeTab === 'past' && styles.segmentButtonActive]}
             onPress={() => setActiveTab('past')}
           >
-            <Text
-              style={[styles.segmentText, activeTab === 'past' && styles.segmentTextActive]}
-            >
+            <Text style={[styles.segmentText, activeTab === 'past' && styles.segmentTextActive]}>
               Pasados
             </Text>
           </Pressable>

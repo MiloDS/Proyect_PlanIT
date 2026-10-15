@@ -30,7 +30,10 @@ export function Button({
       ]}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={variant === 'primary' ? colors.white : colors.primary} />
+        <ActivityIndicator
+          size="small"
+          color={variant === 'primary' ? colors.white : colors.primary}
+        />
       ) : (
         children
       )}

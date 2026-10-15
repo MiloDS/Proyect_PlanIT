@@ -1,9 +1,26 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Modal, StyleProp, ViewStyle } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Modal,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ChevronLeft, Sparkles, MapPin, DollarSign, Users, RefreshCw, X } from 'lucide-react-native';
+import {
+  ChevronLeft,
+  Sparkles,
+  MapPin,
+  DollarSign,
+  Users,
+  RefreshCw,
+  X,
+} from 'lucide-react-native';
 
 import { AppStackParamList } from '../types/navigation';
 import { Button } from '../components/Button';
@@ -37,7 +54,9 @@ function OptionChip({ label, selected, onPress, style }: OptionChipProps) {
         pressed && styles.buttonPressed,
       ]}
     >
-      <Text style={selected ? styles.selectedButtonText : styles.unselectedButtonText}>{label}</Text>
+      <Text style={selected ? styles.selectedButtonText : styles.unselectedButtonText}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -161,7 +180,11 @@ export function SurpriseMeScreen({ navigation }: Props) {
       </ScrollView>
 
       <View style={[styles.bottomAction, { paddingBottom: Math.max(insets.bottom, 18) }]}>
-        <Button variant="primary" style={styles.recommendButton} onPress={() => setShowResults(true)}>
+        <Button
+          variant="primary"
+          style={styles.recommendButton}
+          onPress={() => setShowResults(true)}
+        >
           <Sparkles size={18} color={colors.white} />
           <Text style={styles.recommendButtonText}>Ver recomendaciones</Text>
         </Button>
@@ -226,7 +249,11 @@ export function SurpriseMeScreen({ navigation }: Props) {
             </View>
 
             <View style={styles.modalActions}>
-              <Button variant="primary" style={styles.exploreButton} onPress={() => setShowResults(false)}>
+              <Button
+                variant="primary"
+                style={styles.exploreButton}
+                onPress={() => setShowResults(false)}
+              >
                 <Text style={styles.exploreButtonText}>Explorar este plan</Text>
               </Button>
 

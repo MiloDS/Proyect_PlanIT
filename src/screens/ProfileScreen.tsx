@@ -2,7 +2,16 @@ import { ReactNode } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Image, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { User, CreditCard, Bell, Globe, HelpCircle, LogOut, ChevronRight, Pencil } from 'lucide-react-native';
+import {
+  User,
+  CreditCard,
+  Bell,
+  Globe,
+  HelpCircle,
+  LogOut,
+  ChevronRight,
+  Pencil,
+} from 'lucide-react-native';
 
 import { colors } from '../styles/colors';
 import { useAuth } from '../services/AuthContext';

@@ -44,8 +44,8 @@ export function LoginScreen({ navigation, route }: Props) {
     const nextEmailError = isEmpty(email)
       ? 'El correo es obligatorio'
       : !isValidEmail(email)
-      ? 'Ingresa un correo válido (ejemplo@dominio.com)'
-      : '';
+        ? 'Ingresa un correo válido (ejemplo@dominio.com)'
+        : '';
 
     const nextPasswordError = isEmpty(password) ? 'La contraseña es obligatoria' : '';
 

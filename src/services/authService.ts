@@ -59,7 +59,11 @@ export class AuthService {
    * Registro con nombre, correo y contraseña.
    * Si "Confirm email" está activo en Supabase no se crea sesión hasta confirmar el correo.
    */
-  static async register({ name, email, password }: RegisterRequest): Promise<{ needsEmailConfirmation: boolean }> {
+  static async register({
+    name,
+    email,
+    password,
+  }: RegisterRequest): Promise<{ needsEmailConfirmation: boolean }> {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

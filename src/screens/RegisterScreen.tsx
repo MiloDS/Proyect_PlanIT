@@ -37,18 +37,18 @@ export function RegisterScreen({ navigation }: Props) {
     const nextEmailError = isEmpty(email)
       ? 'El correo es obligatorio'
       : !isValidEmail(email)
-      ? 'Ingresa un correo válido (ejemplo@dominio.com)'
-      : '';
+        ? 'Ingresa un correo válido (ejemplo@dominio.com)'
+        : '';
     const nextPasswordError = isEmpty(password)
       ? 'La contraseña es obligatoria'
       : password.length < 6
-      ? 'La contraseña debe tener al menos 6 caracteres'
-      : '';
+        ? 'La contraseña debe tener al menos 6 caracteres'
+        : '';
     const nextConfirmPasswordError = isEmpty(confirmPassword)
       ? 'Confirma tu contraseña'
       : confirmPassword !== password
-      ? 'Las contraseñas no coinciden'
-      : '';
+        ? 'Las contraseñas no coinciden'
+        : '';
 
     setNameError(nextNameError);
     setEmailError(nextEmailError);
@@ -56,7 +56,13 @@ export function RegisterScreen({ navigation }: Props) {
     setConfirmPasswordError(nextConfirmPasswordError);
     setGeneralError('');
 
-    if (nextNameError || nextEmailError || nextPasswordError || nextConfirmPasswordError || loading) {
+    if (
+      nextNameError ||
+      nextEmailError ||
+      nextPasswordError ||
+      nextConfirmPasswordError ||
+      loading
+    ) {
       return;
     }
 
@@ -161,7 +167,12 @@ export function RegisterScreen({ navigation }: Props) {
         error={confirmPasswordError}
       />
 
-      <Button variant="primary" style={styles.registerButton} loading={loading} onPress={handleRegister}>
+      <Button
+        variant="primary"
+        style={styles.registerButton}
+        loading={loading}
+        onPress={handleRegister}
+      >
         <Text style={globalStyles.primaryButtonText}>Registrarse</Text>
       </Button>
 

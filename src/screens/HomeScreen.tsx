@@ -16,7 +16,7 @@ import { getFirstName } from '../utils/user';
 import { NEARBY_PLACES } from '../utils/mockData';
 
 type Props = CompositeScreenProps<
-  BottomTabScreenProps<MainTabParamList, "Home">,
+  BottomTabScreenProps<MainTabParamList, 'Home'>,
   NativeStackScreenProps<AppStackParamList>
 >;
 
@@ -54,7 +54,7 @@ export function HomeScreen({ navigation }: Props) {
           <View>
             <Text style={styles.weatherTemp}>24°C</Text>
             <Text style={styles.weatherDescription}>Parcialmente nublado</Text>
-            <Text style={styles.weatherMinMax}>Máx. 27°   Mín. 18°</Text>
+            <Text style={styles.weatherMinMax}>Máx. 27° Mín. 18°</Text>
           </View>
           <Cloud size={40} color={colors.white} />
         </View>
@@ -90,7 +90,11 @@ export function HomeScreen({ navigation }: Props) {
           </Pressable>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.placesRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.placesRow}
+        >
           {NEARBY_PLACES.map((place) => (
             <PlaceCard key={place.name} {...place} />
           ))}

@@ -1,5 +1,15 @@
 import { useState, useRef } from 'react';
-import { StyleSheet, View, Text, Image, Pressable, FlatList, useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  Pressable,
+  FlatList,
+  useWindowDimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -11,7 +21,7 @@ import { Button } from '../components/Button';
 import { PromptLink } from '../components/PromptLink';
 import { globalStyles } from '../styles/globalStyles';
 
-type Props = NativeStackScreenProps<AppStackParamList, "Intro">;
+type Props = NativeStackScreenProps<AppStackParamList, 'Intro'>;
 
 const slides = [
   {

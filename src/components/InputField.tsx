@@ -1,12 +1,22 @@
-import { useState } from "react";
-import { View, TextInput, Text, StyleSheet } from "react-native";
-import { Eye, EyeOff } from "lucide-react-native";
+import { useState } from 'react';
+import { View, TextInput, Text, StyleSheet } from 'react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
 
-import { CustomInputFieldProps } from "../types/components";
-import { Button } from "./Button";
-import { colors } from "../styles/colors";
+import { CustomInputFieldProps } from '../types/components';
+import { Button } from './Button';
+import { colors } from '../styles/colors';
 
-export function InputField({ label, placeholder, value, onChangeText, secureTextEntry, keyboardType, autoCapitalize, autoCorrect, error }: CustomInputFieldProps) {
+export function InputField({
+  label,
+  placeholder,
+  value,
+  onChangeText,
+  secureTextEntry,
+  keyboardType,
+  autoCapitalize,
+  autoCorrect,
+  error,
+}: CustomInputFieldProps) {
   const [hidePassword, setHidePassword] = useState(secureTextEntry ?? false);
   const isPassword = secureTextEntry;
   const PasswordIcon = hidePassword ? EyeOff : Eye;
@@ -31,7 +41,7 @@ export function InputField({ label, placeholder, value, onChangeText, secureText
           <Button
             onPress={() => setHidePassword(!hidePassword)}
             style={styles.icon}
-            accessibilityLabel={hidePassword ? "Mostrar contraseña" : "Ocultar contraseña"}
+            accessibilityLabel={hidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'}
           >
             <PasswordIcon size={20} color={colors.textSecondary} />
           </Button>
@@ -70,12 +80,12 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   icon: {
-    position: "absolute",
+    position: 'absolute',
     right: 12,
     top: 11,
     width: 30,
     height: 30,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

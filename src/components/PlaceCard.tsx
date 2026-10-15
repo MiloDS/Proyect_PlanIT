@@ -8,7 +8,9 @@ export function PlaceCard({ imageUrl, name, category, distanceKm, onPress }: Pla
     <Pressable style={styles.card} onPress={onPress}>
       <Image source={{ uri: imageUrl }} style={styles.image} />
       <View style={styles.info}>
-        <Text style={styles.name} numberOfLines={1}>{name}</Text>
+        <Text style={styles.name} numberOfLines={1}>
+          {name}
+        </Text>
         <Text style={styles.category}>{category}</Text>
         <View style={styles.distanceRow}>
           <MapPin size={12} color={colors.textMuted} />

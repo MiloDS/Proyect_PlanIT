@@ -22,7 +22,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     // Login, logout y renovación de token pasan por aquí; AppNavigator reacciona solo
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
     });
 

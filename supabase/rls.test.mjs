@@ -36,7 +36,9 @@ await db.query(
   [OLD]
 );
 
-for (const file of readdirSync(MIGRATIONS_DIR).filter((name) => name.endsWith('.sql')).sort()) {
+for (const file of readdirSync(MIGRATIONS_DIR)
+  .filter((name) => name.endsWith('.sql'))
+  .sort()) {
   await db.exec(readFileSync(new URL(file, MIGRATIONS_DIR), 'utf8'));
 }
 
@@ -74,8 +76,14 @@ const asAnon = (sql, params) => run('anon', null, sql, params);
 // --- Perfiles
 const profiles = (await db.query('select id, full_name, avatar_url from public.profiles')).rows;
 check('trigger crea perfiles al registrarse', profiles.length === 4, JSON.stringify(profiles));
-check('backfill crea perfil a usuarios previos', profiles.some((p) => p.id === OLD && p.full_name === 'Old User'));
-check('perfil toma full_name', profiles.some((p) => p.id === A && p.full_name === 'Ana Ruiz'));
+check(
+  'backfill crea perfil a usuarios previos',
+  profiles.some((p) => p.id === OLD && p.full_name === 'Old User')
+);
+check(
+  'perfil toma full_name',
+  profiles.some((p) => p.id === A && p.full_name === 'Ana Ruiz')
+);
 check(
   'perfil toma name y avatar_url (Google)',
   profiles.some((p) => p.id === B && p.full_name === 'Beto Gil' && p.avatar_url)
@@ -86,7 +94,8 @@ check(
 );
 check(
   'B puede editar su perfil',
-  (await as(B, `update public.profiles set full_name = 'Beto G.' where id = $1`, [B])).affected === 1
+  (await as(B, `update public.profiles set full_name = 'Beto G.' where id = $1`, [B])).affected ===
+    1
 );
 
 // --- Planes
@@ -94,13 +103,23 @@ const created = await as(
   A,
   `insert into public.plans (title, starts_at) values ('Tarde con amigos', now() + interval '3 days') returning id, owner_id`
 );
-check('A crea un plan (insert ... returning)', !created.error && created.rows[0]?.owner_id === A, created.error);
+check(
+  'A crea un plan (insert ... returning)',
+  !created.error && created.rows[0]?.owner_id === A,
+  created.error
+);
 const planId = created.rows[0]?.id;
 
-const spoof = await as(A, `insert into public.plans (owner_id, title, starts_at) values ($1, 'x', now())`, [B]);
+const spoof = await as(
+  A,
+  `insert into public.plans (owner_id, title, starts_at) values ($1, 'x', now())`,
+  [B]
+);
 check('A no puede crear un plan a nombre de B', !!spoof.error, 'se permitió');
 
-const ownerRow = await as(A, `select user_id, role from public.plan_members where plan_id = $1`, [planId]);
+const ownerRow = await as(A, `select user_id, role from public.plan_members where plan_id = $1`, [
+  planId,
+]);
 check(
   'el dueño queda como miembro owner',
   ownerRow.rows.length === 1 && ownerRow.rows[0].role === 'owner',
@@ -111,10 +130,18 @@ check(
   'A invita a B por correo',
   !(await as(A, `select public.add_plan_member_by_email($1, ' BETO@test.com ')`, [planId])).error
 );
-const notOwner = await as(B, `select public.add_plan_member_by_email($1, 'caro@test.com')`, [planId]);
+const notOwner = await as(B, `select public.add_plan_member_by_email($1, 'caro@test.com')`, [
+  planId,
+]);
 check('B (no dueño) no puede invitar', /dueño/.test(notOwner.error ?? ''), notOwner.error);
-const unknown = await as(A, `select public.add_plan_member_by_email($1, 'nadie@test.com')`, [planId]);
-check('invitar un correo inexistente falla', /ningún usuario/.test(unknown.error ?? ''), unknown.error);
+const unknown = await as(A, `select public.add_plan_member_by_email($1, 'nadie@test.com')`, [
+  planId,
+]);
+check(
+  'invitar un correo inexistente falla',
+  /ningún usuario/.test(unknown.error ?? ''),
+  unknown.error
+);
 
 check('B ve el plan compartido', (await as(B, `select id from public.plans`)).rows.length === 1);
 const members = await as(
@@ -128,16 +155,26 @@ check('C no ve los miembros', (await as(C, `select * from public.plan_members`))
 
 check(
   'B agrega un lugar al plan',
-  !(await as(B, `insert into public.plan_places (plan_id, place_id) values ($1, 'gp_arvi')`, [planId])).error
+  !(
+    await as(B, `insert into public.plan_places (plan_id, place_id) values ($1, 'gp_arvi')`, [
+      planId,
+    ])
+  ).error
 );
 check(
   'C no puede agregar lugares',
-  !!(await as(C, `insert into public.plan_places (plan_id, place_id) values ($1, 'gp_x')`, [planId])).error
+  !!(
+    await as(C, `insert into public.plan_places (plan_id, place_id) values ($1, 'gp_x')`, [planId])
+  ).error
 );
-check('C no ve los lugares del plan', (await as(C, `select * from public.plan_places`)).rows.length === 0);
+check(
+  'C no ve los lugares del plan',
+  (await as(C, `select * from public.plan_places`)).rows.length === 0
+);
 check(
   'B reordena lugares',
-  (await as(B, `update public.plan_places set sort_order = 2 where plan_id = $1`, [planId])).affected === 1
+  (await as(B, `update public.plan_places set sort_order = 2 where plan_id = $1`, [planId]))
+    .affected === 1
 );
 
 check(
@@ -157,15 +194,18 @@ check(
 
 check(
   'B no puede agregar miembros directamente',
-  !!(await as(B, `insert into public.plan_members (plan_id, user_id) values ($1, $2)`, [planId, C])).error
+  !!(await as(B, `insert into public.plan_members (plan_id, user_id) values ($1, $2)`, [planId, C]))
+    .error
 );
 check(
   'A no puede quitarse como owner',
-  (await as(A, `delete from public.plan_members where plan_id = $1 and user_id = $2`, [planId, A])).affected === 0
+  (await as(A, `delete from public.plan_members where plan_id = $1 and user_id = $2`, [planId, A]))
+    .affected === 0
 );
 check(
   'B puede salirse del plan',
-  (await as(B, `delete from public.plan_members where plan_id = $1 and user_id = $2`, [planId, B])).affected === 1
+  (await as(B, `delete from public.plan_members where plan_id = $1 and user_id = $2`, [planId, B]))
+    .affected === 1
 );
 check('B ya no ve el plan', (await as(B, `select id from public.plans`)).rows.length === 0);
 
@@ -174,7 +214,10 @@ check(
   'A guarda un favorito (user_id por defecto)',
   !(await as(A, `insert into public.favorites (place_id) values ('gp_museo')`)).error
 );
-check('B no ve los favoritos de A', (await as(B, `select * from public.favorites`)).rows.length === 0);
+check(
+  'B no ve los favoritos de A',
+  (await as(B, `select * from public.favorites`)).rows.length === 0
+);
 check(
   'B no puede guardar favoritos a nombre de A',
   !!(await as(B, `insert into public.favorites (user_id, place_id) values ($1, 'gp_x')`, [A])).error
@@ -189,11 +232,18 @@ check(
 );
 
 // --- Borrado en cascada
-check('A elimina su plan', (await as(A, `delete from public.plans where id = $1`, [planId])).affected === 1);
+check(
+  'A elimina su plan',
+  (await as(A, `delete from public.plans where id = $1`, [planId])).affected === 1
+);
 const leftovers = await db.query(
   `select (select count(*) from public.plan_members) + (select count(*) from public.plan_places) as n`
 );
-check('se borran miembros y lugares del plan', Number(leftovers.rows[0].n) === 0, JSON.stringify(leftovers.rows));
+check(
+  'se borran miembros y lugares del plan',
+  Number(leftovers.rows[0].n) === 0,
+  JSON.stringify(leftovers.rows)
+);
 
 console.log(failures ? `\n${failures} prueba(s) fallaron` : '\nTodas las pruebas pasaron');
 process.exit(failures ? 1 : 0);
