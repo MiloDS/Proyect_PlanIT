@@ -13,32 +13,12 @@ import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { useAuth } from '../context/AuthContext';
 import { getFirstName } from '../utils/user';
+import { NEARBY_PLACES } from '../data/mockData';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, "Home">,
   NativeStackScreenProps<AppStackParamList>
 >;
-
-const nearbyPlaces = [
-  {
-    name: 'Parque Arví',
-    category: 'Parque',
-    distanceKm: 2.4,
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=400&auto=format&fit=crop',
-  },
-  {
-    name: 'Museo de Antioquia',
-    category: 'Museo',
-    distanceKm: 3.1,
-    imageUrl: 'https://images.unsplash.com/photo-1554907984-15263bfd63bd?q=80&w=400&auto=format&fit=crop',
-  },
-  {
-    name: 'Café Amor',
-    category: 'Cafetería',
-    distanceKm: 1.8,
-    imageUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=400&auto=format&fit=crop',
-  },
-];
 
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
@@ -111,7 +91,7 @@ export function HomeScreen({ navigation }: Props) {
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.placesRow}>
-          {nearbyPlaces.map((place) => (
+          {NEARBY_PLACES.map((place) => (
             <PlaceCard key={place.name} {...place} />
           ))}
         </ScrollView>
