@@ -11,3 +11,8 @@ export async function hasSeenOnboarding(): Promise<boolean> {
   const value = await AsyncStorage.getItem(ONBOARDING_KEY);
   return value === 'true';
 }
+
+// Solo para desarrollo: vuelve a mostrar la Intro en el próximo arranque
+export async function resetOnboarding(): Promise<void> {
+  await AsyncStorage.removeItem(ONBOARDING_KEY);
+}

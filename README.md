@@ -61,6 +61,8 @@ PlanIt/
 
 Logging in or out switches the group automatically; screens don't need to call `navigation.reset`.
 
+The Intro is shown only once per install. To see it again during development, use **Profile → "Ver la Intro de nuevo (desarrollo)"**: it clears the onboarding flag, signs out and reloads the app. The option only exists in development builds (`__DEV__`).
+
 ### Installation
 
 ```bash
@@ -219,6 +221,8 @@ PlanIt/
 3. **Sesión activa** → `MainTabs` (Inicio, Buscar, Planes, Favoritos, Perfil) y `SurpriseMeScreen`.
 
 Al iniciar o cerrar sesión el grupo cambia solo; las pantallas no necesitan llamar a `navigation.reset`.
+
+La Intro se muestra una sola vez por instalación. Para verla de nuevo mientras desarrollas, usa **Perfil → "Ver la Intro de nuevo (desarrollo)"**: borra la marca del onboarding, cierra sesión y recarga la app. La opción solo existe en desarrollo (`__DEV__`).
 
 ### Instalación
 
