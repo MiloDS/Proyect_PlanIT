@@ -32,6 +32,7 @@ PlanIt/
 │   ├── styles/             # Colors and global styles
 │   ├── types/              # Shared types (navigation, component props, auth)
 │   └── utils/              # Utilities (Supabase client, validation, AsyncStorage, user data)
+├── supabase/migrations/    # Database schema and Row Level Security policies
 ├── .env.example            # Environment variables template
 ├── App.tsx
 ├── index.ts
@@ -78,6 +79,21 @@ npm install
    1. In Google Cloud Console, create an OAuth client ID of type **Web application** with the authorized redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`.
    2. In Supabase → **Authentication → Sign In / Providers → Google**, enable it and paste the Client ID and Client Secret.
    3. In Supabase → **Authentication → URL Configuration → Redirect URLs**, add `exp://**` (Expo Go) and `planit://**` (development builds).
+5. Database: open **SQL Editor** in Supabase and run each file in `supabase/migrations/` in order (or use the CLI: `npx supabase link --project-ref <project-ref>` and `npx supabase db push`).
+
+### Database
+
+Places come from an external API, so the database only stores their `place_id`.
+
+| Table | Content | Who can access it |
+|---|---|---|
+| `profiles` | Public name and avatar of each user (created automatically on sign up) | Read: any signed-in user. Update: the user themselves |
+| `favorites` | Places saved by each user | Only the user themselves |
+| `plans` | Plans (title, date, cover) | Read: plan members. Edit/delete: the owner |
+| `plan_members` | Members of each plan (`owner` / `member`) | Read: plan members. Invite/remove: the owner. Any member can leave |
+| `plan_places` | Places of each plan and their order | Plan members |
+
+To invite someone to a plan by email, call the `add_plan_member_by_email` function: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`.
 
 ### Running the app
 
@@ -152,6 +168,7 @@ PlanIt/
 │   ├── styles/             # Colores y estilos globales
 │   ├── types/              # Tipos compartidos (navegación, props de componentes, auth)
 │   └── utils/              # Utilidades (cliente de Supabase, validación, AsyncStorage, datos del usuario)
+├── supabase/migrations/    # Esquema de la base de datos y políticas de Row Level Security
 ├── .env.example            # Plantilla de variables de entorno
 ├── App.tsx
 ├── index.ts
@@ -198,6 +215,21 @@ npm install
    1. En Google Cloud Console, crea un OAuth client ID de tipo **Web application** con la URI de redirección autorizada `https://<project-ref>.supabase.co/auth/v1/callback`.
    2. En Supabase → **Authentication → Sign In / Providers → Google**, actívalo y pega el Client ID y el Client Secret.
    3. En Supabase → **Authentication → URL Configuration → Redirect URLs**, agrega `exp://**` (Expo Go) y `planit://**` (development builds).
+5. Base de datos: abre el **SQL Editor** de Supabase y ejecuta en orden cada archivo de `supabase/migrations/` (o usa la CLI: `npx supabase link --project-ref <project-ref>` y `npx supabase db push`).
+
+### Base de datos
+
+Los lugares vienen de una API externa, así que la base de datos solo guarda su `place_id`.
+
+| Tabla | Contenido | Quién puede acceder |
+|---|---|---|
+| `profiles` | Nombre y foto públicos de cada usuario (se crea solo al registrarse) | Leer: cualquier usuario con sesión. Editar: el propio usuario |
+| `favorites` | Lugares guardados por cada usuario | Solo el propio usuario |
+| `plans` | Planes (título, fecha, portada) | Leer: los miembros del plan. Editar/eliminar: el dueño |
+| `plan_members` | Miembros de cada plan (`owner` / `member`) | Leer: los miembros. Invitar/expulsar: el dueño. Cualquier miembro puede salirse |
+| `plan_places` | Lugares de cada plan y su orden | Los miembros del plan |
+
+Para invitar a alguien a un plan por correo se usa la función `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`.
 
 ### Ejecución
 
