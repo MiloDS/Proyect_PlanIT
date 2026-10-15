@@ -99,7 +99,7 @@ export function SurpriseMeScreen({ navigation }: Props) {
     setError('');
     setLoading(true);
     try {
-      const { coordinates } = await LocationService.getCurrentLocation();
+      const { coordinates } = await LocationService.getCurrentPosition();
       const place = await PlacesService.recommend(coordinates, {
         activities: selectedActivities,
         budget: selectedBudget,

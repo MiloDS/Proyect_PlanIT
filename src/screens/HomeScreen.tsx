@@ -34,8 +34,8 @@ export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const nearby = useNearbyPlaces();
-  const locationLabel = nearby.location?.label ?? 'Buscando ubicación…';
-  const origin = nearby.location?.coordinates;
+  const locationLabel = nearby.locationLabel || 'Buscando ubicación…';
+  const origin = nearby.position?.coordinates;
 
   return (
     <View style={globalStyles.screen}>
@@ -141,7 +141,7 @@ export function HomeScreen({ navigation }: Props) {
               ))}
             </ScrollView>
             <Text style={styles.attribution}>
-              {nearby.location?.isApproximate
+              {nearby.position?.isApproximate
                 ? 'Ubicación aproximada. Datos de Google Maps'
                 : 'Datos de Google Maps'}
             </Text>

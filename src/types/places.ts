@@ -38,8 +38,7 @@ export type RecommendationPreferences = {
   maxDistanceKm: number;
 };
 
-export type UserLocation = {
+export type DevicePosition = {
   coordinates: Coordinates;
-  label: string;
   isApproximate: boolean;
 };
