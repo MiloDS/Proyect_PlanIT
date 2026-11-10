@@ -290,6 +290,97 @@ check(
 );
 await as(A, `delete from public.plans where id = $1`, [rpcPlanId]);
 
+// --- Editar plan (update_plan) y administrar miembros desde el detalle
+const editPlanId = (
+  await as(
+    A,
+    `select public.create_plan('Plan a editar', now() + interval '2 days', array['gp_a', 'gp_b', 'gp_c']) as id`
+  )
+).rows[0]?.id;
+await as(A, `select public.add_plan_member_by_email($1, 'beto@test.com')`, [editPlanId]);
+const planPlaces = async () =>
+  (
+    await as(
+      A,
+      `select place_id, sort_order from public.plan_places where plan_id = $1 order by sort_order`,
+      [editPlanId]
+    )
+  ).rows.map((row) => [row.place_id, row.sort_order]);
+
+const edit = await as(
+  A,
+  `select public.update_plan($1, '  Plan editado  ', '2030-01-15 18:30:00+00', array['gp_c', 'gp_d', 'gp_a', 'gp_d'])`,
+  [editPlanId]
+);
+check('A edita su plan con update_plan', !edit.error, edit.error);
+const edited = await as(A, `select title, starts_at from public.plans where id = $1`, [editPlanId]);
+check(
+  'update_plan recorta el título y cambia la fecha',
+  edited.rows[0]?.title === 'Plan editado' &&
+    new Date(edited.rows[0]?.starts_at).toISOString() === '2030-01-15T18:30:00.000Z',
+  JSON.stringify(edited)
+);
+check(
+  'update_plan quita, agrega y reordena lugares sin duplicados',
+  JSON.stringify(await planPlaces()) ===
+    JSON.stringify([
+      ['gp_c', 0],
+      ['gp_d', 1],
+      ['gp_a', 2],
+    ]),
+  JSON.stringify(await planPlaces())
+);
+
+const memberEdit = await as(B, `select public.update_plan($1, 'De B', now(), array['gp_x'])`, [
+  editPlanId,
+]);
+check(
+  'B (miembro) no puede editar el plan',
+  /dueño/.test(memberEdit.error ?? ''),
+  memberEdit.error
+);
+const strangerEdit = await as(C, `select public.update_plan($1, 'De C', now(), array['gp_x'])`, [
+  editPlanId,
+]);
+check('C (no miembro) no puede editar el plan', !!strangerEdit.error, 'se permitió');
+const blankEdit = await as(A, `select public.update_plan($1, '   ', now(), array['gp_x'])`, [
+  editPlanId,
+]);
+check('update_plan rechaza títulos vacíos', !!blankEdit.error, 'se permitió');
+check(
+  'un update_plan fallido no cambia el plan',
+  (await as(A, `select title from public.plans where id = $1`, [editPlanId])).rows[0]?.title ===
+    'Plan editado' && (await planPlaces()).length === 3
+);
+check(
+  'anon no puede usar update_plan',
+  !!(await asAnon(`select public.update_plan($1, 'x', now(), array['gp_x'])`, [editPlanId])).error
+);
+
+const removed = await as(
+  A,
+  `delete from public.plan_members where plan_id = $1 and user_id = $2 returning user_id`,
+  [editPlanId, B]
+);
+check('A quita a B del plan (delete ... returning)', removed.rows[0]?.user_id === B, removed.error);
+await as(A, `select public.add_plan_member_by_email($1, 'beto@test.com')`, [editPlanId]);
+const left = await as(
+  B,
+  `delete from public.plan_members where plan_id = $1 and user_id = $2 returning user_id`,
+  [editPlanId, B]
+);
+check('B sale del plan (delete ... returning)', left.rows[0]?.user_id === B, left.error);
+check(
+  'B no puede eliminar un plan ajeno',
+  (await as(B, `delete from public.plans where id = $1 returning id`, [editPlanId])).rows.length ===
+    0
+);
+check(
+  'A elimina el plan (delete ... returning)',
+  (await as(A, `delete from public.plans where id = $1 returning id`, [editPlanId])).rows[0]?.id ===
+    editPlanId
+);
+
 // --- Usuario sin sesión
 check('anon no ve planes', (await asAnon(`select * from public.plans`)).rows.length === 0);
 check('anon no ve perfiles', (await asAnon(`select * from public.profiles`)).rows.length === 0);

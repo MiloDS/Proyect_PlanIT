@@ -2,6 +2,7 @@ import { Linking } from 'react-native';
 import { FunctionsHttpError } from '@supabase/supabase-js';
 
 import { supabase } from '../utils/supabase';
+import { messages } from '../utils/messages';
 import {
   Coordinates,
   NearbySearchParams,
@@ -57,7 +58,7 @@ export const SEARCH_CATEGORIES: SearchCategory[] = [
 export const NEARBY_RADIUS_METERS = 5000;
 const RECOMMENDATIONS_LIMIT = 10;
 const LOOKUP_BATCH_SIZE = 20;
-const GENERIC_ERROR = 'No se pudieron cargar los lugares. Revisa tu conexión e intenta de nuevo.';
+const GENERIC_ERROR = messages.places.loadFailed;
 
 // Caché en memoria mientras la app está abierta: favoritos y planes guardan solo el
 // place_id y así no se vuelve a pedir a Google un lugar que ya se mostró. Las condiciones

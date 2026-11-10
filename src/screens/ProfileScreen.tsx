@@ -13,7 +13,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   User,
-  CreditCard,
   Bell,
   Globe,
   HelpCircle,
@@ -22,30 +21,46 @@ import {
   Pencil,
   RotateCcw,
 } from 'lucide-react-native';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
+import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { colors } from '../styles/colors';
 import { useAuth } from '../services/AuthContext';
 import { AuthService } from '../services/authService';
+import { useProfile } from '../services/ProfileContext';
 import { resetOnboarding } from '../utils/storage';
-import { getAvatarUrl, getFullName } from '../utils/user';
+import { getDisplayAvatar, getDisplayName } from '../utils/user';
+import { messages } from '../utils/messages';
+
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'Profile'>,
+  NativeStackScreenProps<AppStackParamList>
+>;
 
 type MenuItemProps = {
   icon: ReactNode;
   title: string;
   value?: string;
   isDestructive?: boolean;
-  onPress: () => void;
+  /** Sin onPress la fila solo muestra información */
+  onPress?: () => void;
 };
 
-const MENU_ITEMS = [
-  { Icon: User, title: 'Información personal' },
-  { Icon: CreditCard, title: 'Métodos de pago' },
-  { Icon: Bell, title: 'Notificaciones' },
-  { Icon: Globe, title: 'Idioma', value: 'Español' },
-  { Icon: HelpCircle, title: 'Ayuda y soporte' },
-];
-
 function MenuItem({ icon, title, value, isDestructive = false, onPress }: MenuItemProps) {
+  if (!onPress) {
+    return (
+      <View style={styles.menuItem} accessible accessibilityLabel={`${title}: ${value ?? ''}`}>
+        <View style={styles.menuLeft}>
+          <View style={styles.menuIcon}>{icon}</View>
+          <Text style={styles.menuTitle}>{title}</Text>
+        </View>
+        {!!value && <Text style={styles.menuValue}>{value}</Text>}
+      </View>
+    );
+  }
+
   return (
     <Pressable
       onPress={onPress}
@@ -65,11 +80,6 @@ function MenuItem({ icon, title, value, isDestructive = false, onPress }: MenuIt
   );
 }
 
-// Las pantallas de ajustes aún no existen
-function showComingSoon(title: string) {
-  Alert.alert(title, 'Próximamente');
-}
-
 // Solo en desarrollo: la Intro aparece únicamente sin sesión y sin la marca de onboarding,
 // así que se borran ambas y se recarga la app
 async function replayOnboarding() {
@@ -78,17 +88,19 @@ async function replayOnboarding() {
     await AuthService.logout();
     DevSettings.reload();
   } catch (err: any) {
-    Alert.alert('Error', err.message || 'No se pudo reiniciar el onboarding');
+    Alert.alert(messages.common.errorTitle, err.message || messages.auth.onboardingResetFailed);
   }
 }
 
-export function ProfileScreen() {
+export function ProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const avatarUrl = getAvatarUrl(user);
+  const { profile } = useProfile();
+  const avatarUrl = getDisplayAvatar(user, profile);
+  const editProfile = () => navigation.navigate('EditProfile');
 
   const handleLogout = () => {
-    Alert.alert('Cerrar sesión', '¿Estás seguro de que deseas cerrar sesión?', [
+    Alert.alert(messages.auth.logoutTitle, messages.auth.logoutConfirm, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Cerrar sesión',
@@ -98,7 +110,7 @@ export function ProfileScreen() {
           try {
             await AuthService.logout();
           } catch (err: any) {
-            Alert.alert('Error', err.message || 'No se pudo cerrar sesión');
+            Alert.alert(messages.common.errorTitle, err.message || messages.auth.logoutFailed);
           }
         },
       },
@@ -119,9 +131,9 @@ export function ProfileScreen() {
         </View>
 
         <View style={styles.nameContainer}>
-          <Text style={styles.userName}>{getFullName(user)}</Text>
+          <Text style={styles.userName}>{getDisplayName(user, profile)}</Text>
           <Pressable
-            onPress={() => showComingSoon('Editar perfil')}
+            onPress={editProfile}
             accessibilityRole="button"
             accessibilityLabel="Editar perfil"
             style={({ pressed }) => [styles.editButton, pressed && styles.editButtonPressed]}
@@ -139,15 +151,27 @@ export function ProfileScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {MENU_ITEMS.map(({ Icon, title, value }) => (
-            <MenuItem
-              key={title}
-              icon={<Icon size={21} color={colors.textBody} />}
-              title={title}
-              value={value}
-              onPress={() => showComingSoon(title)}
-            />
-          ))}
+          <MenuItem
+            icon={<User size={21} color={colors.textBody} />}
+            title="Información personal"
+            onPress={editProfile}
+          />
+          <MenuItem
+            icon={<Bell size={21} color={colors.textBody} />}
+            title="Notificaciones"
+            onPress={() => navigation.navigate('Notifications')}
+          />
+          {/* Por ahora la app solo está en español */}
+          <MenuItem
+            icon={<Globe size={21} color={colors.textBody} />}
+            title="Idioma"
+            value="Español"
+          />
+          <MenuItem
+            icon={<HelpCircle size={21} color={colors.textBody} />}
+            title="Ayuda y soporte"
+            onPress={() => navigation.navigate('Help')}
+          />
 
           {__DEV__ && (
             <MenuItem

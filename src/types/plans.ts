@@ -21,3 +21,10 @@ export type NewPlan = {
   startsAt: Date;
   placeIds: string[];
 };
+
+// Errores del formulario de Crear o Editar plan, por campo
+export type PlanFormErrors = {
+  title?: string;
+  startsAt?: string;
+  places?: string;
+};

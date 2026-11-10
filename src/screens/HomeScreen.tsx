@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MapPin, ChevronDown, Bell, Cloud, Sparkles } from 'lucide-react-native';
+import { MapPin, ChevronDown, Bell, Sparkles } from 'lucide-react-native';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -17,12 +17,15 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { PlaceCard } from '../components/PlaceCard';
 import { Button } from '../components/Button';
+import { WeatherCard } from '../components/WeatherCard';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { useAuth } from '../services/AuthContext';
+import { useProfile } from '../services/ProfileContext';
 import { useNearbyPlaces } from '../services/useNearbyPlaces';
+import { useWeather } from '../services/useWeather';
 import { distanceKm } from '../utils/geo';
-import { getFirstName } from '../utils/user';
+import { getDisplayName, getFirstName } from '../utils/user';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Home'>,
@@ -32,9 +35,11 @@ type Props = CompositeScreenProps<
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const { profile } = useProfile();
   const nearby = useNearbyPlaces();
   const locationLabel = nearby.locationLabel || 'Buscando ubicación…';
   const origin = nearby.position?.coordinates;
+  const weather = useWeather(origin);
 
   return (
     <View style={globalStyles.screen}>
@@ -59,17 +64,12 @@ export function HomeScreen({ navigation }: Props) {
           </Pressable>
         </View>
 
-        <Text style={styles.greeting}>¡Hola, {getFirstName(user)}! 👋</Text>
+        <Text style={styles.greeting}>
+          ¡Hola, {getFirstName(getDisplayName(user, profile))}! 👋
+        </Text>
         <Text style={styles.subGreeting}>¿Qué plan tienes hoy?</Text>
 
-        <View style={styles.weatherCard}>
-          <View>
-            <Text style={styles.weatherTemp}>24°C</Text>
-            <Text style={styles.weatherDescription}>Parcialmente nublado</Text>
-            <Text style={styles.weatherMinMax}>Máx. 27° Mín. 18°</Text>
-          </View>
-          <Cloud size={40} color={colors.white} />
-        </View>
+        <WeatherCard status={weather.status} weather={weather.weather} onRetry={weather.retry} />
 
         <View style={styles.surpriseCard}>
           <View style={styles.surpriseHeader}>
@@ -187,30 +187,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
     marginBottom: 20,
-  },
-  weatherCard: {
-    backgroundColor: colors.weather,
-    borderRadius: 16,
-    padding: 18,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  weatherTemp: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.white,
-  },
-  weatherDescription: {
-    fontSize: 13,
-    color: colors.white,
-    marginTop: 2,
-  },
-  weatherMinMax: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.85)',
-    marginTop: 4,
   },
   surpriseCard: {
     backgroundColor: colors.surface,

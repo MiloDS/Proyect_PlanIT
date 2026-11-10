@@ -3,6 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { Plan } from '../types/plans';
 import { PlacesService } from './placesService';
+import { PlanReminders } from './planReminders';
 import { PlansService } from './plansService';
 
 type PlansState = {
@@ -28,6 +29,8 @@ export function usePlans() {
   const fetchPlans = useCallback(async (isCancelled: () => boolean) => {
     try {
       const plans = await PlansService.list();
+      // Los recordatorios siguen los cambios que hayan hecho otras personas del plan
+      PlanReminders.sync(plans);
       if (isCancelled()) return;
       setState((current) => ({ ...current, status: 'ready', plans, error: '' }));
 

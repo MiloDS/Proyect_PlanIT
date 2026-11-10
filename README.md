@@ -18,6 +18,8 @@ Mobile app to discover activities and places based on location, weather, and per
 - **react-native-safe-area-context** for safe area handling (notch, navigation bar)
 - **lucide-react-native** for icons
 - **react-native-maps** for the Search map and **@react-native-community/datetimepicker** for plan dates (both included in Expo Go)
+- **Open-Meteo** for the weather on Home (free, no API key)
+- **expo-notifications** for plan reminders (local notifications, which work in Expo Go)
 
 ### Project structure
 
@@ -28,16 +30,25 @@ PlanIt/
 │   ├── components/         # Reusable components (Button, InputField, BottomNavBar...)
 │   ├── navigation/         # React Navigation setup
 │   ├── screens/            # App screens
-│   ├── services/           # Auth, places, favorites, plans and location services, contexts and hooks
+│   ├── services/           # Auth, profile, places, weather, favorites, plans, reminders and location services, contexts and hooks
 │   ├── styles/             # Colors and global styles
-│   ├── types/              # Shared types (navigation, component props, auth, places, plans)
-│   └── utils/              # Utilities (Supabase client, validation, AsyncStorage, user data, dates, place icons)
+│   ├── types/              # Shared types (navigation, component props, auth, places, plans, weather)
+│   └── utils/              # Utilities (Supabase client, form rules, messages, AsyncStorage, user data, dates, place icons, weather codes)
 ├── supabase/               # Migrations, RLS tests and the `places` Edge Function (Google Places)
 ├── .env.example            # Environment variables template
 ├── App.tsx
 ├── index.ts
 └── app.json
 ```
+
+### Code organization
+
+Following the course guide, each layer has one job:
+
+- **Screens and components** (`src/screens`, `src/components`) show data and respond to the user; they don't hold business rules.
+- **Services** (`src/services`) talk to Supabase, Google Places (through the Edge Function) and Open-Meteo.
+- **Rules** (`src/utils/validation.ts`) check form data before it is sent: name, email, password, and a plan's title, date and places. Each function returns the error to show, or an empty string. The database checks the important rules again (RLS and constraints).
+- **Messages** (`src/utils/messages.ts`) holds every success, warning and error message the app shows, so the wording stays consistent and changes in one place.
 
 ### Implemented screens
 
@@ -46,15 +57,19 @@ PlanIt/
 | `IntroScreen` | Onboarding carousel (3 slides), swipe navigation, pagination dots, and start button |
 | `LoginScreen` | Email/password login and Google login, field validation |
 | `RegisterScreen` | Sign up with name, email, and password, or with Google |
-| `HomeScreen` | Greeting, weather card, "Surprise me" shortcut, and nearby places |
+| `HomeScreen` | Greeting, current weather, "Surprise me" shortcut, and nearby places |
 | `SearchScreen` | Map with nearby places, category filters, text search, and "search this area" |
 | `PlaceDetailScreen` | Photo, rating, distance, hours, price, description, amenities; save to favorites and share |
 | `SurpriseMeScreen` | Preference form (activity, budget, distance, company) |
 | `RecommendationsScreen` | Places that match the Surprise me preferences, best rated first |
 | `PlansScreen` | Upcoming and past plans from Supabase (own and shared) |
-| `CreatePlanScreen` | New plan with name, date, time and places (nearby, favorites or search) |
+| `PlanDetailScreen` | Plan date, places and members; the owner invites people by email, removes guests, edits and deletes the plan; guests can leave |
+| `CreatePlanScreen` | New plan with name, date, time and places (nearby, favorites or search); also edits an existing plan |
 | `FavoritesScreen` | Favorite places and plans (All / Places / Plans) |
 | `ProfileScreen` | User data, settings menu, and logout |
+| `EditProfileScreen` | Change the name other people see in your plans (the email is read-only) |
+| `NotificationsScreen` | Turn plan reminders on or off and choose when they arrive |
+| `HelpScreen` | Frequently asked questions and information about the app |
 
 ### Navigation flow
 
@@ -62,7 +77,7 @@ PlanIt/
 
 1. **No session, first time opening the app** → `IntroScreen`, then `LoginScreen`.
 2. **No session, onboarding already seen** → `LoginScreen` / `RegisterScreen`.
-3. **Active session** → `MainTabs` (Home, Search, Plans, Favorites, Profile) plus `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen` and `CreatePlanScreen` on top of the tabs.
+3. **Active session** → `MainTabs` (Home, Search, Plans, Favorites, Profile) plus `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen`, `CreatePlanScreen`, `PlanDetailScreen` and the Profile settings screens (`EditProfileScreen`, `NotificationsScreen`, `HelpScreen`) on top of the tabs.
 
 Logging in or out switches the group automatically; screens don't need to call `navigation.reset`.
 
@@ -100,7 +115,7 @@ Places come from the Google Places API, so the database only stores their `place
 | `plan_members` | Members of each plan (`owner` / `member`) | Read: plan members. Invite/remove: the owner. Any member can leave |
 | `plan_places` | Places of each plan and their order | Plan members |
 
-The app creates plans with the `create_plan` function, which saves the plan and its places in a single transaction: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids })`. To invite someone to a plan by email, call `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`.
+The app creates plans with the `create_plan` function, which saves the plan and its places in a single transaction: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids })`. It edits them with `update_plan` (`{ p_plan_id, p_title, p_starts_at, p_place_ids }`), which works the same way and only lets the owner through. To invite someone to a plan by email, call `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. The person needs a PlanIt account with that email; they are added right away and see the plan in their plans list (there are no notifications yet).
 
 ### Google Places
 
@@ -116,6 +131,16 @@ Home, Search, place details, Surprise me, favorites and plans use the Google Pla
 Each Home load makes 1 Nearby Search plus up to 10 photo requests; each Search or Surprise me query makes 1 Nearby or Text Search plus up to 20 photos; opening a place makes 1 Place Details request. While the app is open, places already shown are kept in memory so favorites and plan covers don't request them again (Google's terms don't allow storing Places data on the device or in the database). If the user denies location access, the app searches around the center of Medellín.
 
 The map works in Expo Go without extra setup. For a development or store build, Android needs a Google Maps key: enable **Maps SDK for Android** in Google Cloud, create a key restricted to that API and the app's package, and add the `react-native-maps` plugin to `app.json` with `androidGoogleMapsApiKey`.
+
+### Weather
+
+The weather card on Home uses the [Open-Meteo](https://open-meteo.com) forecast API, which needs no API key, so the app calls it directly (`src/services/weatherService.ts`). It sends the location rounded to two decimals (about 1 km) and keeps each result in memory for 15 minutes, which is how often Open-Meteo updates the current weather. Open-Meteo's free API is for non-commercial use and its data is licensed under CC BY 4.0, so the card credits it; a commercial release would need one of its paid plans.
+
+### Plan reminders
+
+In **Profile → Notificaciones** each person can turn on a reminder before their plans (30 minutes, 1 hour, 3 hours or 1 day before). They are local notifications scheduled on the phone with `expo-notifications` (`src/services/planReminders.ts`), so they arrive with the app closed and need no server; the preference is stored on the device. Reminders are rescheduled every time the app loads plans (on startup, in Mis planes and in a plan's detail), so changes made by other members are picked up; leaving or deleting a plan and signing out cancel them, and tapping a reminder opens the plan.
+
+Local notifications work in Expo Go. Push notifications don't (that would need a development build), which is why the app hides the two warnings `expo-notifications` prints about them in Expo Go (`src/utils/devWarnings.ts`).
 
 ### Running the app
 
@@ -163,7 +188,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Project status
 
-Actively in development. Authentication, places (Google Places), favorites and plans work with Supabase. Still pending: the real weather on Home, the Profile settings screens, and a plan detail screen to invite friends and edit plans.
+Actively in development. Authentication, places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo). Plans can be shared by inviting friends by email, edited and deleted from their detail screen, and remind you before they start. Ideas for later: notify people when they are invited to a plan (push notifications, which need a development build), uploading a profile photo, and more languages.
 
 ### Authors
 Juan Esteban
@@ -187,6 +212,8 @@ Aplicación móvil para descubrir actividades y lugares según ubicación, clima
 - **react-native-safe-area-context** para manejo de áreas seguras (notch, barra de navegación)
 - **lucide-react-native** para iconografía
 - **react-native-maps** para el mapa de Buscar y **@react-native-community/datetimepicker** para la fecha de los planes (ambas vienen en Expo Go)
+- **Open-Meteo** para el clima de Inicio (gratis, sin API key)
+- **expo-notifications** para los recordatorios de planes (notificaciones locales, que funcionan en Expo Go)
 
 ### Estructura del proyecto
 
@@ -197,16 +224,25 @@ PlanIt/
 │   ├── components/         # Componentes reutilizables (Button, InputField, BottomNavBar...)
 │   ├── navigation/         # Configuración de React Navigation
 │   ├── screens/            # Pantallas de la app
-│   ├── services/           # Servicios de auth, lugares, favoritos, planes y ubicación; contextos y hooks
+│   ├── services/           # Servicios de auth, perfil, lugares, clima, favoritos, planes, recordatorios y ubicación; contextos y hooks
 │   ├── styles/             # Colores y estilos globales
-│   ├── types/              # Tipos compartidos (navegación, props de componentes, auth, lugares, planes)
-│   └── utils/              # Utilidades (cliente de Supabase, validación, AsyncStorage, datos del usuario, fechas, íconos de lugares)
+│   ├── types/              # Tipos compartidos (navegación, props de componentes, auth, lugares, planes, clima)
+│   └── utils/              # Utilidades (cliente de Supabase, reglas de los formularios, mensajes, AsyncStorage, datos del usuario, fechas, íconos de lugares, códigos del clima)
 ├── supabase/               # Migraciones, pruebas de RLS y la Edge Function `places` (Google Places)
 ├── .env.example            # Plantilla de variables de entorno
 ├── App.tsx
 ├── index.ts
 └── app.json
 ```
+
+### Organización del código
+
+Siguiendo la guía del curso, cada capa tiene una sola responsabilidad:
+
+- **Pantallas y componentes** (`src/screens`, `src/components`) muestran los datos y responden al usuario; no contienen reglas de negocio.
+- **Servicios** (`src/services`) hablan con Supabase, Google Places (a través de la Edge Function) y Open-Meteo.
+- **Reglas** (`src/utils/validation.ts`) revisan los datos de los formularios antes de enviarlos: nombre, correo, contraseña, y el nombre, la fecha y los lugares de un plan. Cada función devuelve el error que se debe mostrar, o un texto vacío. La base de datos vuelve a revisar las reglas importantes (RLS y restricciones).
+- **Mensajes** (`src/utils/messages.ts`) reúne todos los mensajes de éxito, advertencia y error de la app, para que el tono sea el mismo y se cambien en un solo lugar.
 
 ### Pantallas implementadas
 
@@ -215,15 +251,19 @@ PlanIt/
 | `IntroScreen` | Onboarding con carrusel de bienvenida (3 slides), navegación por swipe, indicador de puntos y botón de inicio |
 | `LoginScreen` | Inicio de sesión con correo/contraseña y con Google, validación de campos |
 | `RegisterScreen` | Registro con nombre, correo y contraseña, o con Google |
-| `HomeScreen` | Saludo, clima, acceso a "Sorpréndeme" y lugares cercanos |
+| `HomeScreen` | Saludo, clima actual, acceso a "Sorpréndeme" y lugares cercanos |
 | `SearchScreen` | Mapa con lugares cercanos, filtros por categoría, búsqueda por texto y "Buscar en esta zona" |
 | `PlaceDetailScreen` | Foto, calificación, distancia, horario, precio, descripción y servicios; guardar en favoritos y compartir |
 | `SurpriseMeScreen` | Formulario de preferencias (actividad, presupuesto, distancia, compañía) |
 | `RecommendationsScreen` | Lugares que cumplen las preferencias de Sorpréndeme, de mejor a peor calificados |
 | `PlansScreen` | Planes próximos y pasados desde Supabase (propios y compartidos) |
-| `CreatePlanScreen` | Nuevo plan con nombre, fecha, hora y lugares (cercanos, favoritos o búsqueda) |
+| `PlanDetailScreen` | Fecha, lugares y personas del plan; el dueño invita por correo, quita invitados, edita y elimina el plan; los invitados pueden salirse |
+| `CreatePlanScreen` | Nuevo plan con nombre, fecha, hora y lugares (cercanos, favoritos o búsqueda); también edita un plan existente |
 | `FavoritesScreen` | Lugares y planes favoritos (Todos / Lugares / Planes) |
 | `ProfileScreen` | Datos del usuario, menú de ajustes y cierre de sesión |
+| `EditProfileScreen` | Cambiar el nombre que ven las personas de tus planes (el correo es de solo lectura) |
+| `NotificationsScreen` | Activar o desactivar los recordatorios de planes y elegir cuándo llegan |
+| `HelpScreen` | Preguntas frecuentes e información sobre la app |
 
 ### Flujo de navegación
 
@@ -231,7 +271,7 @@ PlanIt/
 
 1. **Sin sesión, primera vez que se abre la app** → `IntroScreen` y luego `LoginScreen`.
 2. **Sin sesión, onboarding ya visto** → `LoginScreen` / `RegisterScreen`.
-3. **Sesión activa** → `MainTabs` (Inicio, Buscar, Planes, Favoritos, Perfil) y, encima de las pestañas, `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen` y `CreatePlanScreen`.
+3. **Sesión activa** → `MainTabs` (Inicio, Buscar, Planes, Favoritos, Perfil) y, encima de las pestañas, `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen`, `CreatePlanScreen`, `PlanDetailScreen` y las pantallas de ajustes del Perfil (`EditProfileScreen`, `NotificationsScreen`, `HelpScreen`).
 
 Al iniciar o cerrar sesión el grupo cambia solo; las pantallas no necesitan llamar a `navigation.reset`.
 
@@ -269,7 +309,7 @@ Los lugares vienen de la API de Google Places, así que la base de datos solo gu
 | `plan_members` | Miembros de cada plan (`owner` / `member`) | Leer: los miembros. Invitar/expulsar: el dueño. Cualquier miembro puede salirse |
 | `plan_places` | Lugares de cada plan y su orden | Los miembros del plan |
 
-La app crea los planes con la función `create_plan`, que guarda el plan y sus lugares en una sola transacción: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids })`. Para invitar a alguien a un plan por correo se usa `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`.
+La app crea los planes con la función `create_plan`, que guarda el plan y sus lugares en una sola transacción: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids })`. Los edita con `update_plan` (`{ p_plan_id, p_title, p_starts_at, p_place_ids }`), que funciona igual y solo deja pasar al dueño. Para invitar a alguien a un plan por correo se usa `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. La persona necesita una cuenta de PlanIt con ese correo; queda agregada de inmediato y ve el plan en su lista de planes (todavía no hay notificaciones).
 
 ### Google Places
 
@@ -285,6 +325,16 @@ Inicio, Buscar, el detalle de lugar, Sorpréndeme, favoritos y planes usan Googl
 Cada carga de Inicio hace 1 búsqueda Nearby Search y hasta 10 pedidos de fotos; cada búsqueda en Buscar o en Sorpréndeme hace 1 Nearby o Text Search y hasta 20 fotos; abrir un lugar hace 1 Place Details. Mientras la app está abierta, los lugares ya mostrados quedan en memoria para que favoritos y portadas de planes no los vuelvan a pedir (las condiciones de Google no permiten guardar datos de Places en el teléfono ni en la base de datos). Si el usuario no da permiso de ubicación, la app busca alrededor del centro de Medellín.
 
 El mapa funciona en Expo Go sin configuración extra. Para un development build o la tienda, Android necesita una key de Google Maps: activa **Maps SDK for Android** en Google Cloud, crea una key restringida a esa API y al paquete de la app, y agrega el plugin `react-native-maps` en `app.json` con `androidGoogleMapsApiKey`.
+
+### Clima
+
+La tarjeta del clima de Inicio usa la API de pronóstico de [Open-Meteo](https://open-meteo.com), que no necesita API key, así que la app la consulta directamente (`src/services/weatherService.ts`). Envía la ubicación redondeada a dos decimales (alrededor de 1 km) y guarda cada resultado en memoria 15 minutos, que es cada cuánto Open-Meteo actualiza el clima actual. La API gratuita de Open-Meteo es para uso no comercial y sus datos tienen licencia CC BY 4.0, por eso la tarjeta lo menciona; para publicar la app con fines comerciales haría falta uno de sus planes pagos.
+
+### Recordatorios de planes
+
+En **Perfil → Notificaciones** cada persona puede activar un recordatorio antes de sus planes (30 minutos, 1 hora, 3 horas o 1 día antes). Son notificaciones locales que se programan en el teléfono con `expo-notifications` (`src/services/planReminders.ts`), así que llegan con la app cerrada y no necesitan servidor; la preferencia se guarda en el dispositivo. Los recordatorios se reprograman cada vez que la app carga los planes (al abrirla, en Mis planes y en el detalle de un plan), así se enteran de los cambios que hagan otras personas; salir de un plan, eliminarlo o cerrar sesión los cancela, y tocar un recordatorio abre el plan.
+
+Las notificaciones locales funcionan en Expo Go. Las push no (necesitarían un development build), por eso la app oculta los dos avisos que `expo-notifications` muestra sobre ellas en Expo Go (`src/utils/devWarnings.ts`).
 
 ### Ejecución
 
@@ -332,7 +382,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Estado del proyecto
 
-En desarrollo activo. La autenticación, los lugares (Google Places), los favoritos y los planes funcionan con Supabase. Falta: el clima real en Inicio, las pantallas de ajustes del Perfil y un detalle de plan para invitar amigos y editarlo.
+En desarrollo activo. La autenticación, los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo). Los planes se comparten invitando amigos por correo, se editan y eliminan desde su detalle, y avisan antes de empezar. Ideas para después: avisar a las personas cuando las invitan a un plan (notificaciones push, que necesitan un development build), subir una foto de perfil y más idiomas.
 
 ### Autores
 Juan Esteban

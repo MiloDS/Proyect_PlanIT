@@ -27,6 +27,7 @@ export const colors = {
   successBorder: '#86EFAC',
 
   weather: '#38BDF8',
+  weatherNight: '#1E40AF',
 
   // Categorías de lugares (íconos y marcadores del mapa)
   categoryNature: '#27ae60',

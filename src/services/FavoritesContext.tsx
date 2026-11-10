@@ -2,6 +2,7 @@ import { createContext, ReactNode, useContext, useEffect, useRef, useState } fro
 import { Alert } from 'react-native';
 
 import { FavoriteEntry, FavoritesService } from './favoritesService';
+import { messages } from '../utils/messages';
 
 type FavoriteKind = 'place' | 'plan';
 
@@ -96,7 +97,7 @@ export function FavoritesProvider({ userId, children }: FavoritesProviderProps) 
       await (wasFavorite ? SERVICE[kind].remove(id) : SERVICE[kind].add(id));
     } catch (err: any) {
       update(wasFavorite);
-      Alert.alert('Favoritos', err.message);
+      Alert.alert(messages.favorites.alertTitle, err.message);
     } finally {
       pending.current.delete(key);
     }

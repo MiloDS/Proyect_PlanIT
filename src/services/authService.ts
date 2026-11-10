@@ -3,16 +3,18 @@ import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 
 import { supabase } from '../utils/supabase';
+import { messages } from '../utils/messages';
 import { LoginRequest, RegisterRequest } from '../types/auth';
 
+// Mensaje para cada código de error de Supabase Auth
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
-  invalid_credentials: 'Correo o contraseña incorrectos.',
-  email_not_confirmed: 'Confirma tu correo antes de iniciar sesión.',
-  user_already_exists: 'Este correo electrónico ya está registrado.',
-  weak_password: 'La contraseña es demasiado débil.',
-  email_address_invalid: 'Ingresa un correo válido.',
-  over_request_rate_limit: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
-  over_email_send_rate_limit: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
+  invalid_credentials: messages.auth.invalidCredentials,
+  email_not_confirmed: messages.auth.emailNotConfirmed,
+  user_already_exists: messages.auth.userAlreadyExists,
+  weak_password: messages.auth.weakPassword,
+  email_address_invalid: messages.auth.emailInvalid,
+  over_request_rate_limit: messages.auth.tooManyAttempts,
+  over_email_send_rate_limit: messages.auth.tooManyAttempts,
 };
 
 export class AuthServiceError extends Error {
@@ -27,10 +29,7 @@ export class AuthServiceError extends Error {
 
 function toAuthServiceError(error: AuthError): AuthServiceError {
   if (isAuthRetryableFetchError(error)) {
-    return new AuthServiceError(
-      'No se pudo conectar con el servidor. Revisa tu conexión.',
-      'network_error'
-    );
+    return new AuthServiceError(messages.auth.network, 'network_error');
   }
 
   const code = error.code ?? 'unknown_error';
@@ -114,13 +113,13 @@ export class AuthService {
 
     if (params.error) {
       throw new AuthServiceError(
-        params.error_description || 'No se pudo iniciar sesión con Google.',
+        params.error_description || messages.auth.googleFailed,
         params.error
       );
     }
 
     if (!params.access_token || !params.refresh_token) {
-      throw new AuthServiceError('Google no devolvió una sesión válida.', 'missing_session');
+      throw new AuthServiceError(messages.auth.googleNoSession, 'missing_session');
     }
 
     const { error: sessionError } = await supabase.auth.setSession({

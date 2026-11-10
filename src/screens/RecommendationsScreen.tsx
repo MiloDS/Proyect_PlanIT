@@ -17,6 +17,7 @@ import { PlacesService } from '../services/placesService';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { distanceKm } from '../utils/geo';
+import { messages } from '../utils/messages';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Recommendations'>;
 
@@ -98,7 +99,7 @@ export function RecommendationsScreen({ navigation, route }: Props) {
         {state.status === 'error' && (
           <EmptyState
             icon={<CloudOff size={28} color={colors.primary} />}
-            title="No pudimos cargar las recomendaciones"
+            title={messages.places.recommendationsFailedTitle}
             message={state.error}
             actionLabel="Reintentar"
             onAction={retry}

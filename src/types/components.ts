@@ -3,6 +3,7 @@ import type { KeyboardTypeOptions, StyleProp, ViewStyle } from 'react-native';
 
 import type { Place } from './places';
 import type { Plan } from './plans';
+import type { Weather } from './weather';
 
 export type ButtonProps = {
   onPress: () => void;
@@ -138,6 +139,21 @@ export type PlanCardProps = {
   coverUrl: string | null;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  onPress?: () => void;
+};
+
+export type MemberAvatarProps = {
+  name: string | null;
+  avatarUrl: string | null;
+  size?: number;
+  style?: StyleProp<ViewStyle>;
+};
+
+export type InviteMemberModalProps = {
+  visible: boolean;
+  onClose: () => void;
+  /** Agrega a la persona y devuelve el mensaje para mostrar; lanza un error si no se pudo */
+  onInvite: (email: string) => Promise<string>;
 };
 
 export type PlacePickerModalProps = {
@@ -145,4 +161,10 @@ export type PlacePickerModalProps = {
   selectedIds: string[];
   onToggle: (place: Place) => void;
   onClose: () => void;
+};
+
+export type WeatherCardProps = {
+  status: 'loading' | 'ready' | 'error';
+  weather: Weather | null;
+  onRetry: () => void;
 };

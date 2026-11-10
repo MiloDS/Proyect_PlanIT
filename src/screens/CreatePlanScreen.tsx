@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Platform,
   Modal,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,30 +18,26 @@ import { CalendarDays, Clock, LucideIcon, Plus, X } from 'lucide-react-native';
 
 import { AppStackParamList } from '../types/navigation';
 import { Place } from '../types/places';
+import { PlanFormErrors } from '../types/plans';
 import { Banner } from '../components/Banner';
 import { Button } from '../components/Button';
 import { InputField } from '../components/InputField';
 import { PlaceListItem } from '../components/PlaceListItem';
 import { PlacePickerModal } from '../components/PlacePickerModal';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { PlacesService } from '../services/placesService';
 import { PlansService } from '../services/plansService';
 import { useDevicePosition } from '../services/useDevicePosition';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { formatShortDate, formatTime, startOfDay } from '../utils/date';
 import { distanceKm } from '../utils/geo';
+import { messages } from '../utils/messages';
+import { validatePlan } from '../utils/validation';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'CreatePlan'>;
 
 type PickerMode = 'date' | 'time';
-
-type FormErrors = {
-  title?: string;
-  startsAt?: string;
-  places?: string;
-};
-
-const MAX_TITLE_LENGTH = 100;
 
 // La próxima hora en punto: un valor razonable para un plan de hoy
 function getDefaultStart(): Date {
@@ -58,18 +55,6 @@ function mergePickedValue(current: Date, picked: Date, mode: PickerMode): Date {
     merged.setHours(picked.getHours(), picked.getMinutes(), 0, 0);
   }
   return merged;
-}
-
-function validate(title: string, startsAt: Date, places: Place[]): FormErrors {
-  const errors: FormErrors = {};
-  const trimmed = title.trim();
-  if (!trimmed) errors.title = 'Dale un nombre a tu plan';
-  else if (trimmed.length > MAX_TITLE_LENGTH) {
-    errors.title = `Máximo ${MAX_TITLE_LENGTH} caracteres`;
-  }
-  if (startsAt.getTime() < Date.now()) errors.startsAt = 'Elige una fecha y hora futuras';
-  if (places.length === 0) errors.places = 'Agrega al menos un lugar';
-  return errors;
 }
 
 type PickerFieldProps = {
@@ -102,17 +87,54 @@ function PickerField({ label, value, Icon, onPress, error }: PickerFieldProps) {
   );
 }
 
-export function CreatePlanScreen({ navigation }: Props) {
+export function CreatePlanScreen({ navigation, route }: Props) {
+  const editingPlan = route.params?.plan;
   const insets = useSafeAreaInsets();
   const position = useDevicePosition();
-  const [title, setTitle] = useState('');
-  const [startsAt, setStartsAt] = useState(getDefaultStart);
+  const [title, setTitle] = useState(editingPlan?.title ?? '');
+  const [startsAt, setStartsAt] = useState(() =>
+    editingPlan ? new Date(editingPlan.startsAt) : getDefaultStart()
+  );
   const [places, setPlaces] = useState<Place[]>([]);
+  const [placesStatus, setPlacesStatus] = useState<'loading' | 'ready' | 'error'>(
+    editingPlan ? 'loading' : 'ready'
+  );
+  const [placesReloadKey, setPlacesReloadKey] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [iosPickerMode, setIosPickerMode] = useState<PickerMode | null>(null);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<PlanFormErrors>({});
   const [saveError, setSaveError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Al editar se cargan los datos de Google de los lugares que ya tiene el plan. Los que
+  // Google ya no tiene (cerrados o eliminados) no vuelven y se quitan al guardar.
+  useEffect(() => {
+    if (!editingPlan) return;
+    let cancelled = false;
+
+    PlacesService.lookup(editingPlan.placeIds)
+      .then((found) => {
+        if (cancelled) return;
+        // Se respetan los lugares que el usuario alcanzó a agregar mientras cargaba
+        setPlaces((current) => [
+          ...found,
+          ...current.filter((place) => !found.some((item) => item.id === place.id)),
+        ]);
+        setPlacesStatus('ready');
+      })
+      .catch(() => {
+        if (!cancelled) setPlacesStatus('error');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [editingPlan, placesReloadKey]);
+
+  const retryPlaces = () => {
+    setPlacesStatus('loading');
+    setPlacesReloadKey((key) => key + 1);
+  };
 
   const changeStartsAt = (picked: Date, mode: PickerMode) => {
     setStartsAt((current) => mergePickedValue(current, picked, mode));
@@ -142,19 +164,23 @@ export function CreatePlanScreen({ navigation }: Props) {
   };
 
   const handleSave = async () => {
-    const formErrors = validate(title, startsAt, places);
+    // Al editar un plan que ya pasó se puede cambiar el nombre o los lugares sin moverlo
+    const keepsPastDate =
+      !!editingPlan && startsAt.getTime() === new Date(editingPlan.startsAt).getTime();
+    const formErrors = validatePlan(
+      { title, startsAt, placeCount: places.length },
+      { allowPast: keepsPastDate }
+    );
     setErrors(formErrors);
     setSaveError('');
     if (Object.keys(formErrors).length > 0) return;
 
     setSaving(true);
     try {
-      await PlansService.create({
-        title,
-        startsAt,
-        placeIds: places.map((place) => place.id),
-      });
-      // Mis planes se recarga al volver a mostrarse
+      const plan = { title, startsAt, placeIds: places.map((place) => place.id) };
+      if (editingPlan) await PlansService.update(editingPlan.id, plan);
+      else await PlansService.create(plan);
+      // Mis planes y el detalle del plan se recargan al volver a mostrarse
       navigation.goBack();
     } catch (err: any) {
       setSaveError(err.message);
@@ -167,8 +193,8 @@ export function CreatePlanScreen({ navigation }: Props) {
       <StatusBar style="dark" />
 
       <ScreenHeader
-        title="Crear plan"
-        subtitle="Dale un nombre a tu plan"
+        title={editingPlan ? 'Editar plan' : 'Crear plan'}
+        subtitle={editingPlan ? 'Cambia lo que necesites' : 'Dale un nombre a tu plan'}
         onBack={() => navigation.goBack()}
       />
 
@@ -209,6 +235,17 @@ export function CreatePlanScreen({ navigation }: Props) {
           {!!errors.startsAt && <Text style={styles.errorText}>{errors.startsAt}</Text>}
 
           <Text style={[styles.label, styles.placesLabel]}>Lugares</Text>
+          {placesStatus === 'loading' && (
+            <ActivityIndicator color={colors.primary} style={styles.placesLoading} />
+          )}
+          {placesStatus === 'error' && (
+            <View style={styles.placesError}>
+              <Text style={styles.placesErrorText}>{messages.plans.placesLoadFailed}</Text>
+              <Pressable onPress={retryPlaces} accessibilityRole="button" hitSlop={8}>
+                <Text style={styles.addPlaceText}>Reintentar</Text>
+              </Pressable>
+            </View>
+          )}
           <View style={styles.places}>
             {places.map((place) => (
               <PlaceListItem
@@ -247,8 +284,17 @@ export function CreatePlanScreen({ navigation }: Props) {
 
         <View style={[styles.bottomAction, { paddingBottom: Math.max(insets.bottom, 16) }]}>
           {!!saveError && <Banner type="error" message={saveError} />}
-          <Button variant="primary" style={styles.saveButton} loading={saving} onPress={handleSave}>
-            <Text style={globalStyles.primaryButtonText}>Guardar plan</Text>
+          <Button
+            variant="primary"
+            style={styles.saveButton}
+            loading={saving}
+            // Guardar sin los lugares cargados los borraría del plan
+            disabled={placesStatus !== 'ready'}
+            onPress={handleSave}
+          >
+            <Text style={globalStyles.primaryButtonText}>
+              {editingPlan ? 'Guardar cambios' : 'Guardar plan'}
+            </Text>
           </Button>
         </View>
       </KeyboardAvoidingView>
@@ -341,6 +387,18 @@ const styles = StyleSheet.create({
   },
   placesLabel: {
     marginTop: 20,
+  },
+  placesLoading: {
+    marginVertical: 12,
+  },
+  placesError: {
+    alignItems: 'flex-start',
+    gap: 6,
+    marginBottom: 10,
+  },
+  placesErrorText: {
+    fontSize: 13,
+    color: colors.danger,
   },
   places: {
     gap: 10,

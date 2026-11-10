@@ -25,6 +25,7 @@ import { PlacesService } from '../services/placesService';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { distanceKm } from '../utils/geo';
+import { messages } from '../utils/messages';
 
 type Source = 'nearby' | 'favorites';
 
@@ -171,7 +172,7 @@ function PlacePickerContent({ selectedIds, onToggle, onClose }: PlacePickerModal
         {results.status === 'error' && (
           <EmptyState
             icon={<SearchX size={28} color={colors.primary} />}
-            title="No pudimos cargar los lugares"
+            title={messages.places.loadFailedTitle}
             message={results.error}
             actionLabel="Reintentar"
             onAction={() => changeRequest({})}
