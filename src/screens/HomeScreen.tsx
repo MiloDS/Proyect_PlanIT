@@ -21,10 +21,11 @@ import { WeatherCard } from '../components/WeatherCard';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { useAuth } from '../services/AuthContext';
+import { useProfile } from '../services/ProfileContext';
 import { useNearbyPlaces } from '../services/useNearbyPlaces';
 import { useWeather } from '../services/useWeather';
 import { distanceKm } from '../utils/geo';
-import { getFirstName } from '../utils/user';
+import { getDisplayName, getFirstName } from '../utils/user';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Home'>,
@@ -34,6 +35,7 @@ type Props = CompositeScreenProps<
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const { profile } = useProfile();
   const nearby = useNearbyPlaces();
   const locationLabel = nearby.locationLabel || 'Buscando ubicación…';
   const origin = nearby.position?.coordinates;
@@ -62,7 +64,9 @@ export function HomeScreen({ navigation }: Props) {
           </Pressable>
         </View>
 
-        <Text style={styles.greeting}>¡Hola, {getFirstName(user)}! 👋</Text>
+        <Text style={styles.greeting}>
+          ¡Hola, {getFirstName(getDisplayName(user, profile))}! 👋
+        </Text>
         <Text style={styles.subGreeting}>¿Qué plan tienes hoy?</Text>
 
         <WeatherCard status={weather.status} weather={weather.weather} onRetry={weather.retry} />

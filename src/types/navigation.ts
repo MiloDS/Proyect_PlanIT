@@ -14,6 +14,7 @@ export type AppStackParamList = {
   /** Con `plan`, la pantalla edita ese plan en lugar de crear uno nuevo */
   CreatePlan: { plan?: Plan } | undefined;
   PlanDetail: { plan: Plan };
+  EditProfile: undefined;
 };
 
 export type MainTabParamList = {

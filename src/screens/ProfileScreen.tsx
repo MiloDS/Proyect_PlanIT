@@ -23,11 +23,22 @@ import {
   RotateCcw,
 } from 'lucide-react-native';
 
+import { CompositeScreenProps } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+
+import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { colors } from '../styles/colors';
 import { useAuth } from '../services/AuthContext';
 import { AuthService } from '../services/authService';
+import { useProfile } from '../services/ProfileContext';
 import { resetOnboarding } from '../utils/storage';
-import { getAvatarUrl, getFullName } from '../utils/user';
+import { getDisplayAvatar, getDisplayName } from '../utils/user';
+
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'Profile'>,
+  NativeStackScreenProps<AppStackParamList>
+>;
 
 type MenuItemProps = {
   icon: ReactNode;
@@ -38,7 +49,6 @@ type MenuItemProps = {
 };
 
 const MENU_ITEMS = [
-  { Icon: User, title: 'Información personal' },
   { Icon: CreditCard, title: 'Métodos de pago' },
   { Icon: Bell, title: 'Notificaciones' },
   { Icon: Globe, title: 'Idioma', value: 'Español' },
@@ -82,10 +92,12 @@ async function replayOnboarding() {
   }
 }
 
-export function ProfileScreen() {
+export function ProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const avatarUrl = getAvatarUrl(user);
+  const { profile } = useProfile();
+  const avatarUrl = getDisplayAvatar(user, profile);
+  const editProfile = () => navigation.navigate('EditProfile');
 
   const handleLogout = () => {
     Alert.alert('Cerrar sesión', '¿Estás seguro de que deseas cerrar sesión?', [
@@ -119,9 +131,9 @@ export function ProfileScreen() {
         </View>
 
         <View style={styles.nameContainer}>
-          <Text style={styles.userName}>{getFullName(user)}</Text>
+          <Text style={styles.userName}>{getDisplayName(user, profile)}</Text>
           <Pressable
-            onPress={() => showComingSoon('Editar perfil')}
+            onPress={editProfile}
             accessibilityRole="button"
             accessibilityLabel="Editar perfil"
             style={({ pressed }) => [styles.editButton, pressed && styles.editButtonPressed]}
@@ -139,6 +151,12 @@ export function ProfileScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          <MenuItem
+            icon={<User size={21} color={colors.textBody} />}
+            title="Información personal"
+            onPress={editProfile}
+          />
+
           {MENU_ITEMS.map(({ Icon, title, value }) => (
             <MenuItem
               key={title}

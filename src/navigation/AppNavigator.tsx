@@ -17,10 +17,12 @@ import { FavoritesScreen } from '../screens/FavoritesScreen';
 import { PlaceDetailScreen } from '../screens/PlaceDetailScreen';
 import { CreatePlanScreen } from '../screens/CreatePlanScreen';
 import { PlanDetailScreen } from '../screens/PlanDetailScreen';
+import { EditProfileScreen } from '../screens/EditProfileScreen';
 import { RecommendationsScreen } from '../screens/RecommendationsScreen';
 import { BottomNavBar } from '../components/BottomNavBar';
 import { useAuth } from '../services/AuthContext';
 import { FavoritesProvider } from '../services/FavoritesContext';
+import { ProfileProvider } from '../services/ProfileContext';
 import { hasSeenOnboarding } from '../utils/storage';
 import { colors } from '../styles/colors';
 
@@ -69,28 +71,32 @@ export function AppNavigator() {
 
   // Las pantallas dependen de la sesión: al iniciar o cerrar sesión
   // React Navigation cambia de grupo sin necesidad de navigation.reset
+  const userId = session?.user.id ?? null;
   return (
-    <FavoritesProvider userId={session?.user.id ?? null}>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {session ? (
-            <>
-              <Stack.Screen name="MainTabs" component={MainTabs} />
-              <Stack.Screen name="SurpriseMe" component={SurpriseMeScreen} />
-              <Stack.Screen name="PlaceDetail" component={PlaceDetailScreen} />
-              <Stack.Screen name="Recommendations" component={RecommendationsScreen} />
-              <Stack.Screen name="CreatePlan" component={CreatePlanScreen} />
-              <Stack.Screen name="PlanDetail" component={PlanDetailScreen} />
-            </>
-          ) : (
-            <>
-              {!seenOnboarding && <Stack.Screen name="Intro" component={IntroScreen} />}
-              <Stack.Screen name="Login" component={LoginScreen} />
-              <Stack.Screen name="Register" component={RegisterScreen} />
-            </>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </FavoritesProvider>
+    <ProfileProvider userId={userId}>
+      <FavoritesProvider userId={userId}>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {session ? (
+              <>
+                <Stack.Screen name="MainTabs" component={MainTabs} />
+                <Stack.Screen name="SurpriseMe" component={SurpriseMeScreen} />
+                <Stack.Screen name="PlaceDetail" component={PlaceDetailScreen} />
+                <Stack.Screen name="Recommendations" component={RecommendationsScreen} />
+                <Stack.Screen name="CreatePlan" component={CreatePlanScreen} />
+                <Stack.Screen name="PlanDetail" component={PlanDetailScreen} />
+                <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+              </>
+            ) : (
+              <>
+                {!seenOnboarding && <Stack.Screen name="Intro" component={IntroScreen} />}
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="Register" component={RegisterScreen} />
+              </>
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </FavoritesProvider>
+    </ProfileProvider>
   );
 }
