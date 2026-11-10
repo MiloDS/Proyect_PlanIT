@@ -30,7 +30,7 @@ PlanIt/
 │   ├── components/         # Reusable components (Button, InputField, BottomNavBar...)
 │   ├── navigation/         # React Navigation setup
 │   ├── screens/            # App screens
-│   ├── services/           # Auth, profile, places, weather, favorites, plans, reminders and location services, contexts and hooks
+│   ├── services/           # Auth, profile, places, weather, recommendations, favorites, plans, reminders and location services, contexts and hooks
 │   ├── styles/             # Colors and global styles
 │   ├── types/              # Shared types (navigation, component props, auth, places, plans, weather)
 │   └── utils/              # Utilities (Supabase client, form rules, messages, AsyncStorage, user data, dates, place icons, weather codes)
@@ -47,7 +47,7 @@ Following the course guide, each layer has one job:
 
 - **Screens and components** (`src/screens`, `src/components`) show data and respond to the user; they don't hold business rules.
 - **Services** (`src/services`) talk to Supabase, Google Places (through the Edge Function) and Open-Meteo.
-- **Rules** (`src/utils/validation.ts`) check form data before it is sent: name, email, password, and a plan's title, date and places. Each function returns the error to show, or an empty string. The database checks the important rules again (RLS and constraints).
+- **Rules** (`src/utils/validation.ts`) check form data before it is sent: name, email, password, and a plan's title, date and places. Each function returns the error to show, or an empty string. The database checks the important rules again (RLS and constraints). The Surprise me ranking rules live in `src/utils/recommendations.ts`.
 - **Messages** (`src/utils/messages.ts`) holds every success, warning and error message the app shows, so the wording stays consistent and changes in one place.
 
 ### Implemented screens
@@ -62,7 +62,7 @@ Following the course guide, each layer has one job:
 | `SearchScreen` | Map with nearby places, category filters, text search, and "search this area" |
 | `PlaceDetailScreen` | Photo, rating, distance, hours, price, description, amenities; save to favorites and share |
 | `SurpriseMeScreen` | Preference form (activity, budget, distance, company) |
-| `RecommendationsScreen` | Places that match the Surprise me preferences, best rated first |
+| `RecommendationsScreen` | Places that match the Surprise me preferences, ordered by rating, weather and company, with a note explaining the order |
 | `PlansScreen` | Upcoming and past plans from Supabase (own and shared) |
 | `PlanDetailScreen` | Plan date, places and members; the owner invites people by email, removes guests, edits and deletes the plan; guests can leave |
 | `CreatePlanScreen` | New plan with name, date, time and places (nearby, favorites or search); also edits an existing plan |
@@ -142,6 +142,16 @@ The map works in Expo Go without extra setup. For a development or store build, 
 
 The weather card on Home uses the [Open-Meteo](https://open-meteo.com) forecast API, which needs no API key, so the app calls it directly (`src/services/weatherService.ts`). It sends the location rounded to two decimals (about 1 km) and keeps each result in memory for 15 minutes, which is how often Open-Meteo updates the current weather. Open-Meteo's free API is for non-commercial use and its data is licensed under CC BY 4.0, so the card credits it; a commercial release would need one of its paid plans.
 
+### Surprise me
+
+`RecommendationsService` (`src/services/recommendationsService.ts`) looks for places of the chosen activities within the distance, keeps the ones within the budget, and orders them with the rules in `src/utils/recommendations.ts`. Each place gets a score:
+
+- its Google rating (0 to 5);
+- **+2 / −2 for the weather** (Open-Meteo, the same cached call as Home): with rain or at night, places under a roof (museums, cafés, restaurants, cinemas, malls) go up and outdoor ones (parks, zoos) go down; on a clear day it's the other way around. Cloudy or foggy weather doesn't change the order, and if the weather can't be loaded the list still appears without it;
+- **+1 for the company**: cafés, libraries and museums alone; restaurants, cafés and spas as a couple; bars, night clubs and bowling with friends; parks, zoos and museums with family. With family, bars, pubs, night clubs and casinos are left out.
+
+The screen shows a note explaining how the weather and the company changed the order. If it rains and every result is outdoors, the note says so instead of promising a roof.
+
 ### Plan reminders
 
 In **Profile → Notificaciones** each person can turn on a reminder before their plans (30 minutes, 1 hour, 3 hours or 1 day before). They are local notifications scheduled on the phone with `expo-notifications` (`src/services/planReminders.ts`), so they arrive with the app closed and need no server; the preference is stored on the device. Reminders are rescheduled every time the app loads plans (on startup, in Mis planes and in a plan's detail), so changes made by other members are picked up; leaving or deleting a plan and signing out cancel them, and tapping a reminder opens the plan.
@@ -194,7 +204,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Project status
 
-Actively in development. Authentication (including password recovery), places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo). Plans can be shared by inviting friends by email, edited and deleted from their detail screen, and remind you before they start. Ideas for later: notify people when they are invited to a plan (push notifications, which need a development build), uploading a profile photo, and more languages.
+Actively in development. Authentication (including password recovery), places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo), which Surprise me also uses, together with the company, to order its recommendations. Plans can be shared by inviting friends by email, edited and deleted from their detail screen, and remind you before they start. Ideas for later: notify people when they are invited to a plan (push notifications, which need a development build), uploading a profile photo, and more languages.
 
 ### Authors
 Juan Esteban
@@ -230,7 +240,7 @@ PlanIt/
 │   ├── components/         # Componentes reutilizables (Button, InputField, BottomNavBar...)
 │   ├── navigation/         # Configuración de React Navigation
 │   ├── screens/            # Pantallas de la app
-│   ├── services/           # Servicios de auth, perfil, lugares, clima, favoritos, planes, recordatorios y ubicación; contextos y hooks
+│   ├── services/           # Servicios de auth, perfil, lugares, clima, recomendaciones, favoritos, planes, recordatorios y ubicación; contextos y hooks
 │   ├── styles/             # Colores y estilos globales
 │   ├── types/              # Tipos compartidos (navegación, props de componentes, auth, lugares, planes, clima)
 │   └── utils/              # Utilidades (cliente de Supabase, reglas de los formularios, mensajes, AsyncStorage, datos del usuario, fechas, íconos de lugares, códigos del clima)
@@ -247,7 +257,7 @@ Siguiendo la guía del curso, cada capa tiene una sola responsabilidad:
 
 - **Pantallas y componentes** (`src/screens`, `src/components`) muestran los datos y responden al usuario; no contienen reglas de negocio.
 - **Servicios** (`src/services`) hablan con Supabase, Google Places (a través de la Edge Function) y Open-Meteo.
-- **Reglas** (`src/utils/validation.ts`) revisan los datos de los formularios antes de enviarlos: nombre, correo, contraseña, y el nombre, la fecha y los lugares de un plan. Cada función devuelve el error que se debe mostrar, o un texto vacío. La base de datos vuelve a revisar las reglas importantes (RLS y restricciones).
+- **Reglas** (`src/utils/validation.ts`) revisan los datos de los formularios antes de enviarlos: nombre, correo, contraseña, y el nombre, la fecha y los lugares de un plan. Cada función devuelve el error que se debe mostrar, o un texto vacío. La base de datos vuelve a revisar las reglas importantes (RLS y restricciones). Las reglas para ordenar Sorpréndeme están en `src/utils/recommendations.ts`.
 - **Mensajes** (`src/utils/messages.ts`) reúne todos los mensajes de éxito, advertencia y error de la app, para que el tono sea el mismo y se cambien en un solo lugar.
 
 ### Pantallas implementadas
@@ -262,7 +272,7 @@ Siguiendo la guía del curso, cada capa tiene una sola responsabilidad:
 | `SearchScreen` | Mapa con lugares cercanos, filtros por categoría, búsqueda por texto y "Buscar en esta zona" |
 | `PlaceDetailScreen` | Foto, calificación, distancia, horario, precio, descripción y servicios; guardar en favoritos y compartir |
 | `SurpriseMeScreen` | Formulario de preferencias (actividad, presupuesto, distancia, compañía) |
-| `RecommendationsScreen` | Lugares que cumplen las preferencias de Sorpréndeme, de mejor a peor calificados |
+| `RecommendationsScreen` | Lugares que cumplen las preferencias de Sorpréndeme, ordenados por calificación, clima y compañía, con una nota que explica el orden |
 | `PlansScreen` | Planes próximos y pasados desde Supabase (propios y compartidos) |
 | `PlanDetailScreen` | Fecha, lugares y personas del plan; el dueño invita por correo, quita invitados, edita y elimina el plan; los invitados pueden salirse |
 | `CreatePlanScreen` | Nuevo plan con nombre, fecha, hora y lugares (cercanos, favoritos o búsqueda); también edita un plan existente |
@@ -342,6 +352,16 @@ El mapa funciona en Expo Go sin configuración extra. Para un development build 
 
 La tarjeta del clima de Inicio usa la API de pronóstico de [Open-Meteo](https://open-meteo.com), que no necesita API key, así que la app la consulta directamente (`src/services/weatherService.ts`). Envía la ubicación redondeada a dos decimales (alrededor de 1 km) y guarda cada resultado en memoria 15 minutos, que es cada cuánto Open-Meteo actualiza el clima actual. La API gratuita de Open-Meteo es para uso no comercial y sus datos tienen licencia CC BY 4.0, por eso la tarjeta lo menciona; para publicar la app con fines comerciales haría falta uno de sus planes pagos.
 
+### Sorpréndeme
+
+`RecommendationsService` (`src/services/recommendationsService.ts`) busca lugares de las actividades elegidas dentro de la distancia, deja los que están dentro del presupuesto y los ordena con las reglas de `src/utils/recommendations.ts`. Cada lugar recibe un puntaje:
+
+- su calificación de Google (0 a 5);
+- **+2 / −2 por el clima** (Open-Meteo, la misma consulta en caché de Inicio): con lluvia o de noche suben los lugares bajo techo (museos, cafés, restaurantes, cines, centros comerciales) y bajan los de aire libre (parques, zoológicos); con el cielo despejado de día, al revés. Nublado o con niebla el clima no cambia el orden, y si no se puede cargar el clima la lista sale igual, sin tenerlo en cuenta;
+- **+1 por la compañía**: cafés, bibliotecas y museos si vas solo; restaurantes, cafés y spas en pareja; bares, discotecas y bolos con amigos; parques, zoológicos y museos en familia. En familia no se incluyen bares, pubs, discotecas ni casinos.
+
+La pantalla muestra una nota que explica cómo cambiaron el orden el clima y la compañía. Si llueve y todos los resultados son al aire libre, la nota lo advierte en lugar de prometer techo.
+
 ### Recordatorios de planes
 
 En **Perfil → Notificaciones** cada persona puede activar un recordatorio antes de sus planes (30 minutos, 1 hora, 3 horas o 1 día antes). Son notificaciones locales que se programan en el teléfono con `expo-notifications` (`src/services/planReminders.ts`), así que llegan con la app cerrada y no necesitan servidor; la preferencia se guarda en el dispositivo. Los recordatorios se reprograman cada vez que la app carga los planes (al abrirla, en Mis planes y en el detalle de un plan), así se enteran de los cambios que hagan otras personas; salir de un plan, eliminarlo o cerrar sesión los cancela, y tocar un recordatorio abre el plan.
@@ -394,7 +414,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Estado del proyecto
 
-En desarrollo activo. La autenticación (con recuperación de contraseña), los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo). Los planes se comparten invitando amigos por correo, se editan y eliminan desde su detalle, y avisan antes de empezar. Ideas para después: avisar a las personas cuando las invitan a un plan (notificaciones push, que necesitan un development build), subir una foto de perfil y más idiomas.
+En desarrollo activo. La autenticación (con recuperación de contraseña), los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo), que Sorpréndeme también usa, junto con la compañía, para ordenar sus recomendaciones. Los planes se comparten invitando amigos por correo, se editan y eliminan desde su detalle, y avisan antes de empezar. Ideas para después: avisar a las personas cuando las invitan a un plan (notificaciones push, que necesitan un development build), subir una foto de perfil y más idiomas.
 
 ### Autores
 Juan Esteban
