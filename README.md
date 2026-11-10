@@ -53,7 +53,8 @@ PlanIt/
 | `SurpriseMeScreen` | Preference form (activity, budget, distance, company) |
 | `RecommendationsScreen` | Places that match the Surprise me preferences, best rated first |
 | `PlansScreen` | Upcoming and past plans from Supabase (own and shared) |
-| `CreatePlanScreen` | New plan with name, date, time and places (nearby, favorites or search) |
+| `PlanDetailScreen` | Plan date, places and members; the owner invites people by email, removes guests, edits and deletes the plan; guests can leave |
+| `CreatePlanScreen` | New plan with name, date, time and places (nearby, favorites or search); also edits an existing plan |
 | `FavoritesScreen` | Favorite places and plans (All / Places / Plans) |
 | `ProfileScreen` | User data, settings menu, and logout |
 
@@ -63,7 +64,7 @@ PlanIt/
 
 1. **No session, first time opening the app** → `IntroScreen`, then `LoginScreen`.
 2. **No session, onboarding already seen** → `LoginScreen` / `RegisterScreen`.
-3. **Active session** → `MainTabs` (Home, Search, Plans, Favorites, Profile) plus `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen` and `CreatePlanScreen` on top of the tabs.
+3. **Active session** → `MainTabs` (Home, Search, Plans, Favorites, Profile) plus `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen`, `CreatePlanScreen` and `PlanDetailScreen` on top of the tabs.
 
 Logging in or out switches the group automatically; screens don't need to call `navigation.reset`.
 
@@ -101,7 +102,7 @@ Places come from the Google Places API, so the database only stores their `place
 | `plan_members` | Members of each plan (`owner` / `member`) | Read: plan members. Invite/remove: the owner. Any member can leave |
 | `plan_places` | Places of each plan and their order | Plan members |
 
-The app creates plans with the `create_plan` function, which saves the plan and its places in a single transaction: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids })`. To invite someone to a plan by email, call `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`.
+The app creates plans with the `create_plan` function, which saves the plan and its places in a single transaction: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids })`. It edits them with `update_plan` (`{ p_plan_id, p_title, p_starts_at, p_place_ids }`), which works the same way and only lets the owner through. To invite someone to a plan by email, call `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. The person needs a PlanIt account with that email; they are added right away and see the plan in their plans list (there are no notifications yet).
 
 ### Google Places
 
@@ -168,7 +169,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Project status
 
-Actively in development. Authentication, places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo). Still pending: the Profile settings screens, and a plan detail screen to invite friends and edit plans.
+Actively in development. Authentication, places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo). Plans can be shared by inviting friends by email, edited and deleted from their detail screen. Still pending: the Profile settings screens.
 
 ### Authors
 Juan Esteban
@@ -227,7 +228,8 @@ PlanIt/
 | `SurpriseMeScreen` | Formulario de preferencias (actividad, presupuesto, distancia, compañía) |
 | `RecommendationsScreen` | Lugares que cumplen las preferencias de Sorpréndeme, de mejor a peor calificados |
 | `PlansScreen` | Planes próximos y pasados desde Supabase (propios y compartidos) |
-| `CreatePlanScreen` | Nuevo plan con nombre, fecha, hora y lugares (cercanos, favoritos o búsqueda) |
+| `PlanDetailScreen` | Fecha, lugares y personas del plan; el dueño invita por correo, quita invitados, edita y elimina el plan; los invitados pueden salirse |
+| `CreatePlanScreen` | Nuevo plan con nombre, fecha, hora y lugares (cercanos, favoritos o búsqueda); también edita un plan existente |
 | `FavoritesScreen` | Lugares y planes favoritos (Todos / Lugares / Planes) |
 | `ProfileScreen` | Datos del usuario, menú de ajustes y cierre de sesión |
 
@@ -237,7 +239,7 @@ PlanIt/
 
 1. **Sin sesión, primera vez que se abre la app** → `IntroScreen` y luego `LoginScreen`.
 2. **Sin sesión, onboarding ya visto** → `LoginScreen` / `RegisterScreen`.
-3. **Sesión activa** → `MainTabs` (Inicio, Buscar, Planes, Favoritos, Perfil) y, encima de las pestañas, `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen` y `CreatePlanScreen`.
+3. **Sesión activa** → `MainTabs` (Inicio, Buscar, Planes, Favoritos, Perfil) y, encima de las pestañas, `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen`, `CreatePlanScreen` y `PlanDetailScreen`.
 
 Al iniciar o cerrar sesión el grupo cambia solo; las pantallas no necesitan llamar a `navigation.reset`.
 
@@ -275,7 +277,7 @@ Los lugares vienen de la API de Google Places, así que la base de datos solo gu
 | `plan_members` | Miembros de cada plan (`owner` / `member`) | Leer: los miembros. Invitar/expulsar: el dueño. Cualquier miembro puede salirse |
 | `plan_places` | Lugares de cada plan y su orden | Los miembros del plan |
 
-La app crea los planes con la función `create_plan`, que guarda el plan y sus lugares en una sola transacción: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids })`. Para invitar a alguien a un plan por correo se usa `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`.
+La app crea los planes con la función `create_plan`, que guarda el plan y sus lugares en una sola transacción: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids })`. Los edita con `update_plan` (`{ p_plan_id, p_title, p_starts_at, p_place_ids }`), que funciona igual y solo deja pasar al dueño. Para invitar a alguien a un plan por correo se usa `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. La persona necesita una cuenta de PlanIt con ese correo; queda agregada de inmediato y ve el plan en su lista de planes (todavía no hay notificaciones).
 
 ### Google Places
 
@@ -342,7 +344,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Estado del proyecto
 
-En desarrollo activo. La autenticación, los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo). Falta: las pantallas de ajustes del Perfil y un detalle de plan para invitar amigos y editarlo.
+En desarrollo activo. La autenticación, los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo). Los planes se comparten invitando amigos por correo, y se editan y eliminan desde su detalle. Falta: las pantallas de ajustes del Perfil.
 
 ### Autores
 Juan Esteban
