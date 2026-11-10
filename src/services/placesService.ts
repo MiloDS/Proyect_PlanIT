@@ -9,7 +9,6 @@ import {
   Place,
   PlaceDetails,
   PriceLevel,
-  RecommendationPreferences,
   SearchCategory,
   TextSearchParams,
 } from '../types/places';
@@ -56,7 +55,6 @@ export const SEARCH_CATEGORIES: SearchCategory[] = [
 ];
 
 export const NEARBY_RADIUS_METERS = 5000;
-const RECOMMENDATIONS_LIMIT = 10;
 const LOOKUP_BATCH_SIZE = 20;
 const GENERIC_ERROR = messages.places.loadFailed;
 
@@ -188,32 +186,6 @@ export class PlacesService {
       const place = placeCache.get(id);
       return place ? [place] : [];
     });
-  }
-
-  /**
-   * Recomendaciones de Sorpréndeme, de mejor a peor calificadas. Nearby Search no
-   * filtra por precio, así que el presupuesto se aplica sobre los resultados; los
-   * lugares sin nivel de precio (parques, museos) se aceptan con cualquier presupuesto.
-   */
-  static async getRecommendations(
-    location: Coordinates,
-    { activities, budget, maxDistanceKm }: RecommendationPreferences
-  ): Promise<Place[]> {
-    const includedTypes = [
-      ...new Set(activities.flatMap((activity) => ACTIVITY_PLACE_TYPES[activity] ?? [])),
-    ];
-    const places = await PlacesService.searchNearby({
-      location,
-      radiusMeters: maxDistanceKm * 1000,
-      includedTypes,
-      maxResults: 20,
-    });
-
-    const allowedPriceLevels = BUDGET_PRICE_LEVELS[budget] ?? [];
-    return places
-      .filter((place) => !place.priceLevel || allowedPriceLevels.includes(place.priceLevel))
-      .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-      .slice(0, RECOMMENDATIONS_LIMIT);
   }
 
   /**

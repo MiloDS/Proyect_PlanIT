@@ -33,7 +33,7 @@ const slides = [
   {
     key: '2',
     title: 'Según el clima',
-    text: 'Recomendaciones adaptadas al clima y la temporada.',
+    text: 'Recomendaciones adaptadas al clima de tu zona.',
     image: require('../../assets/slide2.png'),
   },
   {

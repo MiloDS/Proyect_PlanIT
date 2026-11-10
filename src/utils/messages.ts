@@ -76,6 +76,27 @@ export const messages = {
     loadFailed: 'No pudimos cargar el clima',
   },
 
+  recommendations: {
+    rainy: (description: string, temperature: number) =>
+      `${description} (${temperature}°): primero te mostramos lugares bajo techo.`,
+    rainyOutdoorOnly: (description: string, temperature: number) =>
+      `${description} (${temperature}°) y estos lugares son al aire libre: lleva sombrilla o prueba con otra actividad.`,
+    night: (temperature: number) =>
+      `Ya es de noche (${temperature}°): primero te mostramos lugares bajo techo.`,
+    nightOutdoorOnly: (temperature: number) =>
+      `Ya es de noche (${temperature}°) y estos lugares son al aire libre: revisa que estén abiertos o prueba con otra actividad.`,
+    sunny: (description: string, temperature: number) =>
+      `${description} (${temperature}°): buen momento para lugares al aire libre.`,
+    weatherUnavailable: 'No pudimos consultar el clima, así que no lo tuvimos en cuenta.',
+    company: {
+      Solo: 'Si vas solo, primero cafés, bibliotecas, museos y parques.',
+      Pareja: 'En pareja, primero restaurantes, cafés, spas y cine.',
+      Amigos: 'Con amigos, primero bares, discotecas, bolos y cine.',
+      Familia:
+        'En familia, primero parques, zoológicos, museos y centros comerciales, sin bares ni discotecas.',
+    } as Record<string, string>,
+  },
+
   favorites: {
     alertTitle: 'Favoritos',
     loadPlacesFailed: failed('cargar tus lugares favoritos'),

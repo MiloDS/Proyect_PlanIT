@@ -3,17 +3,17 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-nat
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { CloudOff, SearchX } from 'lucide-react-native';
+import { CloudOff, CloudRain, LucideIcon, Moon, SearchX, Sun, Users } from 'lucide-react-native';
 
 import { AppStackParamList } from '../types/navigation';
-import { Coordinates, Place } from '../types/places';
+import { Coordinates, Place, RecommendationNote } from '../types/places';
 import { EmptyState } from '../components/EmptyState';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { PlaceListItem } from '../components/PlaceListItem';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useFavorites } from '../services/FavoritesContext';
 import { LocationService } from '../services/locationService';
-import { PlacesService } from '../services/placesService';
+import { RecommendationsService } from '../services/recommendationsService';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { distanceKm } from '../utils/geo';
@@ -25,7 +25,16 @@ type RecommendationsState = {
   status: 'loading' | 'ready' | 'error';
   origin: Coordinates | null;
   places: Place[];
+  notes: RecommendationNote[];
   error: string;
+};
+
+const NOTE_ICONS: Record<RecommendationNote['kind'], LucideIcon> = {
+  rain: CloudRain,
+  night: Moon,
+  sun: Sun,
+  noWeather: CloudOff,
+  company: Users,
 };
 
 export function RecommendationsScreen({ navigation, route }: Props) {
@@ -36,6 +45,7 @@ export function RecommendationsScreen({ navigation, route }: Props) {
     status: 'loading',
     origin: null,
     places: [],
+    notes: [],
     error: '',
   });
   const [reloadKey, setReloadKey] = useState(0);
@@ -46,11 +56,13 @@ export function RecommendationsScreen({ navigation, route }: Props) {
     async function load() {
       try {
         const { coordinates } = await LocationService.getCurrentPosition();
-        const places = await PlacesService.getRecommendations(coordinates, preferences);
-        if (!cancelled) setState({ status: 'ready', origin: coordinates, places, error: '' });
+        const { places, notes } = await RecommendationsService.get(coordinates, preferences);
+        if (!cancelled) {
+          setState({ status: 'ready', origin: coordinates, places, notes, error: '' });
+        }
       } catch (err: any) {
         if (!cancelled) {
-          setState({ status: 'error', origin: null, places: [], error: err.message });
+          setState({ status: 'error', origin: null, places: [], notes: [], error: err.message });
         }
       }
     }
@@ -72,6 +84,7 @@ export function RecommendationsScreen({ navigation, route }: Props) {
     `${preferences.maxDistanceKm} km`,
     preferences.company,
   ].join(' · ');
+  const usesWeather = state.notes.some((note) => ['rain', 'night', 'sun'].includes(note.kind));
 
   return (
     <View style={globalStyles.screen}>
@@ -104,6 +117,21 @@ export function RecommendationsScreen({ navigation, route }: Props) {
             actionLabel="Reintentar"
             onAction={retry}
           />
+        )}
+
+        {state.status === 'ready' && state.notes.length > 0 && (
+          <View style={styles.notes}>
+            {state.notes.map((note) => {
+              const Icon = NOTE_ICONS[note.kind];
+              return (
+                <View key={note.kind} style={styles.note}>
+                  <Icon size={16} color={colors.primaryDark} />
+                  <Text style={styles.noteText}>{note.text}</Text>
+                </View>
+              );
+            })}
+            {usesWeather && <Text style={styles.noteCredit}>Clima: Open-Meteo</Text>}
+          </View>
         )}
 
         {state.status === 'ready' && state.places.length === 0 && (
@@ -170,6 +198,30 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 13,
     color: colors.textSecondary,
+  },
+  notes: {
+    gap: 8,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: colors.primaryLight,
+    marginBottom: 16,
+  },
+  note: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  noteText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.primaryDark,
+  },
+  noteCredit: {
+    fontSize: 10,
+    color: colors.primaryDark,
+    opacity: 0.7,
+    textAlign: 'right',
   },
   list: {
     gap: 12,
