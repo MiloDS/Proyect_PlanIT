@@ -223,6 +223,73 @@ check(
   !!(await as(B, `insert into public.favorites (user_id, place_id) values ($1, 'gp_x')`, [A])).error
 );
 
+// --- Crear plan con lugares (create_plan)
+const rpc = await as(
+  A,
+  `select public.create_plan('  Día de museo  ', now() + interval '1 week', array['gp_museo', 'gp_cafe', 'gp_museo']) as id`
+);
+check('A crea un plan con lugares (create_plan)', !rpc.error && !!rpc.rows[0]?.id, rpc.error);
+const rpcPlanId = rpc.rows[0]?.id;
+const rpcPlan = await as(A, `select title, owner_id from public.plans where id = $1`, [rpcPlanId]);
+check(
+  'create_plan recorta el título y deja a A como dueño',
+  rpcPlan.rows[0]?.title === 'Día de museo' && rpcPlan.rows[0]?.owner_id === A,
+  JSON.stringify(rpcPlan)
+);
+const rpcPlaces = await as(
+  A,
+  `select place_id, sort_order from public.plan_places where plan_id = $1 order by sort_order`,
+  [rpcPlanId]
+);
+check(
+  'create_plan guarda los lugares en orden y sin duplicados',
+  JSON.stringify(rpcPlaces.rows.map((row) => [row.place_id, row.sort_order])) ===
+    JSON.stringify([
+      ['gp_museo', 0],
+      ['gp_cafe', 1],
+    ]),
+  JSON.stringify(rpcPlaces)
+);
+const blankTitle = await as(A, `select public.create_plan('   ', now(), array['gp_x'])`);
+check('create_plan rechaza títulos vacíos', !!blankTitle.error, 'se permitió');
+const blankLeftovers = await as(A, `select id from public.plans where title = ''`);
+check('un create_plan fallido no deja planes a medias', blankLeftovers.rows.length === 0);
+check(
+  'anon no puede usar create_plan',
+  !!(await asAnon(`select public.create_plan('x', now(), array['gp_x'])`)).error
+);
+
+// --- Planes favoritos
+await as(A, `select public.add_plan_member_by_email($1, 'beto@test.com')`, [rpcPlanId]);
+check(
+  'B (miembro) guarda el plan en favoritos',
+  !(await as(B, `insert into public.favorite_plans (plan_id) values ($1)`, [rpcPlanId])).error
+);
+check(
+  'C (no miembro) no puede guardar el plan en favoritos',
+  !!(await as(C, `insert into public.favorite_plans (plan_id) values ($1)`, [rpcPlanId])).error
+);
+check(
+  'A no ve los planes favoritos de B',
+  (await as(A, `select * from public.favorite_plans`)).rows.length === 0
+);
+check(
+  'B ve su plan favorito',
+  (await as(B, `select * from public.favorite_plans`)).rows.length === 1
+);
+await as(B, `delete from public.plan_members where plan_id = $1 and user_id = $2`, [rpcPlanId, B]);
+check(
+  'al salir del plan, B deja de ver el favorito',
+  (await as(B, `select * from public.favorite_plans`)).rows.length === 0
+);
+check(
+  'A guarda y quita su plan de favoritos',
+  !(await as(A, `insert into public.favorite_plans (plan_id) values ($1)`, [rpcPlanId])).error &&
+    (await as(A, `delete from public.favorite_plans where plan_id = $1`, [rpcPlanId])).affected ===
+      1
+);
+await as(A, `delete from public.plans where id = $1`, [rpcPlanId]);
+
 // --- Usuario sin sesión
 check('anon no ve planes', (await asAnon(`select * from public.plans`)).rows.length === 0);
 check('anon no ve perfiles', (await asAnon(`select * from public.profiles`)).rows.length === 0);
