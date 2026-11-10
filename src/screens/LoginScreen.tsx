@@ -15,6 +15,7 @@ import { useGoogleSignIn } from '../services/useGoogleSignIn';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { isValidEmail, isEmpty } from '../utils/validation';
+import { messages } from '../utils/messages';
 import { AuthService } from '../services/authService';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Login'>;
@@ -36,18 +37,16 @@ export function LoginScreen({ navigation, route }: Props) {
     setPrefilledEmail(registeredEmail);
     setEmail(registeredEmail);
   }
-  const infoMessage = registeredEmail
-    ? '¡Cuenta creada! Revisa tu correo para confirmarla y luego inicia sesión.'
-    : '';
+  const infoMessage = registeredEmail ? messages.auth.accountCreated : '';
 
   const handleLogin = async () => {
     const nextEmailError = isEmpty(email)
-      ? 'El correo es obligatorio'
+      ? messages.validation.emailRequired
       : !isValidEmail(email)
-        ? 'Ingresa un correo válido (ejemplo@dominio.com)'
+        ? messages.validation.emailInvalid
         : '';
 
-    const nextPasswordError = isEmpty(password) ? 'La contraseña es obligatoria' : '';
+    const nextPasswordError = isEmpty(password) ? messages.validation.passwordRequired : '';
 
     setEmailError(nextEmailError);
     setPasswordError(nextPasswordError);
@@ -65,7 +64,7 @@ export function LoginScreen({ navigation, route }: Props) {
         password,
       });
     } catch (err: any) {
-      setGeneralError(err.message || 'Error al iniciar sesión');
+      setGeneralError(err.message || messages.auth.loginFailed);
     } finally {
       setLoading(false);
     }

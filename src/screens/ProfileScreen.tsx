@@ -32,6 +32,7 @@ import { AuthService } from '../services/authService';
 import { useProfile } from '../services/ProfileContext';
 import { resetOnboarding } from '../utils/storage';
 import { getDisplayAvatar, getDisplayName } from '../utils/user';
+import { messages } from '../utils/messages';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Profile'>,
@@ -87,7 +88,7 @@ async function replayOnboarding() {
     await AuthService.logout();
     DevSettings.reload();
   } catch (err: any) {
-    Alert.alert('Error', err.message || 'No se pudo reiniciar el onboarding');
+    Alert.alert(messages.common.errorTitle, err.message || messages.auth.onboardingResetFailed);
   }
 }
 
@@ -99,7 +100,7 @@ export function ProfileScreen({ navigation }: Props) {
   const editProfile = () => navigation.navigate('EditProfile');
 
   const handleLogout = () => {
-    Alert.alert('Cerrar sesión', '¿Estás seguro de que deseas cerrar sesión?', [
+    Alert.alert(messages.auth.logoutTitle, messages.auth.logoutConfirm, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Cerrar sesión',
@@ -109,7 +110,7 @@ export function ProfileScreen({ navigation }: Props) {
           try {
             await AuthService.logout();
           } catch (err: any) {
-            Alert.alert('Error', err.message || 'No se pudo cerrar sesión');
+            Alert.alert(messages.common.errorTitle, err.message || messages.auth.logoutFailed);
           }
         },
       },

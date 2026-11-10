@@ -17,6 +17,7 @@ import { usePlans } from '../services/usePlans';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { isUpcoming } from '../utils/date';
+import { messages } from '../utils/messages';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Plans'>,
@@ -65,7 +66,7 @@ export function PlansScreen({ navigation }: Props) {
         {plans.status === 'error' && (
           <EmptyState
             icon={<CloudOff size={28} color={colors.primary} />}
-            title="No pudimos cargar tus planes"
+            title={messages.plans.loadListFailedTitle}
             message={plans.error}
             actionLabel="Reintentar"
             onAction={plans.retry}

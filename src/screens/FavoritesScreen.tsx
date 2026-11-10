@@ -20,6 +20,7 @@ import { usePlans } from '../services/usePlans';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { distanceKm } from '../utils/geo';
+import { messages } from '../utils/messages';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Favorites'>,
@@ -63,7 +64,7 @@ export function FavoritesScreen({ navigation }: Props) {
       return (
         <EmptyState
           icon={<CloudOff size={28} color={colors.primary} />}
-          title="No pudimos cargar tus lugares"
+          title={messages.favorites.placesLoadFailedTitle}
           message={favoritePlaces.error}
           actionLabel="Reintentar"
           onAction={favoritePlaces.retry}
@@ -109,7 +110,7 @@ export function FavoritesScreen({ navigation }: Props) {
       return (
         <EmptyState
           icon={<CloudOff size={28} color={colors.primary} />}
-          title="No pudimos cargar tus planes"
+          title={messages.favorites.plansLoadFailedTitle}
           message={plans.error}
           actionLabel="Reintentar"
           onAction={plans.retry}
@@ -163,7 +164,7 @@ export function FavoritesScreen({ navigation }: Props) {
         {favorites.status === 'error' && (
           <EmptyState
             icon={<CloudOff size={28} color={colors.primary} />}
-            title="No pudimos cargar tus favoritos"
+            title={messages.favorites.loadFailedTitle}
             message={favorites.error}
             actionLabel="Reintentar"
             onAction={favorites.reload}

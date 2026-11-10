@@ -1,13 +1,14 @@
 import { Coordinates } from '../types/places';
 import { Weather } from '../types/weather';
 import { describeWeatherCode } from '../utils/weather';
+import { messages } from '../utils/messages';
 
 // Open-Meteo no necesita API key: la app lo consulta directamente
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 const REQUEST_TIMEOUT_MS = 10000;
 // Open-Meteo actualiza el clima actual cada 15 minutos
 const CACHE_TTL_MS = 15 * 60 * 1000;
-const GENERIC_ERROR = 'No pudimos cargar el clima';
+const GENERIC_ERROR = messages.weather.loadFailed;
 
 type ForecastResponse = {
   current?: {

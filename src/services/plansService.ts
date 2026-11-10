@@ -1,6 +1,7 @@
 import { PostgrestError } from '@supabase/supabase-js';
 
 import { supabase } from '../utils/supabase';
+import { messages } from '../utils/messages';
 import { NewPlan, Plan } from '../types/plans';
 
 type PlanRow = {
@@ -26,13 +27,10 @@ const PLAN_COLUMNS = `
 const NOT_OWNER = '42501';
 const USER_NOT_FOUND = 'P0002';
 
-function toPlansError(error: PostgrestError, action: string): Error {
-  console.warn(`Planes: no se pudo ${action}`, error.message);
-  return new Error(`No se pudo ${action}. Revisa tu conexión e intenta de nuevo.`);
+function toPlansError(error: PostgrestError, message: string): Error {
+  console.warn(`Planes: ${message}`, error.message);
+  return new Error(message);
 }
-
-// RLS no da error cuando el usuario no tiene permiso: simplemente no cambia ninguna fila
-const NO_PERMISSION = 'No tienes permiso para hacer este cambio';
 
 function toPlan(row: PlanRow): Plan {
   return {
@@ -66,7 +64,7 @@ export class PlansService {
       .select(PLAN_COLUMNS)
       .order('starts_at', { ascending: true });
 
-    if (error) throw toPlansError(error, 'cargar tus planes');
+    if (error) throw toPlansError(error, messages.plans.loadListFailed);
     return (data as unknown as PlanRow[]).map(toPlan);
   }
 
@@ -80,7 +78,7 @@ export class PlansService {
       p_place_ids: placeIds,
     });
 
-    if (error) throw toPlansError(error, 'guardar el plan');
+    if (error) throw toPlansError(error, messages.plans.createFailed);
     return data as string;
   }
 
@@ -95,7 +93,7 @@ export class PlansService {
       .eq('id', planId)
       .maybeSingle();
 
-    if (error) throw toPlansError(error, 'cargar el plan');
+    if (error) throw toPlansError(error, messages.plans.loadFailed);
     return data ? toPlan(data as unknown as PlanRow) : null;
   }
 
@@ -111,8 +109,8 @@ export class PlansService {
       p_place_ids: placeIds,
     });
 
-    if (error?.code === NOT_OWNER) throw new Error('Solo quien creó el plan puede editarlo');
-    if (error) throw toPlansError(error, 'guardar los cambios');
+    if (error?.code === NOT_OWNER) throw new Error(messages.plans.onlyOwnerCanEdit);
+    if (error) throw toPlansError(error, messages.plans.updateFailed);
   }
 
   /**
@@ -124,13 +122,9 @@ export class PlansService {
       p_email: email.trim(),
     });
 
-    if (error?.code === USER_NOT_FOUND) {
-      throw new Error('No hay ninguna cuenta de PlanIt con ese correo');
-    }
-    if (error?.code === NOT_OWNER) {
-      throw new Error('Solo quien creó el plan puede invitar personas');
-    }
-    if (error) throw toPlansError(error, 'invitar a esa persona');
+    if (error?.code === USER_NOT_FOUND) throw new Error(messages.plans.accountNotFound);
+    if (error?.code === NOT_OWNER) throw new Error(messages.plans.onlyOwnerCanInvite);
+    if (error) throw toPlansError(error, messages.plans.inviteFailed);
   }
 
   /**
@@ -145,8 +139,9 @@ export class PlansService {
       .eq('user_id', userId)
       .select('user_id');
 
-    if (error) throw toPlansError(error, 'actualizar las personas del plan');
-    if (!data?.length) throw new Error(NO_PERMISSION);
+    if (error) throw toPlansError(error, messages.plans.membersUpdateFailed);
+    // RLS no da error cuando el usuario no tiene permiso: simplemente no borra ninguna fila
+    if (!data?.length) throw new Error(messages.plans.noPermission);
   }
 
   /**
@@ -155,7 +150,7 @@ export class PlansService {
   static async remove(planId: string): Promise<void> {
     const { data, error } = await supabase.from('plans').delete().eq('id', planId).select('id');
 
-    if (error) throw toPlansError(error, 'eliminar el plan');
-    if (!data?.length) throw new Error(NO_PERMISSION);
+    if (error) throw toPlansError(error, messages.plans.deleteFailed);
+    if (!data?.length) throw new Error(messages.plans.noPermission);
   }
 }

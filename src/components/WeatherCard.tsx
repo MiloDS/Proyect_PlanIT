@@ -17,6 +17,7 @@ import {
 import { WeatherCardProps } from '../types/components';
 import { Weather, WeatherCondition } from '../types/weather';
 import { colors } from '../styles/colors';
+import { messages } from '../utils/messages';
 
 const ICONS: Record<WeatherCondition, { day: LucideIcon; night: LucideIcon }> = {
   clear: { day: Sun, night: Moon },
@@ -58,11 +59,11 @@ export function WeatherCard({ status, weather, onRetry }: WeatherCardProps) {
       <Pressable
         onPress={onRetry}
         accessibilityRole="button"
-        accessibilityLabel="No pudimos cargar el clima. Reintentar"
+        accessibilityLabel={`${messages.weather.loadFailed}. Reintentar`}
         style={({ pressed }) => [styles.card, styles.centered, pressed && styles.pressed]}
       >
         <CloudOff size={22} color={colors.white} />
-        <Text style={styles.message}>No pudimos cargar el clima</Text>
+        <Text style={styles.message}>{messages.weather.loadFailed}</Text>
         <Text style={styles.retry}>Reintentar</Text>
       </Pressable>
     );

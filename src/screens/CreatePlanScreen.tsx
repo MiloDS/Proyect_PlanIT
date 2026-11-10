@@ -31,6 +31,7 @@ import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { formatShortDate, formatTime, startOfDay } from '../utils/date';
 import { distanceKm } from '../utils/geo';
+import { messages } from '../utils/messages';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'CreatePlan'>;
 
@@ -69,14 +70,14 @@ function mergePickedValue(current: Date, picked: Date, mode: PickerMode): Date {
 function validate(title: string, startsAt: Date, places: Place[], allowPast: boolean): FormErrors {
   const errors: FormErrors = {};
   const trimmed = title.trim();
-  if (!trimmed) errors.title = 'Dale un nombre a tu plan';
+  if (!trimmed) errors.title = messages.validation.planTitleRequired;
   else if (trimmed.length > MAX_TITLE_LENGTH) {
-    errors.title = `Máximo ${MAX_TITLE_LENGTH} caracteres`;
+    errors.title = messages.validation.tooLong(MAX_TITLE_LENGTH);
   }
   if (!allowPast && startsAt.getTime() < Date.now()) {
-    errors.startsAt = 'Elige una fecha y hora futuras';
+    errors.startsAt = messages.validation.planDateInPast;
   }
-  if (places.length === 0) errors.places = 'Agrega al menos un lugar';
+  if (places.length === 0) errors.places = messages.validation.planPlacesRequired;
   return errors;
 }
 
@@ -259,7 +260,7 @@ export function CreatePlanScreen({ navigation, route }: Props) {
           )}
           {placesStatus === 'error' && (
             <View style={styles.placesError}>
-              <Text style={styles.placesErrorText}>No pudimos cargar los lugares del plan.</Text>
+              <Text style={styles.placesErrorText}>{messages.plans.placesLoadFailed}</Text>
               <Pressable onPress={retryPlaces} accessibilityRole="button" hitSlop={8}>
                 <Text style={styles.addPlaceText}>Reintentar</Text>
               </Pressable>

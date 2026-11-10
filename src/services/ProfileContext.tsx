@@ -2,6 +2,7 @@ import { createContext, ReactNode, useContext, useEffect, useState } from 'react
 
 import { Profile } from '../types/auth';
 import { ProfileService } from './profileService';
+import { messages } from '../utils/messages';
 
 type ProfileContextValue = {
   /** null mientras carga o si no se pudo cargar (la app usa los datos de la sesión) */
@@ -48,7 +49,7 @@ export function ProfileProvider({ userId, children }: ProfileProviderProps) {
   }, [userId]);
 
   const updateFullName = async (fullName: string) => {
-    if (!userId) throw new Error('Inicia sesión para editar tu perfil');
+    if (!userId) throw new Error(messages.profile.signInRequired);
     setProfile(await ProfileService.updateFullName(userId, fullName));
   };
 

@@ -1,4 +1,5 @@
 import { supabase } from '../utils/supabase';
+import { messages } from '../utils/messages';
 import { Profile } from '../types/auth';
 
 export const MAX_NAME_LENGTH = 60;
@@ -26,7 +27,7 @@ export class ProfileService {
 
     if (error) {
       console.warn('Perfil: no se pudo cargar', error.message);
-      throw new Error('No se pudo cargar tu perfil. Revisa tu conexión e intenta de nuevo.');
+      throw new Error(messages.profile.loadFailed);
     }
     return data ? toProfile(data) : null;
   }
@@ -41,7 +42,7 @@ export class ProfileService {
 
     if (error) console.warn('Perfil: no se pudo guardar', error.message);
     if (error || !data) {
-      throw new Error('No se pudo guardar tu nombre. Revisa tu conexión e intenta de nuevo.');
+      throw new Error(messages.profile.saveNameFailed);
     }
     return toProfile(data);
   }

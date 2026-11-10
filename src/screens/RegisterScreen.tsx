@@ -14,6 +14,7 @@ import { SocialButton } from '../components/SocialButton';
 import { useGoogleSignIn } from '../services/useGoogleSignIn';
 import { globalStyles } from '../styles/globalStyles';
 import { isValidEmail, isEmpty } from '../utils/validation';
+import { messages } from '../utils/messages';
 import { AuthService } from '../services/authService';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Register'>;
@@ -33,21 +34,21 @@ export function RegisterScreen({ navigation }: Props) {
   const google = useGoogleSignIn();
 
   const handleRegister = async () => {
-    const nextNameError = isEmpty(name) ? 'El nombre es obligatorio' : '';
+    const nextNameError = isEmpty(name) ? messages.validation.nameRequired : '';
     const nextEmailError = isEmpty(email)
-      ? 'El correo es obligatorio'
+      ? messages.validation.emailRequired
       : !isValidEmail(email)
-        ? 'Ingresa un correo válido (ejemplo@dominio.com)'
+        ? messages.validation.emailInvalid
         : '';
     const nextPasswordError = isEmpty(password)
-      ? 'La contraseña es obligatoria'
+      ? messages.validation.passwordRequired
       : password.length < 6
-        ? 'La contraseña debe tener al menos 6 caracteres'
+        ? messages.validation.passwordTooShort(6)
         : '';
     const nextConfirmPasswordError = isEmpty(confirmPassword)
-      ? 'Confirma tu contraseña'
+      ? messages.validation.passwordConfirmationRequired
       : confirmPassword !== password
-        ? 'Las contraseñas no coinciden'
+        ? messages.validation.passwordsDontMatch
         : '';
 
     setNameError(nextNameError);
@@ -82,7 +83,7 @@ export function RegisterScreen({ navigation }: Props) {
       if (err.code === 'user_already_exists') {
         setEmailError(err.message);
       } else {
-        setGeneralError(err.message || 'Error al crear la cuenta');
+        setGeneralError(err.message || messages.auth.registerFailed);
       }
     } finally {
       setLoading(false);

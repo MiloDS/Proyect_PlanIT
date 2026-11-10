@@ -9,6 +9,7 @@ import { InputField } from './InputField';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { isEmpty, isValidEmail } from '../utils/validation';
+import { messages } from '../utils/messages';
 
 // Hoja inferior para agregar personas a un plan con el correo de su cuenta
 export function InviteMemberModal({ visible, onClose, onInvite }: InviteMemberModalProps) {
@@ -28,7 +29,7 @@ export function InviteMemberModal({ visible, onClose, onInvite }: InviteMemberMo
   const invite = async () => {
     if (isEmpty(email) || !isValidEmail(email)) {
       setFieldError(
-        isEmpty(email) ? 'Escribe el correo de la persona' : 'Escribe un correo válido'
+        isEmpty(email) ? messages.validation.emailRequired : messages.validation.emailInvalid
       );
       return;
     }

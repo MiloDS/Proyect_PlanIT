@@ -17,13 +17,14 @@ import { MAX_NAME_LENGTH } from '../services/profileService';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { getDisplayAvatar, getDisplayName } from '../utils/user';
+import { messages } from '../utils/messages';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'EditProfile'>;
 
 function validateName(name: string): string {
   const trimmed = name.trim();
-  if (!trimmed) return 'Escribe tu nombre';
-  if (trimmed.length > MAX_NAME_LENGTH) return `Máximo ${MAX_NAME_LENGTH} caracteres`;
+  if (!trimmed) return messages.validation.nameRequired;
+  if (trimmed.length > MAX_NAME_LENGTH) return messages.validation.tooLong(MAX_NAME_LENGTH);
   return '';
 }
 

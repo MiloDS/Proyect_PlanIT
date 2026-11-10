@@ -48,6 +48,7 @@ import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { formatLongDate, formatTime, isUpcoming } from '../utils/date';
 import { distanceKm } from '../utils/geo';
+import { messages } from '../utils/messages';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PlanDetail'>;
 
@@ -153,8 +154,8 @@ export function PlanDetailScreen({ navigation, route }: Props) {
         <ScreenHeader title="Plan" onBack={() => navigation.goBack()} />
         <EmptyState
           icon={<CalendarX size={28} color={colors.primary} />}
-          title="Este plan ya no está disponible"
-          message="Puede que lo hayan eliminado o que ya no hagas parte de él."
+          title={messages.plans.unavailableTitle}
+          message={messages.plans.unavailableMessage}
           actionLabel="Volver"
           onAction={() => navigation.goBack()}
         />
@@ -184,56 +185,60 @@ export function PlanDetailScreen({ navigation, route }: Props) {
 
   const invite = async (email: string): Promise<string> => {
     if (email.toLowerCase() === user?.email?.toLowerCase()) {
-      throw new Error('Ya haces parte de este plan');
+      throw new Error(messages.plans.inviteYourself);
     }
     const membersBefore = plan.members.length;
     await PlansService.invite(plan.id, email);
     const latest = await refresh();
     // La base de datos no avisa si la persona ya era miembro: se nota en que no cambió nada
     if (latest && latest.members.length === membersBefore) {
-      return 'Esa persona ya hace parte del plan';
+      return messages.plans.alreadyMember;
     }
-    return `Listo, agregamos a ${email} al plan`;
+    return messages.plans.memberAdded(email);
   };
 
   const removeMember = (member: PlanMember) => {
     const name = getMemberName(member);
-    Alert.alert('Quitar del plan', `¿Quieres quitar a ${name} de "${plan.title}"?`, [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Quitar',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await PlansService.removeMember(plan.id, member.userId);
-            setPlan((current) => ({
-              ...current,
-              members: current.members.filter((item) => item.userId !== member.userId),
-            }));
-          } catch (err: any) {
-            Alert.alert('No se pudo quitar', err.message);
-          }
+    Alert.alert(
+      messages.plans.removeMemberTitle,
+      messages.plans.removeMemberConfirm(name, plan.title),
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Quitar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await PlansService.removeMember(plan.id, member.userId);
+              setPlan((current) => ({
+                ...current,
+                members: current.members.filter((item) => item.userId !== member.userId),
+              }));
+            } catch (err: any) {
+              Alert.alert(messages.plans.removeMemberFailedTitle, err.message);
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
   // El dueño elimina el plan para todos; un invitado solo se sale
   const leaveOrDelete = () => {
     const action = isOwner
       ? {
-          title: 'Eliminar plan',
-          message: `"${plan.title}" se eliminará para todas las personas del plan. Esta acción no se puede deshacer.`,
+          title: messages.plans.deleteTitle,
+          message: messages.plans.deleteConfirm(plan.title),
           confirm: 'Eliminar',
           run: () => PlansService.remove(plan.id),
-          errorTitle: 'No se pudo eliminar el plan',
+          errorTitle: messages.plans.deleteFailedTitle,
         }
       : {
-          title: 'Salir del plan',
-          message: `Ya no verás "${plan.title}" en tus planes. Para volver, quien lo organiza tendrá que invitarte de nuevo.`,
+          title: messages.plans.leaveTitle,
+          message: messages.plans.leaveConfirm(plan.title),
           confirm: 'Salir',
           run: () => PlansService.removeMember(plan.id, user?.id ?? ''),
-          errorTitle: 'No se pudo salir del plan',
+          errorTitle: messages.plans.leaveFailedTitle,
         };
 
     Alert.alert(action.title, action.message, [
@@ -286,11 +291,7 @@ export function PlanDetailScreen({ navigation, route }: Props) {
           />
         ))}
         {missingPlaces > 0 && (
-          <Text style={styles.mutedText}>
-            {missingPlaces === 1
-              ? '1 lugar ya no está disponible en Google Maps.'
-              : `${missingPlaces} lugares ya no están disponibles en Google Maps.`}
-          </Text>
+          <Text style={styles.mutedText}>{messages.plans.missingPlaces(missingPlaces)}</Text>
         )}
       </View>
     );

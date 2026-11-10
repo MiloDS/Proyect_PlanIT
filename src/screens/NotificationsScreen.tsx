@@ -22,6 +22,7 @@ import { PlansService } from '../services/plansService';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { ReminderSettings, getReminderSettings, saveReminderSettings } from '../utils/storage';
+import { messages } from '../utils/messages';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Notifications'>;
 
@@ -76,9 +77,7 @@ export function NotificationsScreen({ navigation }: Props) {
       if (next.enabled) await PlanReminders.sync(await PlansService.list());
       else await PlanReminders.cancelAll();
     } catch {
-      setError(
-        'Guardamos tu preferencia, pero no pudimos programar los recordatorios. Se programarán la próxima vez que abras PlanIt con conexión.'
-      );
+      setError(messages.reminders.syncFailed);
     } finally {
       setUpdating(false);
     }
@@ -134,10 +133,7 @@ export function NotificationsScreen({ navigation }: Props) {
 
         {isBlocked && (
           <View style={styles.warning}>
-            <Text style={styles.warningText}>
-              Las notificaciones de PlanIt están desactivadas en tu teléfono. Actívalas en los
-              ajustes para recibir los recordatorios.
-            </Text>
+            <Text style={styles.warningText}>{messages.reminders.permissionBlocked}</Text>
             <Pressable
               onPress={() => Linking.openSettings()}
               accessibilityRole="button"
