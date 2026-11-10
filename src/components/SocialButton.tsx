@@ -1,13 +1,13 @@
 import { Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 import { SocialButtonProps } from '../types/components';
 import { Button } from './Button';
+import { colors } from '../styles/colors';
 
-export function SocialButton({ iconName, iconColor, label, onPress }: SocialButtonProps) {
+export function SocialButton({ icon, label, onPress, loading }: SocialButtonProps) {
   return (
-    <Button style={styles.button} onPress={onPress}>
-      <Ionicons name={iconName} size={20} color={iconColor} />
+    <Button style={styles.button} onPress={onPress} loading={loading} accessibilityLabel={label}>
+      {icon}
       <Text style={styles.text}>{label}</Text>
     </Button>
   );
@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.borderStrong,
     borderRadius: 10,
     paddingVertical: 12,
     marginBottom: 12,
@@ -28,6 +28,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: colors.textBody,
   },
 });

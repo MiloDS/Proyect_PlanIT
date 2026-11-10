@@ -1,11 +1,10 @@
+import { NavigatorScreenParams } from '@react-navigation/native';
+
 export type AppStackParamList = {
   Intro: undefined;
   Login: { registeredEmail?: string } | undefined;
   Register: undefined;
-  Home: undefined;
-  Profile: undefined;
-  Plans: undefined;
-  MainTabs: undefined;
+  MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   SurpriseMe: undefined;
 };
 

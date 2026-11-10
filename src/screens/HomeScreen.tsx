@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Image,
+  ActivityIndicator,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, ChevronDown, Bell, Cloud, Sparkles } from 'lucide-react-native';
@@ -11,37 +19,23 @@ import { PlaceCard } from '../components/PlaceCard';
 import { Button } from '../components/Button';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
-import { BottomNavBar } from '../components/BottomNavBar';
+import { useAuth } from '../services/AuthContext';
+import { PlacesService } from '../services/placesService';
+import { useNearbyPlaces } from '../services/useNearbyPlaces';
+import { distanceKm } from '../utils/geo';
+import { getFirstName } from '../utils/user';
 
 type Props = CompositeScreenProps<
-  BottomTabScreenProps<MainTabParamList, "Home">,
+  BottomTabScreenProps<MainTabParamList, 'Home'>,
   NativeStackScreenProps<AppStackParamList>
 >;
 
-const nearbyPlaces = [
-  {
-    name: 'Parque Arví',
-    category: 'Parque',
-    distanceKm: 2.4,
-    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=400&auto=format&fit=crop',
-  },
-  {
-    name: 'Museo de Antioquia',
-    category: 'Museo',
-    distanceKm: 3.1,
-    imageUrl: 'https://images.unsplash.com/photo-1554907984-15263bfd63bd?q=80&w=400&auto=format&fit=crop',
-  },
-  {
-    name: 'Café Amor',
-    category: 'Cafetería',
-    distanceKm: 1.8,
-    imageUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=400&auto=format&fit=crop',
-  },
-];
-
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const isStandalone = !navigation.getParent();
+  const { user } = useAuth();
+  const nearby = useNearbyPlaces();
+  const locationLabel = nearby.locationLabel || 'Buscando ubicación…';
+  const origin = nearby.position?.coordinates;
 
   return (
     <View style={globalStyles.screen}>
@@ -51,25 +45,29 @@ export function HomeScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.topBar}>
-          <Pressable style={styles.locationRow}>
-            <MapPin size={16} color="#1E293B" />
-            <Text style={styles.locationText}>Medellín, Colombia</Text>
-            <ChevronDown size={16} color="#1E293B" />
+          <Pressable
+            style={styles.locationRow}
+            accessibilityRole="button"
+            accessibilityLabel={`Ubicación: ${locationLabel}`}
+          >
+            <MapPin size={16} color={colors.textPrimary} />
+            <Text style={styles.locationText}>{locationLabel}</Text>
+            <ChevronDown size={16} color={colors.textPrimary} />
           </Pressable>
 
-          <Pressable>
-            <Bell size={22} color="#1E293B" />
+          <Pressable accessibilityRole="button" accessibilityLabel="Notificaciones" hitSlop={8}>
+            <Bell size={22} color={colors.textPrimary} />
           </Pressable>
         </View>
 
-        <Text style={styles.greeting}>¡Hola, Laura! 👋</Text>
+        <Text style={styles.greeting}>¡Hola, {getFirstName(user)}! 👋</Text>
         <Text style={styles.subGreeting}>¿Qué plan tienes hoy?</Text>
 
         <View style={styles.weatherCard}>
           <View>
             <Text style={styles.weatherTemp}>24°C</Text>
             <Text style={styles.weatherDescription}>Parcialmente nublado</Text>
-            <Text style={styles.weatherMinMax}>Máx. 27°   Mín. 18°</Text>
+            <Text style={styles.weatherMinMax}>Máx. 27° Mín. 18°</Text>
           </View>
           <Cloud size={40} color={colors.white} />
         </View>
@@ -89,6 +87,7 @@ export function HomeScreen({ navigation }: Props) {
           </View>
 
           <Button
+            variant="primary"
             style={styles.surpriseButton}
             onPress={() => navigation.navigate('SurpriseMe')}
           >
@@ -104,15 +103,51 @@ export function HomeScreen({ navigation }: Props) {
           </Pressable>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.placesRow}>
-          {nearbyPlaces.map((place) => (
-            <PlaceCard key={place.name} {...place} />
-          ))}
-        </ScrollView>
+        {nearby.status === 'loading' && (
+          <ActivityIndicator color={colors.primary} style={styles.placesStatus} />
+        )}
+
+        {nearby.status === 'error' && (
+          <View style={styles.placesStatus}>
+            <Text style={styles.placesMessage}>{nearby.error}</Text>
+            <Pressable onPress={nearby.reload} accessibilityRole="button" hitSlop={8}>
+              <Text style={styles.sectionLink}>Reintentar</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {nearby.status === 'ready' && nearby.places.length === 0 && (
+          <Text style={[styles.placesMessage, styles.placesStatus]}>
+            No encontramos lugares cerca de ti.
+          </Text>
+        )}
+
+        {nearby.status === 'ready' && origin && nearby.places.length > 0 && (
+          <>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.placesRow}
+            >
+              {nearby.places.map((place) => (
+                <PlaceCard
+                  key={place.id}
+                  name={place.name}
+                  category={place.category}
+                  imageUrl={place.photoUrl}
+                  distanceKm={distanceKm(origin, place.location)}
+                  onPress={() => PlacesService.openInMaps(place)}
+                />
+              ))}
+            </ScrollView>
+            <Text style={styles.attribution}>
+              {nearby.position?.isApproximate
+                ? 'Ubicación aproximada. Datos de Google Maps'
+                : 'Datos de Google Maps'}
+            </Text>
+          </>
+        )}
       </ScrollView>
-      {isStandalone && (
-        <BottomNavBar activeTab="Home" navigation={navigation} />
-      )}
     </View>
   );
 }
@@ -136,22 +171,22 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1E293B',
+    color: colors.textPrimary,
     marginHorizontal: 4,
   },
   greeting: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.textPrimary,
   },
   subGreeting: {
     fontSize: 14,
-    color: '#64748B',
+    color: colors.textSecondary,
     marginTop: 2,
     marginBottom: 20,
   },
   weatherCard: {
-    backgroundColor: '#38BDF8',
+    backgroundColor: colors.weather,
     borderRadius: 16,
     padding: 18,
     flexDirection: 'row',
@@ -175,7 +210,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   surpriseCard: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 24,
@@ -197,20 +232,17 @@ const styles = StyleSheet.create({
   surpriseTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.textPrimary,
   },
   surpriseDescription: {
     fontSize: 12,
-    color: '#64748B',
+    color: colors.textSecondary,
     marginTop: 2,
   },
   surpriseButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 12,
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingVertical: 12,
+    minHeight: 44,
   },
   surpriseButtonText: {
     color: colors.white,
@@ -227,7 +259,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1E293B',
+    color: colors.textPrimary,
   },
   sectionLink: {
     fontSize: 13,
@@ -236,5 +268,20 @@ const styles = StyleSheet.create({
   },
   placesRow: {
     paddingRight: 24,
+  },
+  placesStatus: {
+    paddingVertical: 24,
+    alignItems: 'center',
+    gap: 8,
+  },
+  placesMessage: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  attribution: {
+    fontSize: 10,
+    color: colors.textMuted,
+    marginTop: 8,
   },
 });

@@ -6,20 +6,13 @@ export const globalStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
-  card: {
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 8,
-  },
   primaryButton: {
     backgroundColor: colors.primary,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 50,
   },
   primaryButtonText: {
     color: colors.white,
