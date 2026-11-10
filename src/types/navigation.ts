@@ -1,6 +1,7 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
 
 import { Place, RecommendationPreferences } from './places';
+import { Plan } from './plans';
 
 export type AppStackParamList = {
   Intro: undefined;
@@ -10,7 +11,9 @@ export type AppStackParamList = {
   SurpriseMe: undefined;
   PlaceDetail: { place: Place };
   Recommendations: { preferences: RecommendationPreferences };
-  CreatePlan: undefined;
+  /** Con `plan`, la pantalla edita ese plan en lugar de crear uno nuevo */
+  CreatePlan: { plan?: Plan } | undefined;
+  PlanDetail: { plan: Plan };
 };
 
 export type MainTabParamList = {

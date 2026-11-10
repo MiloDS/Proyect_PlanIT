@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,15 +8,14 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { CalendarHeart, CloudOff, Heart } from 'lucide-react-native';
 
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
-import { Place } from '../types/places';
 import { EmptyState } from '../components/EmptyState';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { PlaceListItem } from '../components/PlaceListItem';
 import { PlanCard } from '../components/PlanCard';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { useFavorites } from '../services/FavoritesContext';
-import { PlacesService } from '../services/placesService';
 import { useDevicePosition } from '../services/useDevicePosition';
+import { usePlacesById } from '../services/usePlacesById';
 import { usePlans } from '../services/usePlans';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
@@ -35,56 +34,6 @@ const TABS: { value: Tab; label: string }[] = [
   { value: 'plans', label: 'Planes' },
 ];
 
-type PlaceLookup = {
-  /** IDs (separados por coma) de la última consulta terminada */
-  key: string;
-  places: Record<string, Place>;
-  error: string;
-};
-
-/**
- * Datos de Google de los lugares favoritos (la base de datos solo guarda el place_id).
- * Al guardar o quitar un favorito se consultan solo los que falten.
- */
-function useFavoritePlaces(placeIds: string[]) {
-  const idsKey = placeIds.join(',');
-  const [lookup, setLookup] = useState<PlaceLookup>({ key: '', places: {}, error: '' });
-  const [retryKey, setRetryKey] = useState(0);
-
-  useEffect(() => {
-    if (!idsKey) return;
-    let cancelled = false;
-
-    PlacesService.lookup(idsKey.split(','))
-      .then((places) => {
-        if (cancelled) return;
-        setLookup((current) => ({
-          key: idsKey,
-          places: { ...current.places, ...Object.fromEntries(places.map((p) => [p.id, p])) },
-          error: '',
-        }));
-      })
-      .catch((err: Error) => {
-        if (!cancelled) setLookup((current) => ({ ...current, key: idsKey, error: err.message }));
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [idsKey, retryKey]);
-
-  const isCurrent = lookup.key === idsKey;
-  return {
-    places: placeIds.flatMap((id) => (lookup.places[id] ? [lookup.places[id]] : [])),
-    loading: !!idsKey && !isCurrent,
-    error: isCurrent ? lookup.error : '',
-    retry: () => {
-      setLookup((current) => ({ ...current, key: '', error: '' }));
-      setRetryKey((key) => key + 1);
-    },
-  };
-}
-
 function SectionTitle({ children }: { children: string }) {
   return <Text style={styles.sectionTitle}>{children}</Text>;
 }
@@ -94,7 +43,7 @@ export function FavoritesScreen({ navigation }: Props) {
   const position = useDevicePosition();
   const favorites = useFavorites();
   const plans = usePlans();
-  const favoritePlaces = useFavoritePlaces(favorites.places.map((entry) => entry.id));
+  const favoritePlaces = usePlacesById(favorites.places.map((entry) => entry.id));
   const [activeTab, setActiveTab] = useState<Tab>('all');
 
   const favoritePlans = favorites.plans.flatMap((entry) => {
