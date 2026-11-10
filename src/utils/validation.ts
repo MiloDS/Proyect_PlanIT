@@ -12,8 +12,12 @@ export const MIN_PASSWORD_LENGTH = 6;
 export const MAX_NAME_LENGTH = 60;
 // Igual que la restricción de la tabla plans
 export const MAX_PLAN_TITLE_LENGTH = 100;
+// Supabase deja configurar el largo del código del correo entre 6 y 10 dígitos
+export const RESET_CODE_MIN_LENGTH = 6;
+export const RESET_CODE_MAX_LENGTH = 10;
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const DIGITS_REGEX = /^\d+$/;
 
 export function isValidEmail(email: string): boolean {
   return EMAIL_REGEX.test(email.trim());
@@ -44,7 +48,21 @@ export function validatePassword(password: string): string {
   return isEmpty(password) ? messages.validation.passwordRequired : '';
 }
 
-/** Contraseña nueva (registro): además debe tener el largo mínimo */
+/** Código de recuperación de contraseña que llega por correo */
+export function validateResetCode(code: string): string {
+  const trimmed = code.trim();
+  if (!trimmed) return messages.validation.resetCodeRequired;
+  if (
+    !DIGITS_REGEX.test(trimmed) ||
+    trimmed.length < RESET_CODE_MIN_LENGTH ||
+    trimmed.length > RESET_CODE_MAX_LENGTH
+  ) {
+    return messages.validation.resetCodeInvalid(RESET_CODE_MIN_LENGTH, RESET_CODE_MAX_LENGTH);
+  }
+  return '';
+}
+
+/** Contraseña nueva (registro o recuperación): además debe tener el largo mínimo */
 export function validateNewPassword(password: string): string {
   if (isEmpty(password)) return messages.validation.passwordRequired;
   if (password.length < MIN_PASSWORD_LENGTH) {

@@ -9,6 +9,7 @@ import { HomeScreen } from '../screens/HomeScreen';
 import { IntroScreen } from '../screens/IntroScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { RegisterScreen } from '../screens/RegisterScreen';
+import { ForgotPasswordScreen } from '../screens/ForgotPasswordScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { SurpriseMeScreen } from '../screens/SurpriseMeScreen';
 import { SearchScreen } from '../screens/SearchScreen';
@@ -54,7 +55,10 @@ function MainTabs() {
 const navigationRef = createNavigationContainerRef<AppStackParamList>();
 
 export function AppNavigator() {
-  const { session, isLoading } = useAuth();
+  const { session: authSession, isLoading, isRecoveringPassword } = useAuth();
+  // Mientras alguien crea una contraseña nueva ya hay sesión, pero sigue en las pantallas
+  // de acceso; entra a la app cuando la guarda
+  const session = isRecoveringPassword ? null : authSession;
   const [seenOnboarding, setSeenOnboarding] = useState<boolean | null>(null);
   const [navigationReady, setNavigationReady] = useState(false);
   const userId = session?.user.id ?? null;
@@ -103,6 +107,7 @@ export function AppNavigator() {
                 {!seenOnboarding && <Stack.Screen name="Intro" component={IntroScreen} />}
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Register" component={RegisterScreen} />
+                <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
               </>
             )}
           </Stack.Navigator>

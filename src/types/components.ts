@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { KeyboardTypeOptions, StyleProp, ViewStyle } from 'react-native';
+import type { KeyboardTypeOptions, StyleProp, TextInputProps, ViewStyle } from 'react-native';
 
 import type { Place } from './places';
 import type { Plan } from './plans';
@@ -24,6 +24,9 @@ export type CustomInputFieldProps = {
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   autoCorrect?: boolean;
+  /** Permite que el teclado sugiera, por ejemplo, el código que llegó por correo */
+  autoComplete?: TextInputProps['autoComplete'];
+  maxLength?: number;
   error?: string;
 };
 

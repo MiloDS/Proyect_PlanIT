@@ -115,7 +115,12 @@ export function LoginScreen({ navigation, route }: Props) {
         error={passwordError}
       />
 
-      <Pressable style={styles.forgotPassword}>
+      <Pressable
+        style={styles.forgotPassword}
+        onPress={() => navigation.navigate('ForgotPassword', { email: email.trim() })}
+        accessibilityRole="button"
+        hitSlop={8}
+      >
         <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
       </Pressable>
 

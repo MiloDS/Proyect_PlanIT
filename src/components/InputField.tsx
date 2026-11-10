@@ -15,6 +15,8 @@ export function InputField({
   keyboardType,
   autoCapitalize,
   autoCorrect,
+  autoComplete,
+  maxLength,
   error,
 }: CustomInputFieldProps) {
   const [hidePassword, setHidePassword] = useState(secureTextEntry ?? false);
@@ -35,6 +37,8 @@ export function InputField({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           autoCorrect={autoCorrect}
+          autoComplete={autoComplete}
+          maxLength={maxLength}
           accessibilityLabel={label ?? placeholder}
         />
         {isPassword && (

@@ -55,8 +55,9 @@ Following the course guide, each layer has one job:
 | Screen | Description |
 |---|---|
 | `IntroScreen` | Onboarding carousel (3 slides), swipe navigation, pagination dots, and start button |
-| `LoginScreen` | Email/password login and Google login, field validation |
+| `LoginScreen` | Email/password login and Google login, field validation, "forgot password" link |
 | `RegisterScreen` | Sign up with name, email, and password, or with Google |
+| `ForgotPasswordScreen` | Recover the password with a code sent by email (email → code → new password) |
 | `HomeScreen` | Greeting, current weather, "Surprise me" shortcut, and nearby places |
 | `SearchScreen` | Map with nearby places, category filters, text search, and "search this area" |
 | `PlaceDetailScreen` | Photo, rating, distance, hours, price, description, amenities; save to favorites and share |
@@ -76,10 +77,10 @@ Following the course guide, each layer has one job:
 `AppNavigator` renders a different group of screens depending on the Supabase session (`AuthContext`):
 
 1. **No session, first time opening the app** → `IntroScreen`, then `LoginScreen`.
-2. **No session, onboarding already seen** → `LoginScreen` / `RegisterScreen`.
+2. **No session, onboarding already seen** → `LoginScreen` / `RegisterScreen` / `ForgotPasswordScreen`.
 3. **Active session** → `MainTabs` (Home, Search, Plans, Favorites, Profile) plus `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen`, `CreatePlanScreen`, `PlanDetailScreen` and the Profile settings screens (`EditProfileScreen`, `NotificationsScreen`, `HelpScreen`) on top of the tabs.
 
-Logging in or out switches the group automatically; screens don't need to call `navigation.reset`.
+Logging in or out switches the group automatically; screens don't need to call `navigation.reset`. The one exception is password recovery: once the emailed code is verified Supabase already has a session, but `AuthContext.isRecoveringPassword` keeps the sign-in screens until the new password is saved. Leaving `ForgotPasswordScreen` before that signs the recovery session out.
 
 The Intro is shown only once per install. To see it again during development, use **Profile → "Ver la Intro de nuevo (desarrollo)"**: it clears the onboarding flag, signs out and reloads the app. The option only exists in development builds (`__DEV__`).
 
@@ -96,11 +97,16 @@ npm install
 1. Create a project at [supabase.com](https://supabase.com).
 2. Copy `.env.example` to `.env` and fill in the project URL and the **anon/publishable** key (Project Settings → API). Never use the `service_role`/secret key in the app. `.env` is ignored by git.
 3. In **Authentication → Sign In / Providers → Email**, keep the provider enabled. If **Confirm email** is on, new users must confirm their email before logging in.
-4. Google login:
+4. Password recovery: the app asks for the code from the email, so in **Authentication → Emails → Templates → Reset Password** replace the link with the code, for example:
+   - Subject: `Tu código para recuperar PlanIt`
+   - Body: `<p>Escribe este código en PlanIt para crear una contraseña nueva:</p><h2>{{ .Token }}</h2><p>Si no lo pediste, ignora este correo.</p>`
+
+   Without a custom SMTP server Supabase only delivers emails to members of the project's team, a few per hour. For anyone to receive the code (and the sign-up confirmation), set up an SMTP provider in **Authentication → Emails → SMTP Settings** (for example Brevo or Resend, both with a free tier).
+5. Google login:
    1. In Google Cloud Console, create an OAuth client ID of type **Web application** with the authorized redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`.
    2. In Supabase → **Authentication → Sign In / Providers → Google**, enable it and paste the Client ID and Client Secret.
    3. In Supabase → **Authentication → URL Configuration → Redirect URLs**, add `exp://**` (Expo Go) and `planit://**` (development builds).
-5. Database: open **SQL Editor** in Supabase and run each file in `supabase/migrations/` in order (or use the CLI: `npx supabase link --project-ref <project-ref>` and `npx supabase db push`).
+6. Database: open **SQL Editor** in Supabase and run each file in `supabase/migrations/` in order (or use the CLI: `npx supabase link --project-ref <project-ref>` and `npx supabase db push`).
 
 ### Database
 
@@ -188,7 +194,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Project status
 
-Actively in development. Authentication, places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo). Plans can be shared by inviting friends by email, edited and deleted from their detail screen, and remind you before they start. Ideas for later: notify people when they are invited to a plan (push notifications, which need a development build), uploading a profile photo, and more languages.
+Actively in development. Authentication (including password recovery), places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo). Plans can be shared by inviting friends by email, edited and deleted from their detail screen, and remind you before they start. Ideas for later: notify people when they are invited to a plan (push notifications, which need a development build), uploading a profile photo, and more languages.
 
 ### Authors
 Juan Esteban
@@ -249,8 +255,9 @@ Siguiendo la guía del curso, cada capa tiene una sola responsabilidad:
 | Pantalla | Descripción |
 |---|---|
 | `IntroScreen` | Onboarding con carrusel de bienvenida (3 slides), navegación por swipe, indicador de puntos y botón de inicio |
-| `LoginScreen` | Inicio de sesión con correo/contraseña y con Google, validación de campos |
+| `LoginScreen` | Inicio de sesión con correo/contraseña y con Google, validación de campos, enlace para recuperar la contraseña |
 | `RegisterScreen` | Registro con nombre, correo y contraseña, o con Google |
+| `ForgotPasswordScreen` | Recuperar la contraseña con un código que llega al correo (correo → código → contraseña nueva) |
 | `HomeScreen` | Saludo, clima actual, acceso a "Sorpréndeme" y lugares cercanos |
 | `SearchScreen` | Mapa con lugares cercanos, filtros por categoría, búsqueda por texto y "Buscar en esta zona" |
 | `PlaceDetailScreen` | Foto, calificación, distancia, horario, precio, descripción y servicios; guardar en favoritos y compartir |
@@ -270,10 +277,10 @@ Siguiendo la guía del curso, cada capa tiene una sola responsabilidad:
 `AppNavigator` muestra un grupo de pantallas distinto según la sesión de Supabase (`AuthContext`):
 
 1. **Sin sesión, primera vez que se abre la app** → `IntroScreen` y luego `LoginScreen`.
-2. **Sin sesión, onboarding ya visto** → `LoginScreen` / `RegisterScreen`.
+2. **Sin sesión, onboarding ya visto** → `LoginScreen` / `RegisterScreen` / `ForgotPasswordScreen`.
 3. **Sesión activa** → `MainTabs` (Inicio, Buscar, Planes, Favoritos, Perfil) y, encima de las pestañas, `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen`, `CreatePlanScreen`, `PlanDetailScreen` y las pantallas de ajustes del Perfil (`EditProfileScreen`, `NotificationsScreen`, `HelpScreen`).
 
-Al iniciar o cerrar sesión el grupo cambia solo; las pantallas no necesitan llamar a `navigation.reset`.
+Al iniciar o cerrar sesión el grupo cambia solo; las pantallas no necesitan llamar a `navigation.reset`. La única excepción es la recuperación de contraseña: al verificar el código del correo Supabase ya tiene sesión, pero `AuthContext.isRecoveringPassword` mantiene las pantallas de acceso hasta que se guarda la contraseña nueva. Si la persona sale de `ForgotPasswordScreen` antes, se cierra esa sesión de recuperación.
 
 La Intro se muestra una sola vez por instalación. Para verla de nuevo mientras desarrollas, usa **Perfil → "Ver la Intro de nuevo (desarrollo)"**: borra la marca del onboarding, cierra sesión y recarga la app. La opción solo existe en desarrollo (`__DEV__`).
 
@@ -290,11 +297,16 @@ npm install
 1. Crea un proyecto en [supabase.com](https://supabase.com).
 2. Copia `.env.example` como `.env` y completa la URL del proyecto y la clave **anon/publishable** (Project Settings → API). Nunca uses la clave `service_role`/secret en la app. `.env` está ignorado por git.
 3. En **Authentication → Sign In / Providers → Email**, deja el proveedor activo. Si **Confirm email** está activado, los usuarios nuevos deben confirmar su correo antes de iniciar sesión.
-4. Login con Google:
+4. Recuperar contraseña: la app pide el código que llega al correo, así que en **Authentication → Emails → Templates → Reset Password** cambia el enlace por el código, por ejemplo:
+   - Asunto: `Tu código para recuperar PlanIt`
+   - Cuerpo: `<p>Escribe este código en PlanIt para crear una contraseña nueva:</p><h2>{{ .Token }}</h2><p>Si no lo pediste, ignora este correo.</p>`
+
+   Sin un servidor SMTP propio, Supabase solo envía correos a los miembros del equipo del proyecto, y pocos por hora. Para que cualquier persona reciba el código (y la confirmación del registro), configura un proveedor en **Authentication → Emails → SMTP Settings** (por ejemplo Brevo o Resend, que tienen plan gratuito).
+5. Login con Google:
    1. En Google Cloud Console, crea un OAuth client ID de tipo **Web application** con la URI de redirección autorizada `https://<project-ref>.supabase.co/auth/v1/callback`.
    2. En Supabase → **Authentication → Sign In / Providers → Google**, actívalo y pega el Client ID y el Client Secret.
    3. En Supabase → **Authentication → URL Configuration → Redirect URLs**, agrega `exp://**` (Expo Go) y `planit://**` (development builds).
-5. Base de datos: abre el **SQL Editor** de Supabase y ejecuta en orden cada archivo de `supabase/migrations/` (o usa la CLI: `npx supabase link --project-ref <project-ref>` y `npx supabase db push`).
+6. Base de datos: abre el **SQL Editor** de Supabase y ejecuta en orden cada archivo de `supabase/migrations/` (o usa la CLI: `npx supabase link --project-ref <project-ref>` y `npx supabase db push`).
 
 ### Base de datos
 
@@ -382,7 +394,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Estado del proyecto
 
-En desarrollo activo. La autenticación, los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo). Los planes se comparten invitando amigos por correo, se editan y eliminan desde su detalle, y avisan antes de empezar. Ideas para después: avisar a las personas cuando las invitan a un plan (notificaciones push, que necesitan un development build), subir una foto de perfil y más idiomas.
+En desarrollo activo. La autenticación (con recuperación de contraseña), los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo). Los planes se comparten invitando amigos por correo, se editan y eliminan desde su detalle, y avisan antes de empezar. Ideas para después: avisar a las personas cuando las invitan a un plan (notificaciones push, que necesitan un development build), subir una foto de perfil y más idiomas.
 
 ### Autores
 Juan Esteban
