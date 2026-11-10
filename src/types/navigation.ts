@@ -7,6 +7,8 @@ export type AppStackParamList = {
   Intro: undefined;
   Login: { registeredEmail?: string } | undefined;
   Register: undefined;
+  /** `email`: el que la persona ya había escrito en Login */
+  ForgotPassword: { email?: string } | undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   SurpriseMe: undefined;
   PlaceDetail: { place: Place };

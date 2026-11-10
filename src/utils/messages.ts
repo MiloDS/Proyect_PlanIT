@@ -27,6 +27,9 @@ export const messages = {
     planTitleRequired: 'Dale un nombre a tu plan',
     planDateInPast: 'Elige una fecha y hora futuras',
     planPlacesRequired: 'Agrega al menos un lugar',
+    resetCodeRequired: 'Escribe el código que te enviamos',
+    resetCodeInvalid: (minLength: number, maxLength: number) =>
+      `El código tiene entre ${minLength} y ${maxLength} números`,
   },
 
   auth: {
@@ -43,6 +46,14 @@ export const messages = {
     googleFailed: 'No se pudo iniciar sesión con Google.',
     googleNoSession: 'Google no devolvió una sesión válida.',
     googleUnavailable: 'No se pudo continuar con Google',
+    resetCodeSent: (email: string) =>
+      `Si ${email} tiene una cuenta en PlanIt, te llegará un código en unos minutos. Revisa también la carpeta de spam.`,
+    resetCodeResent: 'Te enviamos un código nuevo.',
+    resetCodeExpired: 'El código no es válido o ya venció. Pide uno nuevo.',
+    samePassword: 'La contraseña nueva debe ser distinta de la anterior.',
+    emailNotAuthorized:
+      'Por ahora no podemos enviar correos a esa dirección. Escríbele al equipo de PlanIt.',
+    resetFailed: 'No se pudo cambiar la contraseña',
     logoutTitle: 'Cerrar sesión',
     logoutConfirm: '¿Estás seguro de que deseas cerrar sesión?',
     logoutFailed: 'No se pudo cerrar sesión',

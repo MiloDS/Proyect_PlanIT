@@ -48,6 +48,11 @@ const QUESTIONS = [
       'Para mostrarte lugares cercanos, calcular a qué distancia están y mostrar el clima de tu zona. Si no das permiso, la app usa el centro de Medellín.',
   },
   {
+    question: 'Olvidé mi contraseña',
+    answer:
+      'En Iniciar sesión toca "¿Olvidaste tu contraseña?". Te enviaremos un código a tu correo para crear una contraseña nueva. Si entras con Google, no necesitas contraseña.',
+  },
+  {
     question: '¿Cómo cambio mi nombre?',
     answer: 'En Perfil > Información personal. Es el nombre que ven las personas de tus planes.',
   },

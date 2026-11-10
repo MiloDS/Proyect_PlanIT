@@ -15,6 +15,10 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   email_address_invalid: messages.auth.emailInvalid,
   over_request_rate_limit: messages.auth.tooManyAttempts,
   over_email_send_rate_limit: messages.auth.tooManyAttempts,
+  otp_expired: messages.auth.resetCodeExpired,
+  same_password: messages.auth.samePassword,
+  // Sin un SMTP propio, Supabase solo envía correos al equipo del proyecto
+  email_address_not_authorized: messages.auth.emailNotAuthorized,
 };
 
 export class AuthServiceError extends Error {
@@ -129,6 +133,32 @@ export class AuthService {
 
     if (sessionError) throw toAuthServiceError(sessionError);
     return true;
+  }
+
+  /**
+   * Envía al correo el código para crear una contraseña nueva. Supabase responde igual
+   * si el correo no tiene cuenta, para no revelar quién usa la app.
+   */
+  static async sendPasswordResetCode(email: string): Promise<void> {
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw toAuthServiceError(error);
+  }
+
+  /**
+   * Revisa el código del correo. Si es correcto Supabase abre una sesión de recuperación
+   * (evento PASSWORD_RECOVERY) que solo sirve para cambiar la contraseña.
+   */
+  static async verifyPasswordResetCode(email: string, code: string): Promise<void> {
+    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'recovery' });
+    if (error) throw toAuthServiceError(error);
+  }
+
+  /**
+   * Cambia la contraseña de la sesión actual (después de verificar el código)
+   */
+  static async updatePassword(password: string): Promise<void> {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw toAuthServiceError(error);
   }
 
   /**
