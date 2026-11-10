@@ -215,19 +215,6 @@ export class PlacesService {
       .slice(0, RECOMMENDATIONS_LIMIT);
   }
 
-  /** @deprecated Se reemplaza por getRecommendations en la pantalla de recomendaciones */
-  static async recommend(
-    location: Coordinates,
-    preferences: Omit<RecommendationPreferences, 'company'>
-  ): Promise<Place | null> {
-    const places = await PlacesService.getRecommendations(location, {
-      ...preferences,
-      company: '',
-    });
-    const pool = places.slice(0, 5);
-    return pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
-  }
-
   /**
    * Abre el lugar en la app de Google Maps (o en el navegador si no está instalada)
    */

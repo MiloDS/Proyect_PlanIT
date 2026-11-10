@@ -1,6 +1,6 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
 
-import { Place } from './places';
+import { Place, RecommendationPreferences } from './places';
 
 export type AppStackParamList = {
   Intro: undefined;
@@ -9,6 +9,7 @@ export type AppStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   SurpriseMe: undefined;
   PlaceDetail: { place: Place };
+  Recommendations: { preferences: RecommendationPreferences };
 };
 
 export type MainTabParamList = {

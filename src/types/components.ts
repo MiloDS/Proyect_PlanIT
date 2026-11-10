@@ -103,3 +103,28 @@ export type PlaceMarkerProps = {
   selected: boolean;
   onPress: () => void;
 };
+
+export type ScreenHeaderProps = {
+  title: string;
+  subtitle?: string;
+  onBack: () => void;
+  /** Contenido extra debajo del título (por ejemplo, un resumen de filtros) */
+  children?: ReactNode;
+};
+
+export type PlaceListItemProps = {
+  place: Place;
+  distanceKm: number | null;
+  onPress?: () => void;
+  /** Botón en la esquina superior derecha (favorito, quitar) */
+  action?: ReactNode;
+  showRating?: boolean;
+};
+
+export type EmptyStateProps = {
+  icon: ReactNode;
+  title: string;
+  message?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+};

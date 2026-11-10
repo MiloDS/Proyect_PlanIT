@@ -1,0 +1,181 @@
+import { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { CloudOff, SearchX } from 'lucide-react-native';
+
+import { AppStackParamList } from '../types/navigation';
+import { Coordinates, Place } from '../types/places';
+import { EmptyState } from '../components/EmptyState';
+import { FavoriteButton } from '../components/FavoriteButton';
+import { PlaceListItem } from '../components/PlaceListItem';
+import { ScreenHeader } from '../components/ScreenHeader';
+import { useFavorites } from '../services/FavoritesContext';
+import { LocationService } from '../services/locationService';
+import { PlacesService } from '../services/placesService';
+import { colors } from '../styles/colors';
+import { globalStyles } from '../styles/globalStyles';
+import { distanceKm } from '../utils/geo';
+
+type Props = NativeStackScreenProps<AppStackParamList, 'Recommendations'>;
+
+type RecommendationsState = {
+  status: 'loading' | 'ready' | 'error';
+  origin: Coordinates | null;
+  places: Place[];
+  error: string;
+};
+
+export function RecommendationsScreen({ navigation, route }: Props) {
+  const { preferences } = route.params;
+  const insets = useSafeAreaInsets();
+  const { isFavoritePlace, togglePlace } = useFavorites();
+  const [state, setState] = useState<RecommendationsState>({
+    status: 'loading',
+    origin: null,
+    places: [],
+    error: '',
+  });
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const { coordinates } = await LocationService.getCurrentPosition();
+        const places = await PlacesService.getRecommendations(coordinates, preferences);
+        if (!cancelled) setState({ status: 'ready', origin: coordinates, places, error: '' });
+      } catch (err: any) {
+        if (!cancelled) {
+          setState({ status: 'error', origin: null, places: [], error: err.message });
+        }
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [preferences, reloadKey]);
+
+  const retry = () => {
+    setState((current) => ({ ...current, status: 'loading', error: '' }));
+    setReloadKey((key) => key + 1);
+  };
+
+  const summary = [
+    preferences.activities.join(', '),
+    preferences.budget,
+    `${preferences.maxDistanceKm} km`,
+    preferences.company,
+  ].join(' · ');
+
+  return (
+    <View style={globalStyles.screen}>
+      <StatusBar style="dark" />
+
+      <ScreenHeader title="Recomendaciones para ti" onBack={() => navigation.goBack()}>
+        <View style={styles.summary}>
+          <Text style={styles.summaryText} numberOfLines={2}>
+            {summary}
+          </Text>
+        </View>
+      </ScreenHeader>
+
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {state.status === 'loading' && (
+          <View style={styles.loading}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Buscando los mejores lugares…</Text>
+          </View>
+        )}
+
+        {state.status === 'error' && (
+          <EmptyState
+            icon={<CloudOff size={28} color={colors.primary} />}
+            title="No pudimos cargar las recomendaciones"
+            message={state.error}
+            actionLabel="Reintentar"
+            onAction={retry}
+          />
+        )}
+
+        {state.status === 'ready' && state.places.length === 0 && (
+          <EmptyState
+            icon={<SearchX size={28} color={colors.primary} />}
+            title="No encontramos lugares con esos filtros"
+            message="Prueba con más distancia, otro presupuesto u otra actividad."
+            actionLabel="Cambiar preferencias"
+            onAction={() => navigation.goBack()}
+          />
+        )}
+
+        {state.status === 'ready' && state.places.length > 0 && (
+          <>
+            <View style={styles.list}>
+              {state.places.map((place) => (
+                <PlaceListItem
+                  key={place.id}
+                  place={place}
+                  distanceKm={state.origin ? distanceKm(state.origin, place.location) : null}
+                  onPress={() => navigation.navigate('PlaceDetail', { place })}
+                  action={
+                    <FavoriteButton
+                      size={18}
+                      isFavorite={isFavoritePlace(place.id)}
+                      itemName={place.name}
+                      onPress={() => togglePlace(place.id)}
+                    />
+                  }
+                />
+              ))}
+            </View>
+            <Text style={styles.attribution}>Datos de Google Maps</Text>
+          </>
+        )}
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  summary: {
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: colors.primaryLight,
+  },
+  summaryText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.primaryDark,
+    textAlign: 'center',
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 18,
+  },
+  loading: {
+    alignItems: 'center',
+    paddingVertical: 48,
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  list: {
+    gap: 12,
+  },
+  attribution: {
+    fontSize: 10,
+    color: colors.textMuted,
+    marginTop: 12,
+  },
+});
