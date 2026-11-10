@@ -10,7 +10,7 @@ Mobile app to discover activities and places based on location, weather, and per
 
 ### Tech stack
 
-- **React Native** 0.86 + **Expo** SDK 57
+- **React Native** 0.88 + **Expo** SDK 58
 - **TypeScript**
 - **React Navigation** (`native-stack` + `bottom-tabs`) for screen navigation
 - **Supabase** (`@supabase/supabase-js`) for authentication (email/password and Google) and the database
@@ -171,7 +171,7 @@ Aplicación móvil para descubrir actividades y lugares según ubicación, clima
 
 ### Tecnologías
 
-- **React Native** 0.86 + **Expo** SDK 57
+- **React Native** 0.88 + **Expo** SDK 58
 - **TypeScript**
 - **React Navigation** (`native-stack` + `bottom-tabs`) para la navegación entre pantallas
 - **Supabase** (`@supabase/supabase-js`) para la autenticación (correo/contraseña y Google) y la base de datos
