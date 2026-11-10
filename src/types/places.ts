@@ -14,6 +14,8 @@ export type PriceLevel =
 export type Place = {
   id: string;
   name: string;
+  /** Tipo principal de Google (por ejemplo "park"); decide el ícono del lugar */
+  type: string | null;
   category: string;
   address: string | null;
   location: Coordinates;
@@ -24,6 +26,20 @@ export type Place = {
   photoUrl: string | null;
 };
 
+export type Amenity =
+  'restroom' | 'outdoorSeating' | 'allowsDogs' | 'goodForChildren' | 'parking' | 'wheelchair';
+
+// Ficha completa para la pantalla de detalle (acción "details" de la Edge Function)
+export type PlaceDetails = Place & {
+  openNow: boolean | null;
+  /** Horario de lunes a domingo, por ejemplo "lunes: 6:00 a.m.–6:00 p.m." */
+  weekdayHours: string[];
+  description: string | null;
+  goodForChildren: boolean | null;
+  goodForGroups: boolean | null;
+  amenities: Amenity[];
+};
+
 export type NearbySearchParams = {
   location: Coordinates;
   radiusMeters: number;
@@ -32,10 +48,24 @@ export type NearbySearchParams = {
   includePhotos?: boolean;
 };
 
+export type TextSearchParams = {
+  query: string;
+  location: Coordinates;
+  radiusMeters?: number;
+  includedType?: string;
+  maxResults?: number;
+};
+
+export type SearchCategory = {
+  label: string;
+  includedTypes: string[];
+};
+
 export type RecommendationPreferences = {
   activities: string[];
   budget: string;
   maxDistanceKm: number;
+  company: string;
 };
 
 export type DevicePosition = {

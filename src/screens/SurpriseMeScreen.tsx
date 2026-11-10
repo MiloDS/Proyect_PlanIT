@@ -1,48 +1,19 @@
 import { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  Modal,
-  StyleProp,
-  ViewStyle,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {
-  ChevronLeft,
-  Sparkles,
-  MapPin,
-  DollarSign,
-  Users,
-  RefreshCw,
-  X,
-} from 'lucide-react-native';
+import { Sparkles } from 'lucide-react-native';
 
 import { AppStackParamList } from '../types/navigation';
-import { Place } from '../types/places';
-import { Banner } from '../components/Banner';
+import { Chip } from '../components/Chip';
 import { Button } from '../components/Button';
 import { CustomSlider } from '../components/CustomSlider';
-import { LocationService } from '../services/locationService';
-import {
-  ACTIVITY_PLACE_TYPES,
-  BUDGET_PRICE_LEVELS,
-  PRICE_LEVEL_LABELS,
-  PlacesService,
-} from '../services/placesService';
+import { ScreenHeader } from '../components/ScreenHeader';
+import { ACTIVITY_PLACE_TYPES, BUDGET_PRICE_LEVELS } from '../services/placesService';
 import { colors } from '../styles/colors';
-import { distanceKm } from '../utils/geo';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'SurpriseMe'>;
-
-type Recommendation = {
-  place: Place;
-  distanceKm: number;
-};
 
 const ACTIVITY_OPTIONS = Object.keys(ACTIVITY_PLACE_TYPES);
 const BUDGET_OPTIONS = Object.keys(BUDGET_PRICE_LEVELS);
@@ -50,42 +21,12 @@ const COMPANY_OPTIONS = ['Solo', 'Pareja', 'Amigos', 'Familia'];
 const MIN_DISTANCE_KM = 1;
 const MAX_DISTANCE_KM = 50;
 
-type OptionChipProps = {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  style: StyleProp<ViewStyle>;
-};
-
-function OptionChip({ label, selected, onPress, style }: OptionChipProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      style={({ pressed }) => [
-        style,
-        selected ? styles.selectedButton : styles.unselectedButton,
-        pressed && styles.buttonPressed,
-      ]}
-    >
-      <Text style={selected ? styles.selectedButtonText : styles.unselectedButtonText}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 export function SurpriseMeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [selectedActivities, setSelectedActivities] = useState<string[]>(['Aire libre']);
   const [selectedBudget, setSelectedBudget] = useState('Bajo');
   const [maxDistance, setMaxDistance] = useState(5);
   const [selectedCompany, setSelectedCompany] = useState('Amigos');
-  const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
   const toggleActivity = (activity: string) => {
     if (!selectedActivities.includes(activity)) {
       setSelectedActivities([...selectedActivities, activity]);
@@ -95,58 +36,27 @@ export function SurpriseMeScreen({ navigation }: Props) {
     }
   };
 
-  const handleRecommend = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      const { coordinates } = await LocationService.getCurrentPosition();
-      const place = await PlacesService.recommend(coordinates, {
+  // La búsqueda se hace en Recomendaciones para mostrar ahí la carga y los resultados
+  const showRecommendations = () => {
+    navigation.navigate('Recommendations', {
+      preferences: {
         activities: selectedActivities,
         budget: selectedBudget,
         maxDistanceKm: maxDistance,
-      });
-
-      if (!place) {
-        setError(
-          'No encontramos lugares con esos filtros. Prueba con más distancia u otra actividad.'
-        );
-        return;
-      }
-
-      setRecommendation({ place, distanceKm: distanceKm(coordinates, place.location) });
-    } catch (err: any) {
-      setError(err.message || 'No se pudo obtener una recomendación');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOpenInMaps = () => {
-    if (recommendation) PlacesService.openInMaps(recommendation.place);
-    setRecommendation(null);
+        company: selectedCompany,
+      },
+    });
   };
 
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
 
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <Pressable
-          onPress={() => navigation.goBack()}
-          accessibilityRole="button"
-          accessibilityLabel="Volver"
-          style={({ pressed }) => [
-            styles.backButton,
-            { top: insets.top + 8 },
-            pressed && styles.backButtonPressed,
-          ]}
-        >
-          <ChevronLeft size={21} color={colors.textBody} />
-        </Pressable>
-
-        <Text style={styles.headerTitle}>Sorpréndeme</Text>
-        <Text style={styles.headerSubtitle}>Cuéntanos tus preferencias</Text>
-      </View>
+      <ScreenHeader
+        title="Sorpréndeme"
+        subtitle="Cuéntanos tus preferencias"
+        onBack={() => navigation.goBack()}
+      />
 
       <ScrollView
         style={styles.form}
@@ -157,7 +67,7 @@ export function SurpriseMeScreen({ navigation }: Props) {
           <Text style={styles.sectionTitle}>Tipo de actividad</Text>
           <View style={styles.activityContainer}>
             {ACTIVITY_OPTIONS.map((activity) => (
-              <OptionChip
+              <Chip
                 key={activity}
                 label={activity}
                 selected={selectedActivities.includes(activity)}
@@ -172,7 +82,7 @@ export function SurpriseMeScreen({ navigation }: Props) {
           <Text style={styles.sectionTitle}>Presupuesto</Text>
           <View style={styles.budgetContainer}>
             {BUDGET_OPTIONS.map((budget) => (
-              <OptionChip
+              <Chip
                 key={budget}
                 label={budget}
                 selected={selectedBudget === budget}
@@ -215,7 +125,7 @@ export function SurpriseMeScreen({ navigation }: Props) {
           <Text style={styles.sectionTitle}>Compañía</Text>
           <View style={styles.companyContainer}>
             {COMPANY_OPTIONS.map((company) => (
-              <OptionChip
+              <Chip
                 key={company}
                 label={company}
                 selected={selectedCompany === company}
@@ -228,114 +138,11 @@ export function SurpriseMeScreen({ navigation }: Props) {
       </ScrollView>
 
       <View style={[styles.bottomAction, { paddingBottom: Math.max(insets.bottom, 18) }]}>
-        {!!error && <Banner type="error" message={error} />}
-        <Button
-          variant="primary"
-          style={styles.recommendButton}
-          loading={loading}
-          onPress={handleRecommend}
-        >
+        <Button variant="primary" style={styles.recommendButton} onPress={showRecommendations}>
           <Sparkles size={18} color={colors.white} />
           <Text style={styles.recommendButtonText}>Ver recomendaciones</Text>
         </Button>
       </View>
-
-      <Modal
-        visible={recommendation !== null}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setRecommendation(null)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Pressable
-              onPress={() => setRecommendation(null)}
-              accessibilityRole="button"
-              accessibilityLabel="Cerrar"
-              style={({ pressed }) => [styles.closeButton, pressed && styles.buttonPressed]}
-            >
-              <X size={18} color={colors.textSecondary} />
-            </Pressable>
-
-            <View style={styles.modalHandle} />
-
-            <View style={styles.resultHeader}>
-              <View style={styles.sparkleContainer}>
-                <Sparkles size={25} color={colors.primary} />
-              </View>
-              <Text style={styles.resultTitle}>¡Plan recomendado!</Text>
-              <Text style={styles.resultSubtitle}>Seleccionado para ti y tus filtros</Text>
-            </View>
-
-            {recommendation && (
-              <View style={styles.planCard}>
-                <View style={styles.planHeader}>
-                  <View style={styles.planInfo}>
-                    <View style={styles.activityBadge}>
-                      <Text style={styles.activityBadgeText}>
-                        {recommendation.place.category || selectedActivities.join(', ')}
-                      </Text>
-                    </View>
-                    <Text style={styles.planTitle}>{recommendation.place.name}</Text>
-                    {!!recommendation.place.address && (
-                      <Text style={styles.planAddress} numberOfLines={2}>
-                        {recommendation.place.address}
-                      </Text>
-                    )}
-                  </View>
-
-                  {recommendation.place.rating !== null && (
-                    <View style={styles.ratingBadge}>
-                      <Text style={styles.ratingText}>
-                        {recommendation.place.rating.toFixed(1)} ★
-                      </Text>
-                    </View>
-                  )}
-                </View>
-
-                <View style={styles.planDetails}>
-                  <View style={styles.detailRow}>
-                    <MapPin size={16} color={colors.textMuted} />
-                    <Text style={styles.detailText}>
-                      A {recommendation.distanceKm.toFixed(1)} km de tu ubicación
-                    </Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <DollarSign size={16} color={colors.textMuted} />
-                    <Text style={styles.detailText}>
-                      Precio:{' '}
-                      {recommendation.place.priceLevel
-                        ? PRICE_LEVEL_LABELS[recommendation.place.priceLevel]
-                        : 'sin información'}
-                    </Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Users size={16} color={colors.textMuted} />
-                    <Text style={styles.detailText}>Plan para: {selectedCompany}</Text>
-                  </View>
-                </View>
-
-                <Text style={styles.attribution}>Datos de Google Maps</Text>
-              </View>
-            )}
-
-            <View style={styles.modalActions}>
-              <Button variant="primary" style={styles.exploreButton} onPress={handleOpenInMaps}>
-                <Text style={styles.exploreButtonText}>Ver en Google Maps</Text>
-              </Button>
-
-              <Pressable
-                onPress={() => setRecommendation(null)}
-                accessibilityRole="button"
-                style={({ pressed }) => [styles.tryAgainButton, pressed && styles.buttonPressed]}
-              >
-                <RefreshCw size={15} color={colors.textBody} />
-                <Text style={styles.tryAgainText}>Probar con otras opciones</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -344,40 +151,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.white,
-  },
-
-  /* Encabezado */
-  header: {
-    paddingBottom: 18,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backButtonPressed: {
-    backgroundColor: colors.borderStrong,
-    transform: [{ scale: 0.95 }],
-  },
-  headerTitle: {
-    color: colors.textPrimary,
-    fontSize: 21,
-    fontWeight: '700',
-  },
-  headerSubtitle: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '500',
-    marginTop: 3,
   },
 
   /* Formulario */
@@ -429,33 +202,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  selectedButton: {
-    backgroundColor: colors.primary,
-    elevation: 3,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  unselectedButton: {
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  selectedButtonText: {
-    color: colors.white,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  unselectedButtonText: {
-    color: colors.textBody,
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  buttonPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.97 }],
   },
 
   /* Distancia */
@@ -520,168 +266,5 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: 14,
     fontWeight: '700',
-  },
-
-  /* Modal */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: colors.overlay,
-    justifyContent: 'flex-end',
-  },
-  modalContainer: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingHorizontal: 24,
-    paddingTop: 14,
-    paddingBottom: 30,
-    maxHeight: '85%',
-  },
-  modalHandle: {
-    width: 48,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.borderStrong,
-    alignSelf: 'center',
-    marginBottom: 18,
-  },
-  closeButton: {
-    position: 'absolute',
-    right: 18,
-    top: 15,
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-  },
-  resultHeader: {
-    alignItems: 'center',
-    marginBottom: 18,
-  },
-  sparkleContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 9,
-  },
-  resultTitle: {
-    color: colors.textPrimary,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  resultSubtitle: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    marginTop: 4,
-  },
-
-  /* Tarjeta del plan */
-  planCard: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 18,
-    padding: 16,
-  },
-  planHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  planInfo: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  activityBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.primaryLight,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  activityBadgeText: {
-    color: colors.primary,
-    fontSize: 9,
-    fontWeight: '700',
-  },
-  planTitle: {
-    color: colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '700',
-    marginTop: 6,
-  },
-  planAddress: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  ratingBadge: {
-    backgroundColor: colors.primaryLight,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 8,
-  },
-  ratingText: {
-    color: colors.primaryDark,
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  planDetails: {
-    marginTop: 15,
-    gap: 9,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  detailText: {
-    color: colors.textBody,
-    fontSize: 12,
-  },
-  attribution: {
-    color: colors.textMuted,
-    fontSize: 10,
-    marginTop: 12,
-  },
-
-  /* Acciones del modal */
-  modalActions: {
-    marginTop: 18,
-    gap: 9,
-  },
-  exploreButton: {
-    height: 50,
-    borderRadius: 16,
-    elevation: 3,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  exploreButtonText: {
-    color: colors.white,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  tryAgainButton: {
-    height: 46,
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-  },
-  tryAgainText: {
-    color: colors.textBody,
-    fontSize: 12,
-    fontWeight: '600',
   },
 });

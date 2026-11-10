@@ -32,7 +32,8 @@
           "locationWhenInUsePermission": "PlanIt usa tu ubicación para mostrarte lugares y planes cerca de ti."
         }
       ],
-      "expo-status-bar"
+      "expo-status-bar",
+      "@react-native-community/datetimepicker"
     ]
   }
 }
