@@ -12,12 +12,12 @@ import { CustomSlider } from '../components/CustomSlider';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { ACTIVITY_PLACE_TYPES, BUDGET_PRICE_LEVELS } from '../services/placesService';
 import { colors } from '../styles/colors';
+import { COMPANY_OPTIONS } from '../utils/recommendations';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'SurpriseMe'>;
 
 const ACTIVITY_OPTIONS = Object.keys(ACTIVITY_PLACE_TYPES);
 const BUDGET_OPTIONS = Object.keys(BUDGET_PRICE_LEVELS);
-const COMPANY_OPTIONS = ['Solo', 'Pareja', 'Amigos', 'Familia'];
 const MIN_DISTANCE_KM = 1;
 const MAX_DISTANCE_KM = 50;
 

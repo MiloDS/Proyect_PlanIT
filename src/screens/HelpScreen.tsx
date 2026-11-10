@@ -33,6 +33,11 @@ const QUESTIONS = [
       'Abre el plan. Si lo creaste, toca el lápiz para editarlo o baja hasta el final para eliminarlo para todos. Si te invitaron, al final encontrarás "Salir del plan".',
   },
   {
+    question: '¿Cómo elige Sorpréndeme los lugares?',
+    answer:
+      'Busca cerca de ti lugares de las actividades que elegiste y dentro de tu presupuesto, y los ordena por calificación. Si llueve o es de noche pone primero los lugares bajo techo; con buen clima, los de aire libre. También tiene en cuenta con quién vas: en familia no incluye bares ni discotecas.',
+  },
+  {
     question: '¿Cómo guardo lugares y planes en favoritos?',
     answer:
       'Toca el corazón de un lugar o de un plan. Los encuentras después en la pestaña Favoritos.',

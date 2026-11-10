@@ -68,6 +68,12 @@ export type RecommendationPreferences = {
   company: string;
 };
 
+// Explica en Recomendaciones cómo influyeron el clima o la compañía en el orden
+export type RecommendationNote = {
+  kind: 'rain' | 'night' | 'sun' | 'noWeather' | 'company';
+  text: string;
+};
+
 export type DevicePosition = {
   coordinates: Coordinates;
   isApproximate: boolean;
