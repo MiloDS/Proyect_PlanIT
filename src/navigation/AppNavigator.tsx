@@ -19,6 +19,7 @@ import { CreatePlanScreen } from '../screens/CreatePlanScreen';
 import { PlanDetailScreen } from '../screens/PlanDetailScreen';
 import { EditProfileScreen } from '../screens/EditProfileScreen';
 import { NotificationsScreen } from '../screens/NotificationsScreen';
+import { HelpScreen } from '../screens/HelpScreen';
 import { RecommendationsScreen } from '../screens/RecommendationsScreen';
 import { BottomNavBar } from '../components/BottomNavBar';
 import { useAuth } from '../services/AuthContext';
@@ -95,6 +96,7 @@ export function AppNavigator() {
                 <Stack.Screen name="PlanDetail" component={PlanDetailScreen} />
                 <Stack.Screen name="EditProfile" component={EditProfileScreen} />
                 <Stack.Screen name="Notifications" component={NotificationsScreen} />
+                <Stack.Screen name="Help" component={HelpScreen} />
               </>
             ) : (
               <>

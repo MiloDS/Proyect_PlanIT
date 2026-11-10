@@ -13,7 +13,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   User,
-  CreditCard,
   Bell,
   Globe,
   HelpCircle,
@@ -44,16 +43,23 @@ type MenuItemProps = {
   title: string;
   value?: string;
   isDestructive?: boolean;
-  onPress: () => void;
+  /** Sin onPress la fila solo muestra información */
+  onPress?: () => void;
 };
 
-const MENU_ITEMS = [
-  { Icon: CreditCard, title: 'Métodos de pago' },
-  { Icon: Globe, title: 'Idioma', value: 'Español' },
-  { Icon: HelpCircle, title: 'Ayuda y soporte' },
-];
-
 function MenuItem({ icon, title, value, isDestructive = false, onPress }: MenuItemProps) {
+  if (!onPress) {
+    return (
+      <View style={styles.menuItem} accessible accessibilityLabel={`${title}: ${value ?? ''}`}>
+        <View style={styles.menuLeft}>
+          <View style={styles.menuIcon}>{icon}</View>
+          <Text style={styles.menuTitle}>{title}</Text>
+        </View>
+        {!!value && <Text style={styles.menuValue}>{value}</Text>}
+      </View>
+    );
+  }
+
   return (
     <Pressable
       onPress={onPress}
@@ -71,11 +77,6 @@ function MenuItem({ icon, title, value, isDestructive = false, onPress }: MenuIt
       </View>
     </Pressable>
   );
-}
-
-// Las pantallas de ajustes aún no existen
-function showComingSoon(title: string) {
-  Alert.alert(title, 'Próximamente');
 }
 
 // Solo en desarrollo: la Intro aparece únicamente sin sesión y sin la marca de onboarding,
@@ -159,16 +160,17 @@ export function ProfileScreen({ navigation }: Props) {
             title="Notificaciones"
             onPress={() => navigation.navigate('Notifications')}
           />
-
-          {MENU_ITEMS.map(({ Icon, title, value }) => (
-            <MenuItem
-              key={title}
-              icon={<Icon size={21} color={colors.textBody} />}
-              title={title}
-              value={value}
-              onPress={() => showComingSoon(title)}
-            />
-          ))}
+          {/* Por ahora la app solo está en español */}
+          <MenuItem
+            icon={<Globe size={21} color={colors.textBody} />}
+            title="Idioma"
+            value="Español"
+          />
+          <MenuItem
+            icon={<HelpCircle size={21} color={colors.textBody} />}
+            title="Ayuda y soporte"
+            onPress={() => navigation.navigate('Help')}
+          />
 
           {__DEV__ && (
             <MenuItem

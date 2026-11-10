@@ -16,6 +16,7 @@ export type AppStackParamList = {
   PlanDetail: { plan: Plan };
   EditProfile: undefined;
   Notifications: undefined;
+  Help: undefined;
 };
 
 export type MainTabParamList = {
