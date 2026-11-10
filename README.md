@@ -17,6 +17,7 @@ Mobile app to discover activities and places based on location, weather, and per
 - **AsyncStorage** (`@react-native-async-storage/async-storage`) to persist onboarding state and the Supabase session
 - **react-native-safe-area-context** for safe area handling (notch, navigation bar)
 - **lucide-react-native** for icons
+- **react-native-maps** for the Search map and **@react-native-community/datetimepicker** for plan dates (both included in Expo Go)
 
 ### Project structure
 
@@ -27,10 +28,10 @@ PlanIt/
 │   ├── components/         # Reusable components (Button, InputField, BottomNavBar...)
 │   ├── navigation/         # React Navigation setup
 │   ├── screens/            # App screens
-│   ├── services/           # Supabase Auth: AuthService, AuthContext (session) and useGoogleSignIn
+│   ├── services/           # Auth, places, favorites, plans and location services, contexts and hooks
 │   ├── styles/             # Colors and global styles
-│   ├── types/              # Shared types (navigation, component props, auth)
-│   └── utils/              # Utilities (Supabase client, validation, AsyncStorage, user data, sample data)
+│   ├── types/              # Shared types (navigation, component props, auth, places, plans)
+│   └── utils/              # Utilities (Supabase client, validation, AsyncStorage, user data, dates, place icons)
 ├── supabase/               # Migrations, RLS tests and the `places` Edge Function (Google Places)
 ├── .env.example            # Environment variables template
 ├── App.tsx
@@ -46,10 +47,14 @@ PlanIt/
 | `LoginScreen` | Email/password login and Google login, field validation |
 | `RegisterScreen` | Sign up with name, email, and password, or with Google |
 | `HomeScreen` | Greeting, weather card, "Surprise me" shortcut, and nearby places |
-| `SurpriseMeScreen` | Preference form (activity, budget, distance, company) and recommendation |
-| `PlansScreen` | Upcoming and past plans |
+| `SearchScreen` | Map with nearby places, category filters, text search, and "search this area" |
+| `PlaceDetailScreen` | Photo, rating, distance, hours, price, description, amenities; save to favorites and share |
+| `SurpriseMeScreen` | Preference form (activity, budget, distance, company) |
+| `RecommendationsScreen` | Places that match the Surprise me preferences, best rated first |
+| `PlansScreen` | Upcoming and past plans from Supabase (own and shared) |
+| `CreatePlanScreen` | New plan with name, date, time and places (nearby, favorites or search) |
+| `FavoritesScreen` | Favorite places and plans (All / Places / Plans) |
 | `ProfileScreen` | User data, settings menu, and logout |
-| `SearchScreen` / `FavoritesScreen` | Placeholders |
 
 ### Navigation flow
 
@@ -57,7 +62,7 @@ PlanIt/
 
 1. **No session, first time opening the app** → `IntroScreen`, then `LoginScreen`.
 2. **No session, onboarding already seen** → `LoginScreen` / `RegisterScreen`.
-3. **Active session** → `MainTabs` (Home, Search, Plans, Favorites, Profile) and `SurpriseMeScreen`.
+3. **Active session** → `MainTabs` (Home, Search, Plans, Favorites, Profile) plus `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen` and `CreatePlanScreen` on top of the tabs.
 
 Logging in or out switches the group automatically; screens don't need to call `navigation.reset`.
 
@@ -90,15 +95,16 @@ Places come from the Google Places API, so the database only stores their `place
 |---|---|---|
 | `profiles` | Public name and avatar of each user (created automatically on sign up) | Read: any signed-in user. Update: the user themselves |
 | `favorites` | Places saved by each user | Only the user themselves |
+| `favorite_plans` | Plans saved by each user | Only the user themselves, and only for plans they belong to |
 | `plans` | Plans (title, date, cover) | Read: plan members. Edit/delete: the owner |
 | `plan_members` | Members of each plan (`owner` / `member`) | Read: plan members. Invite/remove: the owner. Any member can leave |
 | `plan_places` | Places of each plan and their order | Plan members |
 
-To invite someone to a plan by email, call the `add_plan_member_by_email` function: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`.
+The app creates plans with the `create_plan` function, which saves the plan and its places in a single transaction: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids })`. To invite someone to a plan by email, call `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`.
 
 ### Google Places
 
-"Nearby" on Home and the Surprise me recommendation use the Google Places API (New) through the `places` Supabase Edge Function (`supabase/functions/places/index.ts`). The API key stays in Supabase's secrets and never ships inside the app; only signed-in users can call the function.
+Home, Search, place details, Surprise me, favorites and plans use the Google Places API (New) through the `places` Supabase Edge Function (`supabase/functions/places/index.ts`). The API key stays in Supabase's secrets and never ships inside the app; only signed-in users can call the function. The function supports four actions: `nearby` (Nearby Search, the default), `text` (Text Search), `details` (Place Details for the detail screen) and `lookup` (basic data for up to 20 saved place IDs).
 
 1. In Google Cloud Console, create a project, link a billing account, and enable **Places API (New)**.
 2. Create an API key and, under **API restrictions**, allow only **Places API (New)**. Optionally cap the daily quota so a bug cannot run up costs.
@@ -107,7 +113,9 @@ To invite someone to a plan by email, call the `add_plan_member_by_email` functi
    - CLI: `npx supabase login`, `npx supabase link --project-ref <project-ref>` and `npx supabase functions deploy places`.
    - Or in Supabase → **Edge Functions → Deploy a new function → Via Editor**, name it `places` and paste the contents of `index.ts`.
 
-Each Home load makes 1 Nearby Search plus up to 10 photo requests; each Surprise me recommendation makes 1 Nearby Search. If the user denies location access, the app searches around the center of Medellín.
+Each Home load makes 1 Nearby Search plus up to 10 photo requests; each Search or Surprise me query makes 1 Nearby or Text Search plus up to 20 photos; opening a place makes 1 Place Details request. While the app is open, places already shown are kept in memory so favorites and plan covers don't request them again (Google's terms don't allow storing Places data on the device or in the database). If the user denies location access, the app searches around the center of Medellín.
+
+The map works in Expo Go without extra setup. For a development or store build, Android needs a Google Maps key: enable **Maps SDK for Android** in Google Cloud, create a key restricted to that API and the app's package, and add the `react-native-maps` plugin to `app.json` with `androidGoogleMapsApiKey`.
 
 ### Running the app
 
@@ -155,7 +163,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Project status
 
-Actively in development. Authentication works with Supabase; Search and Favorites are placeholders, and Home, Plans, and Surprise me still use sample data.
+Actively in development. Authentication, places (Google Places), favorites and plans work with Supabase. Still pending: the real weather on Home, the Profile settings screens, and a plan detail screen to invite friends and edit plans.
 
 ### Authors
 Juan Esteban
@@ -178,6 +186,7 @@ Aplicación móvil para descubrir actividades y lugares según ubicación, clima
 - **AsyncStorage** (`@react-native-async-storage/async-storage`) para persistir el estado de onboarding y la sesión de Supabase
 - **react-native-safe-area-context** para manejo de áreas seguras (notch, barra de navegación)
 - **lucide-react-native** para iconografía
+- **react-native-maps** para el mapa de Buscar y **@react-native-community/datetimepicker** para la fecha de los planes (ambas vienen en Expo Go)
 
 ### Estructura del proyecto
 
@@ -188,10 +197,10 @@ PlanIt/
 │   ├── components/         # Componentes reutilizables (Button, InputField, BottomNavBar...)
 │   ├── navigation/         # Configuración de React Navigation
 │   ├── screens/            # Pantallas de la app
-│   ├── services/           # Supabase Auth: AuthService, AuthContext (sesión) y useGoogleSignIn
+│   ├── services/           # Servicios de auth, lugares, favoritos, planes y ubicación; contextos y hooks
 │   ├── styles/             # Colores y estilos globales
-│   ├── types/              # Tipos compartidos (navegación, props de componentes, auth)
-│   └── utils/              # Utilidades (cliente de Supabase, validación, AsyncStorage, datos del usuario y de ejemplo)
+│   ├── types/              # Tipos compartidos (navegación, props de componentes, auth, lugares, planes)
+│   └── utils/              # Utilidades (cliente de Supabase, validación, AsyncStorage, datos del usuario, fechas, íconos de lugares)
 ├── supabase/               # Migraciones, pruebas de RLS y la Edge Function `places` (Google Places)
 ├── .env.example            # Plantilla de variables de entorno
 ├── App.tsx
@@ -207,10 +216,14 @@ PlanIt/
 | `LoginScreen` | Inicio de sesión con correo/contraseña y con Google, validación de campos |
 | `RegisterScreen` | Registro con nombre, correo y contraseña, o con Google |
 | `HomeScreen` | Saludo, clima, acceso a "Sorpréndeme" y lugares cercanos |
-| `SurpriseMeScreen` | Formulario de preferencias (actividad, presupuesto, distancia, compañía) y recomendación |
-| `PlansScreen` | Planes próximos y pasados |
+| `SearchScreen` | Mapa con lugares cercanos, filtros por categoría, búsqueda por texto y "Buscar en esta zona" |
+| `PlaceDetailScreen` | Foto, calificación, distancia, horario, precio, descripción y servicios; guardar en favoritos y compartir |
+| `SurpriseMeScreen` | Formulario de preferencias (actividad, presupuesto, distancia, compañía) |
+| `RecommendationsScreen` | Lugares que cumplen las preferencias de Sorpréndeme, de mejor a peor calificados |
+| `PlansScreen` | Planes próximos y pasados desde Supabase (propios y compartidos) |
+| `CreatePlanScreen` | Nuevo plan con nombre, fecha, hora y lugares (cercanos, favoritos o búsqueda) |
+| `FavoritesScreen` | Lugares y planes favoritos (Todos / Lugares / Planes) |
 | `ProfileScreen` | Datos del usuario, menú de ajustes y cierre de sesión |
-| `SearchScreen` / `FavoritesScreen` | Pantallas provisionales |
 
 ### Flujo de navegación
 
@@ -218,7 +231,7 @@ PlanIt/
 
 1. **Sin sesión, primera vez que se abre la app** → `IntroScreen` y luego `LoginScreen`.
 2. **Sin sesión, onboarding ya visto** → `LoginScreen` / `RegisterScreen`.
-3. **Sesión activa** → `MainTabs` (Inicio, Buscar, Planes, Favoritos, Perfil) y `SurpriseMeScreen`.
+3. **Sesión activa** → `MainTabs` (Inicio, Buscar, Planes, Favoritos, Perfil) y, encima de las pestañas, `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen` y `CreatePlanScreen`.
 
 Al iniciar o cerrar sesión el grupo cambia solo; las pantallas no necesitan llamar a `navigation.reset`.
 
@@ -251,15 +264,16 @@ Los lugares vienen de la API de Google Places, así que la base de datos solo gu
 |---|---|---|
 | `profiles` | Nombre y foto públicos de cada usuario (se crea solo al registrarse) | Leer: cualquier usuario con sesión. Editar: el propio usuario |
 | `favorites` | Lugares guardados por cada usuario | Solo el propio usuario |
+| `favorite_plans` | Planes guardados por cada usuario | Solo el propio usuario, y solo de planes de los que es miembro |
 | `plans` | Planes (título, fecha, portada) | Leer: los miembros del plan. Editar/eliminar: el dueño |
 | `plan_members` | Miembros de cada plan (`owner` / `member`) | Leer: los miembros. Invitar/expulsar: el dueño. Cualquier miembro puede salirse |
 | `plan_places` | Lugares de cada plan y su orden | Los miembros del plan |
 
-Para invitar a alguien a un plan por correo se usa la función `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`.
+La app crea los planes con la función `create_plan`, que guarda el plan y sus lugares en una sola transacción: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids })`. Para invitar a alguien a un plan por correo se usa `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`.
 
 ### Google Places
 
-"Cerca de ti" en Inicio y la recomendación de Sorpréndeme usan Google Places API (New) a través de la Edge Function `places` de Supabase (`supabase/functions/places/index.ts`). La API key queda en los secretos de Supabase y nunca viaja dentro de la app; solo los usuarios con sesión pueden llamar la función.
+Inicio, Buscar, el detalle de lugar, Sorpréndeme, favoritos y planes usan Google Places API (New) a través de la Edge Function `places` de Supabase (`supabase/functions/places/index.ts`). La API key queda en los secretos de Supabase y nunca viaja dentro de la app; solo los usuarios con sesión pueden llamar la función. La función tiene cuatro acciones: `nearby` (Nearby Search, la predeterminada), `text` (Text Search), `details` (Place Details para la pantalla de detalle) y `lookup` (datos básicos de hasta 20 lugares guardados por ID).
 
 1. En Google Cloud Console, crea un proyecto, vincula una cuenta de facturación y activa **Places API (New)**.
 2. Crea una API key y, en **API restrictions**, permite solo **Places API (New)**. Opcionalmente limita la cuota diaria para que un error no dispare los costos.
@@ -268,7 +282,9 @@ Para invitar a alguien a un plan por correo se usa la función `add_plan_member_
    - CLI: `npx supabase login`, `npx supabase link --project-ref <project-ref>` y `npx supabase functions deploy places`.
    - O en Supabase → **Edge Functions → Deploy a new function → Via Editor**, con el nombre `places`, pegando el contenido de `index.ts`.
 
-Cada carga de Inicio hace 1 búsqueda Nearby Search y hasta 10 pedidos de fotos; cada recomendación de Sorpréndeme hace 1 Nearby Search. Si el usuario no da permiso de ubicación, la app busca alrededor del centro de Medellín.
+Cada carga de Inicio hace 1 búsqueda Nearby Search y hasta 10 pedidos de fotos; cada búsqueda en Buscar o en Sorpréndeme hace 1 Nearby o Text Search y hasta 20 fotos; abrir un lugar hace 1 Place Details. Mientras la app está abierta, los lugares ya mostrados quedan en memoria para que favoritos y portadas de planes no los vuelvan a pedir (las condiciones de Google no permiten guardar datos de Places en el teléfono ni en la base de datos). Si el usuario no da permiso de ubicación, la app busca alrededor del centro de Medellín.
+
+El mapa funciona en Expo Go sin configuración extra. Para un development build o la tienda, Android necesita una key de Google Maps: activa **Maps SDK for Android** en Google Cloud, crea una key restringida a esa API y al paquete de la app, y agrega el plugin `react-native-maps` en `app.json` con `androidGoogleMapsApiKey`.
 
 ### Ejecución
 
@@ -316,7 +332,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Estado del proyecto
 
-En desarrollo activo. La autenticación funciona con Supabase; Buscar y Favoritos son pantallas provisionales, e Inicio, Planes y Sorpréndeme todavía usan datos de ejemplo.
+En desarrollo activo. La autenticación, los lugares (Google Places), los favoritos y los planes funcionan con Supabase. Falta: el clima real en Inicio, las pantallas de ajustes del Perfil y un detalle de plan para invitar amigos y editarlo.
 
 ### Autores
 Juan Esteban
