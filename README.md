@@ -33,13 +33,22 @@ PlanIt/
 │   ├── services/           # Auth, profile, places, weather, favorites, plans, reminders and location services, contexts and hooks
 │   ├── styles/             # Colors and global styles
 │   ├── types/              # Shared types (navigation, component props, auth, places, plans, weather)
-│   └── utils/              # Utilities (Supabase client, validation, AsyncStorage, user data, dates, place icons, weather codes)
+│   └── utils/              # Utilities (Supabase client, form rules, messages, AsyncStorage, user data, dates, place icons, weather codes)
 ├── supabase/               # Migrations, RLS tests and the `places` Edge Function (Google Places)
 ├── .env.example            # Environment variables template
 ├── App.tsx
 ├── index.ts
 └── app.json
 ```
+
+### Code organization
+
+Following the course guide, each layer has one job:
+
+- **Screens and components** (`src/screens`, `src/components`) show data and respond to the user; they don't hold business rules.
+- **Services** (`src/services`) talk to Supabase, Google Places (through the Edge Function) and Open-Meteo.
+- **Rules** (`src/utils/validation.ts`) check form data before it is sent: name, email, password, and a plan's title, date and places. Each function returns the error to show, or an empty string. The database checks the important rules again (RLS and constraints).
+- **Messages** (`src/utils/messages.ts`) holds every success, warning and error message the app shows, so the wording stays consistent and changes in one place.
 
 ### Implemented screens
 
@@ -218,13 +227,22 @@ PlanIt/
 │   ├── services/           # Servicios de auth, perfil, lugares, clima, favoritos, planes, recordatorios y ubicación; contextos y hooks
 │   ├── styles/             # Colores y estilos globales
 │   ├── types/              # Tipos compartidos (navegación, props de componentes, auth, lugares, planes, clima)
-│   └── utils/              # Utilidades (cliente de Supabase, validación, AsyncStorage, datos del usuario, fechas, íconos de lugares, códigos del clima)
+│   └── utils/              # Utilidades (cliente de Supabase, reglas de los formularios, mensajes, AsyncStorage, datos del usuario, fechas, íconos de lugares, códigos del clima)
 ├── supabase/               # Migraciones, pruebas de RLS y la Edge Function `places` (Google Places)
 ├── .env.example            # Plantilla de variables de entorno
 ├── App.tsx
 ├── index.ts
 └── app.json
 ```
+
+### Organización del código
+
+Siguiendo la guía del curso, cada capa tiene una sola responsabilidad:
+
+- **Pantallas y componentes** (`src/screens`, `src/components`) muestran los datos y responden al usuario; no contienen reglas de negocio.
+- **Servicios** (`src/services`) hablan con Supabase, Google Places (a través de la Edge Function) y Open-Meteo.
+- **Reglas** (`src/utils/validation.ts`) revisan los datos de los formularios antes de enviarlos: nombre, correo, contraseña, y el nombre, la fecha y los lugares de un plan. Cada función devuelve el error que se debe mostrar, o un texto vacío. La base de datos vuelve a revisar las reglas importantes (RLS y restricciones).
+- **Mensajes** (`src/utils/messages.ts`) reúne todos los mensajes de éxito, advertencia y error de la app, para que el tono sea el mismo y se cambien en un solo lugar.
 
 ### Pantallas implementadas
 
