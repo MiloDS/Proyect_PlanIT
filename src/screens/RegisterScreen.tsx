@@ -13,7 +13,12 @@ import { PromptLink } from '../components/PromptLink';
 import { SocialButton } from '../components/SocialButton';
 import { useGoogleSignIn } from '../services/useGoogleSignIn';
 import { globalStyles } from '../styles/globalStyles';
-import { isValidEmail, isEmpty } from '../utils/validation';
+import {
+  validateEmail,
+  validateName,
+  validateNewPassword,
+  validatePasswordConfirmation,
+} from '../utils/validation';
 import { messages } from '../utils/messages';
 import { AuthService } from '../services/authService';
 
@@ -34,22 +39,10 @@ export function RegisterScreen({ navigation }: Props) {
   const google = useGoogleSignIn();
 
   const handleRegister = async () => {
-    const nextNameError = isEmpty(name) ? messages.validation.nameRequired : '';
-    const nextEmailError = isEmpty(email)
-      ? messages.validation.emailRequired
-      : !isValidEmail(email)
-        ? messages.validation.emailInvalid
-        : '';
-    const nextPasswordError = isEmpty(password)
-      ? messages.validation.passwordRequired
-      : password.length < 6
-        ? messages.validation.passwordTooShort(6)
-        : '';
-    const nextConfirmPasswordError = isEmpty(confirmPassword)
-      ? messages.validation.passwordConfirmationRequired
-      : confirmPassword !== password
-        ? messages.validation.passwordsDontMatch
-        : '';
+    const nextNameError = validateName(name);
+    const nextEmailError = validateEmail(email);
+    const nextPasswordError = validateNewPassword(password);
+    const nextConfirmPasswordError = validatePasswordConfirmation(password, confirmPassword);
 
     setNameError(nextNameError);
     setEmailError(nextEmailError);

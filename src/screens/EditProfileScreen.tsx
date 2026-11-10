@@ -13,20 +13,12 @@ import { MemberAvatar } from '../components/MemberAvatar';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../services/AuthContext';
 import { useProfile } from '../services/ProfileContext';
-import { MAX_NAME_LENGTH } from '../services/profileService';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { getDisplayAvatar, getDisplayName } from '../utils/user';
-import { messages } from '../utils/messages';
+import { validateName } from '../utils/validation';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'EditProfile'>;
-
-function validateName(name: string): string {
-  const trimmed = name.trim();
-  if (!trimmed) return messages.validation.nameRequired;
-  if (trimmed.length > MAX_NAME_LENGTH) return messages.validation.tooLong(MAX_NAME_LENGTH);
-  return '';
-}
 
 export function EditProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();

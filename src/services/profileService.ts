@@ -2,8 +2,6 @@ import { supabase } from '../utils/supabase';
 import { messages } from '../utils/messages';
 import { Profile } from '../types/auth';
 
-export const MAX_NAME_LENGTH = 60;
-
 type ProfileRow = {
   full_name: string | null;
   avatar_url: string | null;

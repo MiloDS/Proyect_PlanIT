@@ -49,6 +49,7 @@ import { globalStyles } from '../styles/globalStyles';
 import { formatLongDate, formatTime, isUpcoming } from '../utils/date';
 import { distanceKm } from '../utils/geo';
 import { messages } from '../utils/messages';
+import { isSameEmail } from '../utils/validation';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PlanDetail'>;
 
@@ -184,9 +185,7 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   };
 
   const invite = async (email: string): Promise<string> => {
-    if (email.toLowerCase() === user?.email?.toLowerCase()) {
-      throw new Error(messages.plans.inviteYourself);
-    }
+    if (isSameEmail(email, user?.email)) throw new Error(messages.plans.inviteYourself);
     const membersBefore = plan.members.length;
     await PlansService.invite(plan.id, email);
     const latest = await refresh();

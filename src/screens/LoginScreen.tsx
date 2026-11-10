@@ -14,7 +14,7 @@ import { SocialButton } from '../components/SocialButton';
 import { useGoogleSignIn } from '../services/useGoogleSignIn';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
-import { isValidEmail, isEmpty } from '../utils/validation';
+import { validateEmail, validatePassword } from '../utils/validation';
 import { messages } from '../utils/messages';
 import { AuthService } from '../services/authService';
 
@@ -40,13 +40,8 @@ export function LoginScreen({ navigation, route }: Props) {
   const infoMessage = registeredEmail ? messages.auth.accountCreated : '';
 
   const handleLogin = async () => {
-    const nextEmailError = isEmpty(email)
-      ? messages.validation.emailRequired
-      : !isValidEmail(email)
-        ? messages.validation.emailInvalid
-        : '';
-
-    const nextPasswordError = isEmpty(password) ? messages.validation.passwordRequired : '';
+    const nextEmailError = validateEmail(email);
+    const nextPasswordError = validatePassword(password);
 
     setEmailError(nextEmailError);
     setPasswordError(nextPasswordError);

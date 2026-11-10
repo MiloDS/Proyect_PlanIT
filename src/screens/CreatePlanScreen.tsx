@@ -18,6 +18,7 @@ import { CalendarDays, Clock, LucideIcon, Plus, X } from 'lucide-react-native';
 
 import { AppStackParamList } from '../types/navigation';
 import { Place } from '../types/places';
+import { PlanFormErrors } from '../types/plans';
 import { Banner } from '../components/Banner';
 import { Button } from '../components/Button';
 import { InputField } from '../components/InputField';
@@ -32,18 +33,11 @@ import { globalStyles } from '../styles/globalStyles';
 import { formatShortDate, formatTime, startOfDay } from '../utils/date';
 import { distanceKm } from '../utils/geo';
 import { messages } from '../utils/messages';
+import { validatePlan } from '../utils/validation';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'CreatePlan'>;
 
 type PickerMode = 'date' | 'time';
-
-type FormErrors = {
-  title?: string;
-  startsAt?: string;
-  places?: string;
-};
-
-const MAX_TITLE_LENGTH = 100;
 
 // La próxima hora en punto: un valor razonable para un plan de hoy
 function getDefaultStart(): Date {
@@ -61,24 +55,6 @@ function mergePickedValue(current: Date, picked: Date, mode: PickerMode): Date {
     merged.setHours(picked.getHours(), picked.getMinutes(), 0, 0);
   }
   return merged;
-}
-
-/**
- * `allowPast`: al editar un plan que ya pasó se puede cambiar el nombre o los lugares
- * sin tener que moverlo al futuro
- */
-function validate(title: string, startsAt: Date, places: Place[], allowPast: boolean): FormErrors {
-  const errors: FormErrors = {};
-  const trimmed = title.trim();
-  if (!trimmed) errors.title = messages.validation.planTitleRequired;
-  else if (trimmed.length > MAX_TITLE_LENGTH) {
-    errors.title = messages.validation.tooLong(MAX_TITLE_LENGTH);
-  }
-  if (!allowPast && startsAt.getTime() < Date.now()) {
-    errors.startsAt = messages.validation.planDateInPast;
-  }
-  if (places.length === 0) errors.places = messages.validation.planPlacesRequired;
-  return errors;
 }
 
 type PickerFieldProps = {
@@ -126,7 +102,7 @@ export function CreatePlanScreen({ navigation, route }: Props) {
   const [placesReloadKey, setPlacesReloadKey] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [iosPickerMode, setIosPickerMode] = useState<PickerMode | null>(null);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<PlanFormErrors>({});
   const [saveError, setSaveError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -188,9 +164,13 @@ export function CreatePlanScreen({ navigation, route }: Props) {
   };
 
   const handleSave = async () => {
+    // Al editar un plan que ya pasó se puede cambiar el nombre o los lugares sin moverlo
     const keepsPastDate =
       !!editingPlan && startsAt.getTime() === new Date(editingPlan.startsAt).getTime();
-    const formErrors = validate(title, startsAt, places, keepsPastDate);
+    const formErrors = validatePlan(
+      { title, startsAt, placeCount: places.length },
+      { allowPast: keepsPastDate }
+    );
     setErrors(formErrors);
     setSaveError('');
     if (Object.keys(formErrors).length > 0) return;

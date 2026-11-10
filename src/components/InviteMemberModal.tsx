@@ -8,8 +8,7 @@ import { Button } from './Button';
 import { InputField } from './InputField';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
-import { isEmpty, isValidEmail } from '../utils/validation';
-import { messages } from '../utils/messages';
+import { validateEmail } from '../utils/validation';
 
 // Hoja inferior para agregar personas a un plan con el correo de su cuenta
 export function InviteMemberModal({ visible, onClose, onInvite }: InviteMemberModalProps) {
@@ -27,10 +26,9 @@ export function InviteMemberModal({ visible, onClose, onInvite }: InviteMemberMo
   };
 
   const invite = async () => {
-    if (isEmpty(email) || !isValidEmail(email)) {
-      setFieldError(
-        isEmpty(email) ? messages.validation.emailRequired : messages.validation.emailInvalid
-      );
+    const error = validateEmail(email);
+    if (error) {
+      setFieldError(error);
       return;
     }
 
