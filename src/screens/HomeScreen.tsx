@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MapPin, ChevronDown, Bell, Sparkles } from 'lucide-react-native';
+import { MapPin, Sparkles } from 'lucide-react-native';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -48,20 +48,13 @@ export function HomeScreen({ navigation }: Props) {
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.topBar}>
-          <Pressable
-            style={styles.locationRow}
-            accessibilityRole="button"
-            accessibilityLabel={`Ubicación: ${locationLabel}`}
-          >
-            <MapPin size={16} color={colors.textPrimary} />
-            <Text style={styles.locationText}>{locationLabel}</Text>
-            <ChevronDown size={16} color={colors.textPrimary} />
-          </Pressable>
-
-          <Pressable accessibilityRole="button" accessibilityLabel="Notificaciones" hitSlop={8}>
-            <Bell size={22} color={colors.textPrimary} />
-          </Pressable>
+        <View
+          style={styles.locationRow}
+          accessible
+          accessibilityLabel={`Ubicación: ${locationLabel}`}
+        >
+          <MapPin size={16} color={colors.textPrimary} />
+          <Text style={styles.locationText}>{locationLabel}</Text>
         </View>
 
         <Text style={styles.greeting}>
@@ -161,15 +154,11 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 24,
   },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 24,
+    marginBottom: 20,
   },
   locationText: {
     fontSize: 14,
