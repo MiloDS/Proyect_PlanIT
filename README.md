@@ -58,15 +58,15 @@ Following the course guide, each layer has one job:
 | `LoginScreen` | Email/password login and Google login, field validation, "forgot password" link |
 | `RegisterScreen` | Sign up with name, email, and password, or with Google |
 | `ForgotPasswordScreen` | Recover the password with a code sent by email (email → code → new password) |
-| `HomeScreen` | Greeting, current weather, "Surprise me" shortcut, and nearby places |
+| `HomeScreen` | Greeting, current weather, "Surprise me" shortcut, and nearby places; pull down to refresh the location, weather and places |
 | `SearchScreen` | Map with nearby places, category filters, text search, and "search this area" |
 | `PlaceDetailScreen` | Photo, rating, distance, hours, price, description, amenities; save to favorites and share |
 | `SurpriseMeScreen` | Preference form (activity, budget, distance, company) |
 | `RecommendationsScreen` | Places that match the Surprise me preferences, ordered by rating, weather and company, with a note explaining the order |
-| `PlansScreen` | Upcoming and past plans from Supabase (own and shared) |
+| `PlansScreen` | Upcoming and past plans from Supabase (own and shared); pull down to refresh |
 | `PlanDetailScreen` | Plan date, places and members; the owner invites people by email, removes guests, edits and deletes the plan; guests can leave |
 | `CreatePlanScreen` | New plan with name, date, time and places (nearby, favorites or search); also edits an existing plan |
-| `FavoritesScreen` | Favorite places and plans (All / Places / Plans) |
+| `FavoritesScreen` | Favorite places and plans (All / Places / Plans); pull down to refresh |
 | `ProfileScreen` | User data, settings menu, and logout |
 | `EditProfileScreen` | Change the name other people see in your plans (the email is read-only) |
 | `NotificationsScreen` | Turn plan reminders on or off and choose when they arrive |
@@ -268,15 +268,15 @@ Siguiendo la guía del curso, cada capa tiene una sola responsabilidad:
 | `LoginScreen` | Inicio de sesión con correo/contraseña y con Google, validación de campos, enlace para recuperar la contraseña |
 | `RegisterScreen` | Registro con nombre, correo y contraseña, o con Google |
 | `ForgotPasswordScreen` | Recuperar la contraseña con un código que llega al correo (correo → código → contraseña nueva) |
-| `HomeScreen` | Saludo, clima actual, acceso a "Sorpréndeme" y lugares cercanos |
+| `HomeScreen` | Saludo, clima actual, acceso a "Sorpréndeme" y lugares cercanos; al deslizar hacia abajo se actualizan la ubicación, el clima y los lugares |
 | `SearchScreen` | Mapa con lugares cercanos, filtros por categoría, búsqueda por texto y "Buscar en esta zona" |
 | `PlaceDetailScreen` | Foto, calificación, distancia, horario, precio, descripción y servicios; guardar en favoritos y compartir |
 | `SurpriseMeScreen` | Formulario de preferencias (actividad, presupuesto, distancia, compañía) |
 | `RecommendationsScreen` | Lugares que cumplen las preferencias de Sorpréndeme, ordenados por calificación, clima y compañía, con una nota que explica el orden |
-| `PlansScreen` | Planes próximos y pasados desde Supabase (propios y compartidos) |
+| `PlansScreen` | Planes próximos y pasados desde Supabase (propios y compartidos); se actualizan al deslizar hacia abajo |
 | `PlanDetailScreen` | Fecha, lugares y personas del plan; el dueño invita por correo, quita invitados, edita y elimina el plan; los invitados pueden salirse |
 | `CreatePlanScreen` | Nuevo plan con nombre, fecha, hora y lugares (cercanos, favoritos o búsqueda); también edita un plan existente |
-| `FavoritesScreen` | Lugares y planes favoritos (Todos / Lugares / Planes) |
+| `FavoritesScreen` | Lugares y planes favoritos (Todos / Lugares / Planes); se actualizan al deslizar hacia abajo |
 | `ProfileScreen` | Datos del usuario, menú de ajustes y cierre de sesión |
 | `EditProfileScreen` | Cambiar el nombre que ven las personas de tus planes (el correo es de solo lectura) |
 | `NotificationsScreen` | Activar o desactivar los recordatorios de planes y elegir cuándo llegan |
