@@ -20,7 +20,6 @@ import { Button } from '../components/Button';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { useAuth } from '../services/AuthContext';
-import { PlacesService } from '../services/placesService';
 import { useNearbyPlaces } from '../services/useNearbyPlaces';
 import { distanceKm } from '../utils/geo';
 import { getFirstName } from '../utils/user';
@@ -98,7 +97,11 @@ export function HomeScreen({ navigation }: Props) {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Cerca de ti</Text>
-          <Pressable>
+          <Pressable
+            onPress={() => navigation.navigate('Search')}
+            accessibilityRole="button"
+            hitSlop={8}
+          >
             <Text style={styles.sectionLink}>Ver todo</Text>
           </Pressable>
         </View>
@@ -136,7 +139,7 @@ export function HomeScreen({ navigation }: Props) {
                   category={place.category}
                   imageUrl={place.photoUrl}
                   distanceKm={distanceKm(origin, place.location)}
-                  onPress={() => PlacesService.openInMaps(place)}
+                  onPress={() => navigation.navigate('PlaceDetail', { place })}
                 />
               ))}
             </ScrollView>

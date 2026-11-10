@@ -28,23 +28,34 @@ const SERVICE = {
 };
 const LIST_KEY = { place: 'places', plan: 'plans' } as const;
 
+function initialState(userId: string | null): FavoritesState {
+  return { status: userId ? 'loading' : 'ready', places: [], plans: [], error: '' };
+}
+
+type FavoritesProviderProps = {
+  /** Usuario con sesión; sin sesión no se consulta nada */
+  userId: string | null;
+  children: ReactNode;
+};
+
 /**
- * Favoritos compartidos por todas las pantallas (detalle, buscar, planes y favoritos).
- * AppNavigator lo monta con key = id del usuario, así que al cambiar de cuenta empieza
- * de cero sin restos de la sesión anterior.
+ * Favoritos compartidos por todas las pantallas (detalle, buscar, planes y favoritos)
  */
-export function FavoritesProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<FavoritesState>({
-    status: 'loading',
-    places: [],
-    plans: [],
-    error: '',
-  });
+export function FavoritesProvider({ userId, children }: FavoritesProviderProps) {
+  const [state, setState] = useState<FavoritesState>(() => initialState(userId));
+  const [stateUserId, setStateUserId] = useState(userId);
   const [reloadKey, setReloadKey] = useState(0);
   // Evita que dos toques seguidos sobre el mismo corazón se pisen
   const pending = useRef(new Set<string>());
 
+  // Al cerrar sesión o cambiar de cuenta se descartan los favoritos anteriores
+  if (stateUserId !== userId) {
+    setStateUserId(userId);
+    setState(initialState(userId));
+  }
+
   useEffect(() => {
+    if (!userId) return;
     let cancelled = false;
 
     Promise.all([FavoritesService.listPlaces(), FavoritesService.listPlans()])
@@ -59,7 +70,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [reloadKey]);
+  }, [userId, reloadKey]);
 
   const contains = (kind: FavoriteKind, id: string) =>
     state[LIST_KEY[kind]].some((entry) => entry.id === id);

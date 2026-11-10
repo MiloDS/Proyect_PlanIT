@@ -78,3 +78,13 @@ export type CustomSliderProps = {
 export type PlaceholderScreenProps = {
   title: string;
 };
+
+export type FavoriteButtonProps = {
+  isFavorite: boolean;
+  onPress: () => void;
+  /** Nombre del lugar o plan, para el lector de pantalla */
+  itemName: string;
+  size?: number;
+  /** floating: círculo blanco para ir sobre una foto */
+  variant?: 'plain' | 'floating';
+};
