@@ -22,7 +22,6 @@ import {
   Pencil,
   RotateCcw,
 } from 'lucide-react-native';
-
 import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -50,7 +49,6 @@ type MenuItemProps = {
 
 const MENU_ITEMS = [
   { Icon: CreditCard, title: 'Métodos de pago' },
-  { Icon: Bell, title: 'Notificaciones' },
   { Icon: Globe, title: 'Idioma', value: 'Español' },
   { Icon: HelpCircle, title: 'Ayuda y soporte' },
 ];
@@ -155,6 +153,11 @@ export function ProfileScreen({ navigation }: Props) {
             icon={<User size={21} color={colors.textBody} />}
             title="Información personal"
             onPress={editProfile}
+          />
+          <MenuItem
+            icon={<Bell size={21} color={colors.textBody} />}
+            title="Notificaciones"
+            onPress={() => navigation.navigate('Notifications')}
           />
 
           {MENU_ITEMS.map(({ Icon, title, value }) => (

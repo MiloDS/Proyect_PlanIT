@@ -40,6 +40,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../services/AuthContext';
 import { useFavorites } from '../services/FavoritesContext';
 import { PlacesService } from '../services/placesService';
+import { PlanReminders } from '../services/planReminders';
 import { PlansService } from '../services/plansService';
 import { useDevicePosition } from '../services/useDevicePosition';
 import { usePlacesById } from '../services/usePlacesById';
@@ -119,6 +120,9 @@ export function PlanDetailScreen({ navigation, route }: Props) {
     async (isCancelled: () => boolean = () => false): Promise<Plan | null> => {
       try {
         const latest = await PlansService.get(planId);
+        // El recordatorio sigue los cambios de fecha o nombre
+        if (latest) PlanReminders.update(latest);
+        else PlanReminders.cancel(planId);
         if (isCancelled()) return latest;
         if (latest) setPlan(latest);
         else setIsGone(true);
@@ -241,8 +245,9 @@ export function PlanDetailScreen({ navigation, route }: Props) {
           setLeaving(true);
           try {
             await action.run();
-            // El plan desaparece de los favoritos de esta persona
+            // El plan desaparece de los favoritos y recordatorios de esta persona
             favorites.reload();
+            PlanReminders.cancel(plan.id);
             navigation.goBack();
           } catch (err: any) {
             setLeaving(false);

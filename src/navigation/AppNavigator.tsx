@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
@@ -18,11 +18,13 @@ import { PlaceDetailScreen } from '../screens/PlaceDetailScreen';
 import { CreatePlanScreen } from '../screens/CreatePlanScreen';
 import { PlanDetailScreen } from '../screens/PlanDetailScreen';
 import { EditProfileScreen } from '../screens/EditProfileScreen';
+import { NotificationsScreen } from '../screens/NotificationsScreen';
 import { RecommendationsScreen } from '../screens/RecommendationsScreen';
 import { BottomNavBar } from '../components/BottomNavBar';
 import { useAuth } from '../services/AuthContext';
 import { FavoritesProvider } from '../services/FavoritesContext';
 import { ProfileProvider } from '../services/ProfileContext';
+import { useOpenPlanFromNotification, usePlanReminderSync } from '../services/usePlanReminders';
 import { hasSeenOnboarding } from '../utils/storage';
 import { colors } from '../styles/colors';
 
@@ -48,13 +50,20 @@ function MainTabs() {
   );
 }
 
+const navigationRef = createNavigationContainerRef<AppStackParamList>();
+
 export function AppNavigator() {
   const { session, isLoading } = useAuth();
   const [seenOnboarding, setSeenOnboarding] = useState<boolean | null>(null);
+  const [navigationReady, setNavigationReady] = useState(false);
+  const userId = session?.user.id ?? null;
 
   useEffect(() => {
     hasSeenOnboarding().then(setSeenOnboarding);
   }, []);
+
+  usePlanReminderSync(isLoading ? undefined : userId);
+  useOpenPlanFromNotification(navigationRef, isLoading ? undefined : userId, navigationReady);
 
   // Quien ya inició sesión pasó por el onboarding: al cerrar sesión debe ver Login, no Intro
   if (session && seenOnboarding === false) {
@@ -71,11 +80,10 @@ export function AppNavigator() {
 
   // Las pantallas dependen de la sesión: al iniciar o cerrar sesión
   // React Navigation cambia de grupo sin necesidad de navigation.reset
-  const userId = session?.user.id ?? null;
   return (
     <ProfileProvider userId={userId}>
       <FavoritesProvider userId={userId}>
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef} onReady={() => setNavigationReady(true)}>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             {session ? (
               <>
@@ -86,6 +94,7 @@ export function AppNavigator() {
                 <Stack.Screen name="CreatePlan" component={CreatePlanScreen} />
                 <Stack.Screen name="PlanDetail" component={PlanDetailScreen} />
                 <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+                <Stack.Screen name="Notifications" component={NotificationsScreen} />
               </>
             ) : (
               <>
