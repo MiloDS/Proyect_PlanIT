@@ -19,6 +19,7 @@ Mobile app to discover activities and places based on location, weather, and per
 - **lucide-react-native** for icons
 - **react-native-maps** for the Search map and **@react-native-community/datetimepicker** for plan dates (both included in Expo Go)
 - **Open-Meteo** for the weather on Home (free, no API key)
+- **expo-notifications** for plan reminders (local notifications, which work in Expo Go)
 
 ### Project structure
 
@@ -29,7 +30,7 @@ PlanIt/
 │   ├── components/         # Reusable components (Button, InputField, BottomNavBar...)
 │   ├── navigation/         # React Navigation setup
 │   ├── screens/            # App screens
-│   ├── services/           # Auth, places, weather, favorites, plans and location services, contexts and hooks
+│   ├── services/           # Auth, profile, places, weather, favorites, plans, reminders and location services, contexts and hooks
 │   ├── styles/             # Colors and global styles
 │   ├── types/              # Shared types (navigation, component props, auth, places, plans, weather)
 │   └── utils/              # Utilities (Supabase client, validation, AsyncStorage, user data, dates, place icons, weather codes)
@@ -57,6 +58,9 @@ PlanIt/
 | `CreatePlanScreen` | New plan with name, date, time and places (nearby, favorites or search); also edits an existing plan |
 | `FavoritesScreen` | Favorite places and plans (All / Places / Plans) |
 | `ProfileScreen` | User data, settings menu, and logout |
+| `EditProfileScreen` | Change the name other people see in your plans (the email is read-only) |
+| `NotificationsScreen` | Turn plan reminders on or off and choose when they arrive |
+| `HelpScreen` | Frequently asked questions and information about the app |
 
 ### Navigation flow
 
@@ -64,7 +68,7 @@ PlanIt/
 
 1. **No session, first time opening the app** → `IntroScreen`, then `LoginScreen`.
 2. **No session, onboarding already seen** → `LoginScreen` / `RegisterScreen`.
-3. **Active session** → `MainTabs` (Home, Search, Plans, Favorites, Profile) plus `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen`, `CreatePlanScreen` and `PlanDetailScreen` on top of the tabs.
+3. **Active session** → `MainTabs` (Home, Search, Plans, Favorites, Profile) plus `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen`, `CreatePlanScreen`, `PlanDetailScreen` and the Profile settings screens (`EditProfileScreen`, `NotificationsScreen`, `HelpScreen`) on top of the tabs.
 
 Logging in or out switches the group automatically; screens don't need to call `navigation.reset`.
 
@@ -123,6 +127,12 @@ The map works in Expo Go without extra setup. For a development or store build, 
 
 The weather card on Home uses the [Open-Meteo](https://open-meteo.com) forecast API, which needs no API key, so the app calls it directly (`src/services/weatherService.ts`). It sends the location rounded to two decimals (about 1 km) and keeps each result in memory for 15 minutes, which is how often Open-Meteo updates the current weather. Open-Meteo's free API is for non-commercial use and its data is licensed under CC BY 4.0, so the card credits it; a commercial release would need one of its paid plans.
 
+### Plan reminders
+
+In **Profile → Notificaciones** each person can turn on a reminder before their plans (30 minutes, 1 hour, 3 hours or 1 day before). They are local notifications scheduled on the phone with `expo-notifications` (`src/services/planReminders.ts`), so they arrive with the app closed and need no server; the preference is stored on the device. Reminders are rescheduled every time the app loads plans (on startup, in Mis planes and in a plan's detail), so changes made by other members are picked up; leaving or deleting a plan and signing out cancel them, and tapping a reminder opens the plan.
+
+Local notifications work in Expo Go. Push notifications don't (that would need a development build), which is why the app hides the two warnings `expo-notifications` prints about them in Expo Go (`src/utils/devWarnings.ts`).
+
 ### Running the app
 
 ```bash
@@ -169,7 +179,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Project status
 
-Actively in development. Authentication, places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo). Plans can be shared by inviting friends by email, edited and deleted from their detail screen. Still pending: the Profile settings screens.
+Actively in development. Authentication, places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo). Plans can be shared by inviting friends by email, edited and deleted from their detail screen, and remind you before they start. Ideas for later: notify people when they are invited to a plan (push notifications, which need a development build), uploading a profile photo, and more languages.
 
 ### Authors
 Juan Esteban
@@ -194,6 +204,7 @@ Aplicación móvil para descubrir actividades y lugares según ubicación, clima
 - **lucide-react-native** para iconografía
 - **react-native-maps** para el mapa de Buscar y **@react-native-community/datetimepicker** para la fecha de los planes (ambas vienen en Expo Go)
 - **Open-Meteo** para el clima de Inicio (gratis, sin API key)
+- **expo-notifications** para los recordatorios de planes (notificaciones locales, que funcionan en Expo Go)
 
 ### Estructura del proyecto
 
@@ -204,7 +215,7 @@ PlanIt/
 │   ├── components/         # Componentes reutilizables (Button, InputField, BottomNavBar...)
 │   ├── navigation/         # Configuración de React Navigation
 │   ├── screens/            # Pantallas de la app
-│   ├── services/           # Servicios de auth, lugares, clima, favoritos, planes y ubicación; contextos y hooks
+│   ├── services/           # Servicios de auth, perfil, lugares, clima, favoritos, planes, recordatorios y ubicación; contextos y hooks
 │   ├── styles/             # Colores y estilos globales
 │   ├── types/              # Tipos compartidos (navegación, props de componentes, auth, lugares, planes, clima)
 │   └── utils/              # Utilidades (cliente de Supabase, validación, AsyncStorage, datos del usuario, fechas, íconos de lugares, códigos del clima)
@@ -232,6 +243,9 @@ PlanIt/
 | `CreatePlanScreen` | Nuevo plan con nombre, fecha, hora y lugares (cercanos, favoritos o búsqueda); también edita un plan existente |
 | `FavoritesScreen` | Lugares y planes favoritos (Todos / Lugares / Planes) |
 | `ProfileScreen` | Datos del usuario, menú de ajustes y cierre de sesión |
+| `EditProfileScreen` | Cambiar el nombre que ven las personas de tus planes (el correo es de solo lectura) |
+| `NotificationsScreen` | Activar o desactivar los recordatorios de planes y elegir cuándo llegan |
+| `HelpScreen` | Preguntas frecuentes e información sobre la app |
 
 ### Flujo de navegación
 
@@ -239,7 +253,7 @@ PlanIt/
 
 1. **Sin sesión, primera vez que se abre la app** → `IntroScreen` y luego `LoginScreen`.
 2. **Sin sesión, onboarding ya visto** → `LoginScreen` / `RegisterScreen`.
-3. **Sesión activa** → `MainTabs` (Inicio, Buscar, Planes, Favoritos, Perfil) y, encima de las pestañas, `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen`, `CreatePlanScreen` y `PlanDetailScreen`.
+3. **Sesión activa** → `MainTabs` (Inicio, Buscar, Planes, Favoritos, Perfil) y, encima de las pestañas, `SurpriseMeScreen`, `RecommendationsScreen`, `PlaceDetailScreen`, `CreatePlanScreen`, `PlanDetailScreen` y las pantallas de ajustes del Perfil (`EditProfileScreen`, `NotificationsScreen`, `HelpScreen`).
 
 Al iniciar o cerrar sesión el grupo cambia solo; las pantallas no necesitan llamar a `navigation.reset`.
 
@@ -298,6 +312,12 @@ El mapa funciona en Expo Go sin configuración extra. Para un development build 
 
 La tarjeta del clima de Inicio usa la API de pronóstico de [Open-Meteo](https://open-meteo.com), que no necesita API key, así que la app la consulta directamente (`src/services/weatherService.ts`). Envía la ubicación redondeada a dos decimales (alrededor de 1 km) y guarda cada resultado en memoria 15 minutos, que es cada cuánto Open-Meteo actualiza el clima actual. La API gratuita de Open-Meteo es para uso no comercial y sus datos tienen licencia CC BY 4.0, por eso la tarjeta lo menciona; para publicar la app con fines comerciales haría falta uno de sus planes pagos.
 
+### Recordatorios de planes
+
+En **Perfil → Notificaciones** cada persona puede activar un recordatorio antes de sus planes (30 minutos, 1 hora, 3 horas o 1 día antes). Son notificaciones locales que se programan en el teléfono con `expo-notifications` (`src/services/planReminders.ts`), así que llegan con la app cerrada y no necesitan servidor; la preferencia se guarda en el dispositivo. Los recordatorios se reprograman cada vez que la app carga los planes (al abrirla, en Mis planes y en el detalle de un plan), así se enteran de los cambios que hagan otras personas; salir de un plan, eliminarlo o cerrar sesión los cancela, y tocar un recordatorio abre el plan.
+
+Las notificaciones locales funcionan en Expo Go. Las push no (necesitarían un development build), por eso la app oculta los dos avisos que `expo-notifications` muestra sobre ellas en Expo Go (`src/utils/devWarnings.ts`).
+
 ### Ejecución
 
 ```bash
@@ -344,7 +364,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Estado del proyecto
 
-En desarrollo activo. La autenticación, los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo). Los planes se comparten invitando amigos por correo, y se editan y eliminan desde su detalle. Falta: las pantallas de ajustes del Perfil.
+En desarrollo activo. La autenticación, los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo). Los planes se comparten invitando amigos por correo, se editan y eliminan desde su detalle, y avisan antes de empezar. Ideas para después: avisar a las personas cuando las invitan a un plan (notificaciones push, que necesitan un development build), subir una foto de perfil y más idiomas.
 
 ### Autores
 Juan Esteban
