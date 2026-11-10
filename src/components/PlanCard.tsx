@@ -1,35 +1,19 @@
-import { Image, ImageBackground, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 import { CalendarDays } from 'lucide-react-native';
 
 import { PlanCardProps } from '../types/components';
-import { PlanMember } from '../types/plans';
 import { FavoriteButton } from './FavoriteButton';
+import { MemberAvatar } from './MemberAvatar';
 import { colors } from '../styles/colors';
 import { formatShortDate, formatTime } from '../utils/date';
 
 const MAX_AVATARS = 4;
 
-function getInitials(name: string | null): string {
-  const words = (name ?? '').trim().split(/\s+/).filter(Boolean);
-  return words
-    .slice(0, 2)
-    .map((word) => word[0].toUpperCase())
-    .join('');
-}
-
-function MemberAvatar({ member, index }: { member: PlanMember; index: number }) {
-  const style = [styles.avatar, { zIndex: MAX_AVATARS - index }];
-  if (member.avatarUrl) {
-    return <Image source={{ uri: member.avatarUrl }} style={style} />;
-  }
-  return (
-    <View style={[style, styles.avatarFallback]}>
-      <Text style={styles.avatarInitials}>{getInitials(member.fullName) || '?'}</Text>
-    </View>
-  );
-}
-
-function CardContent({ plan, isFavorite, onToggleFavorite }: Omit<PlanCardProps, 'coverUrl'>) {
+function CardContent({
+  plan,
+  isFavorite,
+  onToggleFavorite,
+}: Omit<PlanCardProps, 'coverUrl' | 'onPress'>) {
   const startsAt = new Date(plan.startsAt);
   const placesLabel = plan.placeIds.length === 1 ? '1 lugar' : `${plan.placeIds.length} lugares`;
   const extraMembers = plan.members.length - MAX_AVATARS;
@@ -54,7 +38,12 @@ function CardContent({ plan, isFavorite, onToggleFavorite }: Omit<PlanCardProps,
 
       <View style={styles.avatarRow}>
         {plan.members.slice(0, MAX_AVATARS).map((member, index) => (
-          <MemberAvatar key={member.userId} member={member} index={index} />
+          <MemberAvatar
+            key={member.userId}
+            name={member.fullName}
+            avatarUrl={member.avatarUrl}
+            style={[styles.avatar, { zIndex: MAX_AVATARS - index }]}
+          />
         ))}
         {extraMembers > 0 && <Text style={styles.extraMembers}>+{extraMembers}</Text>}
       </View>
@@ -62,9 +51,30 @@ function CardContent({ plan, isFavorite, onToggleFavorite }: Omit<PlanCardProps,
   );
 }
 
-export function PlanCard({ coverUrl, ...props }: PlanCardProps) {
+export function PlanCard({ coverUrl, onPress, ...props }: PlanCardProps) {
+  const startsAt = new Date(props.plan.startsAt);
+
+  // Al ser un botón, el lector de pantalla trata la tarjeta como un solo elemento: el
+  // favorito queda disponible como acción de la tarjeta
   return (
-    <View style={styles.card}>
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      accessible={!!onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${props.plan.title}, ${formatShortDate(startsAt)}, ${formatTime(startsAt)}`}
+      accessibilityHint="Abre el detalle del plan"
+      accessibilityActions={[
+        {
+          name: 'toggleFavorite',
+          label: props.isFavorite ? 'Quitar de favoritos' : 'Guardar en favoritos',
+        },
+      ]}
+      onAccessibilityAction={(event) => {
+        if (event.nativeEvent.actionName === 'toggleFavorite') props.onToggleFavorite();
+      }}
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+    >
       {coverUrl ? (
         <ImageBackground
           source={{ uri: coverUrl }}
@@ -79,7 +89,7 @@ export function PlanCard({ coverUrl, ...props }: PlanCardProps) {
           <CardContent {...props} />
         </View>
       )}
-    </View>
+    </Pressable>
   );
 }
 
@@ -94,6 +104,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
+  },
+  pressed: {
+    opacity: 0.85,
   },
   background: {
     flex: 1,
@@ -138,22 +151,9 @@ const styles = StyleSheet.create({
     marginTop: 'auto',
   },
   avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
     borderWidth: 2,
     borderColor: colors.white,
     marginRight: -8,
-  },
-  avatarFallback: {
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarInitials: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.white,
   },
   extraMembers: {
     marginLeft: 14,

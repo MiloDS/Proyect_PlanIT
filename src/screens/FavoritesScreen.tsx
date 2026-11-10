@@ -136,6 +136,7 @@ export function FavoritesScreen({ navigation }: Props) {
             coverUrl={plans.getCoverUrl(plan)}
             isFavorite
             onToggleFavorite={() => favorites.togglePlan(plan.id)}
+            onPress={() => navigation.navigate('PlanDetail', { plan })}
           />
         ))}
       </View>

@@ -139,6 +139,21 @@ export type PlanCardProps = {
   coverUrl: string | null;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  onPress?: () => void;
+};
+
+export type MemberAvatarProps = {
+  name: string | null;
+  avatarUrl: string | null;
+  size?: number;
+  style?: StyleProp<ViewStyle>;
+};
+
+export type InviteMemberModalProps = {
+  visible: boolean;
+  onClose: () => void;
+  /** Agrega a la persona y devuelve el mensaje para mostrar; lanza un error si no se pudo */
+  onInvite: (email: string) => Promise<string>;
 };
 
 export type PlacePickerModalProps = {
