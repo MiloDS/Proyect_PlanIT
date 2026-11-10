@@ -3,6 +3,7 @@ import type { KeyboardTypeOptions, StyleProp, ViewStyle } from 'react-native';
 
 import type { Place } from './places';
 import type { Plan } from './plans';
+import type { Weather } from './weather';
 
 export type ButtonProps = {
   onPress: () => void;
@@ -145,4 +146,10 @@ export type PlacePickerModalProps = {
   selectedIds: string[];
   onToggle: (place: Place) => void;
   onClose: () => void;
+};
+
+export type WeatherCardProps = {
+  status: 'loading' | 'ready' | 'error';
+  weather: Weather | null;
+  onRetry: () => void;
 };
