@@ -21,13 +21,3 @@ export type NewPlan = {
   startsAt: Date;
   placeIds: string[];
 };
-
-/** @deprecated Datos de ejemplo de mockData.ts hasta conectar Mis planes con Supabase */
-export type PlanSummary = {
-  id: string;
-  title: string;
-  date: string;
-  placesCount: number;
-  imageUrl: string;
-  avatars: string[];
-};

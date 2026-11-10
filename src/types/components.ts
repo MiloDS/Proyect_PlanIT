@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { KeyboardTypeOptions, StyleProp, ViewStyle } from 'react-native';
 
 import type { Place } from './places';
+import type { Plan } from './plans';
 
 export type ButtonProps = {
   onPress: () => void;
@@ -127,4 +128,25 @@ export type EmptyStateProps = {
   message?: string;
   actionLabel?: string;
   onAction?: () => void;
+};
+
+export type SegmentedControlProps<T extends string> = {
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+};
+
+export type PlanCardProps = {
+  plan: Plan;
+  /** Foto del primer lugar del plan */
+  coverUrl: string | null;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
+};
+
+export type PlacePickerModalProps = {
+  visible: boolean;
+  selectedIds: string[];
+  onToggle: (place: Place) => void;
+  onClose: () => void;
 };

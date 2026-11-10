@@ -10,6 +10,7 @@ export type AppStackParamList = {
   SurpriseMe: undefined;
   PlaceDetail: { place: Place };
   Recommendations: { preferences: RecommendationPreferences };
+  CreatePlan: undefined;
 };
 
 export type MainTabParamList = {

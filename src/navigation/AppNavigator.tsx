@@ -15,6 +15,7 @@ import { SearchScreen } from '../screens/SearchScreen';
 import { PlansScreen } from '../screens/PlansScreen';
 import { FavoritesScreen } from '../screens/FavoritesScreen';
 import { PlaceDetailScreen } from '../screens/PlaceDetailScreen';
+import { CreatePlanScreen } from '../screens/CreatePlanScreen';
 import { RecommendationsScreen } from '../screens/RecommendationsScreen';
 import { BottomNavBar } from '../components/BottomNavBar';
 import { useAuth } from '../services/AuthContext';
@@ -77,6 +78,7 @@ export function AppNavigator() {
               <Stack.Screen name="SurpriseMe" component={SurpriseMeScreen} />
               <Stack.Screen name="PlaceDetail" component={PlaceDetailScreen} />
               <Stack.Screen name="Recommendations" component={RecommendationsScreen} />
+              <Stack.Screen name="CreatePlan" component={CreatePlanScreen} />
             </>
           ) : (
             <>
