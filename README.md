@@ -18,6 +18,7 @@ Mobile app to discover activities and places based on location, weather, and per
 - **react-native-safe-area-context** for safe area handling (notch, navigation bar)
 - **lucide-react-native** for icons
 - **react-native-maps** for the Search map and **@react-native-community/datetimepicker** for plan dates (both included in Expo Go)
+- **Open-Meteo** for the weather on Home (free, no API key)
 
 ### Project structure
 
@@ -28,10 +29,10 @@ PlanIt/
 │   ├── components/         # Reusable components (Button, InputField, BottomNavBar...)
 │   ├── navigation/         # React Navigation setup
 │   ├── screens/            # App screens
-│   ├── services/           # Auth, places, favorites, plans and location services, contexts and hooks
+│   ├── services/           # Auth, places, weather, favorites, plans and location services, contexts and hooks
 │   ├── styles/             # Colors and global styles
-│   ├── types/              # Shared types (navigation, component props, auth, places, plans)
-│   └── utils/              # Utilities (Supabase client, validation, AsyncStorage, user data, dates, place icons)
+│   ├── types/              # Shared types (navigation, component props, auth, places, plans, weather)
+│   └── utils/              # Utilities (Supabase client, validation, AsyncStorage, user data, dates, place icons, weather codes)
 ├── supabase/               # Migrations, RLS tests and the `places` Edge Function (Google Places)
 ├── .env.example            # Environment variables template
 ├── App.tsx
@@ -46,7 +47,7 @@ PlanIt/
 | `IntroScreen` | Onboarding carousel (3 slides), swipe navigation, pagination dots, and start button |
 | `LoginScreen` | Email/password login and Google login, field validation |
 | `RegisterScreen` | Sign up with name, email, and password, or with Google |
-| `HomeScreen` | Greeting, weather card, "Surprise me" shortcut, and nearby places |
+| `HomeScreen` | Greeting, current weather, "Surprise me" shortcut, and nearby places |
 | `SearchScreen` | Map with nearby places, category filters, text search, and "search this area" |
 | `PlaceDetailScreen` | Photo, rating, distance, hours, price, description, amenities; save to favorites and share |
 | `SurpriseMeScreen` | Preference form (activity, budget, distance, company) |
@@ -117,6 +118,10 @@ Each Home load makes 1 Nearby Search plus up to 10 photo requests; each Search o
 
 The map works in Expo Go without extra setup. For a development or store build, Android needs a Google Maps key: enable **Maps SDK for Android** in Google Cloud, create a key restricted to that API and the app's package, and add the `react-native-maps` plugin to `app.json` with `androidGoogleMapsApiKey`.
 
+### Weather
+
+The weather card on Home uses the [Open-Meteo](https://open-meteo.com) forecast API, which needs no API key, so the app calls it directly (`src/services/weatherService.ts`). It sends the location rounded to two decimals (about 1 km) and keeps each result in memory for 15 minutes, which is how often Open-Meteo updates the current weather. Open-Meteo's free API is for non-commercial use and its data is licensed under CC BY 4.0, so the card credits it; a commercial release would need one of its paid plans.
+
 ### Running the app
 
 ```bash
@@ -163,7 +168,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Project status
 
-Actively in development. Authentication, places (Google Places), favorites and plans work with Supabase. Still pending: the real weather on Home, the Profile settings screens, and a plan detail screen to invite friends and edit plans.
+Actively in development. Authentication, places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo). Still pending: the Profile settings screens, and a plan detail screen to invite friends and edit plans.
 
 ### Authors
 Juan Esteban
@@ -187,6 +192,7 @@ Aplicación móvil para descubrir actividades y lugares según ubicación, clima
 - **react-native-safe-area-context** para manejo de áreas seguras (notch, barra de navegación)
 - **lucide-react-native** para iconografía
 - **react-native-maps** para el mapa de Buscar y **@react-native-community/datetimepicker** para la fecha de los planes (ambas vienen en Expo Go)
+- **Open-Meteo** para el clima de Inicio (gratis, sin API key)
 
 ### Estructura del proyecto
 
@@ -197,10 +203,10 @@ PlanIt/
 │   ├── components/         # Componentes reutilizables (Button, InputField, BottomNavBar...)
 │   ├── navigation/         # Configuración de React Navigation
 │   ├── screens/            # Pantallas de la app
-│   ├── services/           # Servicios de auth, lugares, favoritos, planes y ubicación; contextos y hooks
+│   ├── services/           # Servicios de auth, lugares, clima, favoritos, planes y ubicación; contextos y hooks
 │   ├── styles/             # Colores y estilos globales
-│   ├── types/              # Tipos compartidos (navegación, props de componentes, auth, lugares, planes)
-│   └── utils/              # Utilidades (cliente de Supabase, validación, AsyncStorage, datos del usuario, fechas, íconos de lugares)
+│   ├── types/              # Tipos compartidos (navegación, props de componentes, auth, lugares, planes, clima)
+│   └── utils/              # Utilidades (cliente de Supabase, validación, AsyncStorage, datos del usuario, fechas, íconos de lugares, códigos del clima)
 ├── supabase/               # Migraciones, pruebas de RLS y la Edge Function `places` (Google Places)
 ├── .env.example            # Plantilla de variables de entorno
 ├── App.tsx
@@ -215,7 +221,7 @@ PlanIt/
 | `IntroScreen` | Onboarding con carrusel de bienvenida (3 slides), navegación por swipe, indicador de puntos y botón de inicio |
 | `LoginScreen` | Inicio de sesión con correo/contraseña y con Google, validación de campos |
 | `RegisterScreen` | Registro con nombre, correo y contraseña, o con Google |
-| `HomeScreen` | Saludo, clima, acceso a "Sorpréndeme" y lugares cercanos |
+| `HomeScreen` | Saludo, clima actual, acceso a "Sorpréndeme" y lugares cercanos |
 | `SearchScreen` | Mapa con lugares cercanos, filtros por categoría, búsqueda por texto y "Buscar en esta zona" |
 | `PlaceDetailScreen` | Foto, calificación, distancia, horario, precio, descripción y servicios; guardar en favoritos y compartir |
 | `SurpriseMeScreen` | Formulario de preferencias (actividad, presupuesto, distancia, compañía) |
@@ -286,6 +292,10 @@ Cada carga de Inicio hace 1 búsqueda Nearby Search y hasta 10 pedidos de fotos;
 
 El mapa funciona en Expo Go sin configuración extra. Para un development build o la tienda, Android necesita una key de Google Maps: activa **Maps SDK for Android** en Google Cloud, crea una key restringida a esa API y al paquete de la app, y agrega el plugin `react-native-maps` en `app.json` con `androidGoogleMapsApiKey`.
 
+### Clima
+
+La tarjeta del clima de Inicio usa la API de pronóstico de [Open-Meteo](https://open-meteo.com), que no necesita API key, así que la app la consulta directamente (`src/services/weatherService.ts`). Envía la ubicación redondeada a dos decimales (alrededor de 1 km) y guarda cada resultado en memoria 15 minutos, que es cada cuánto Open-Meteo actualiza el clima actual. La API gratuita de Open-Meteo es para uso no comercial y sus datos tienen licencia CC BY 4.0, por eso la tarjeta lo menciona; para publicar la app con fines comerciales haría falta uno de sus planes pagos.
+
 ### Ejecución
 
 ```bash
@@ -332,7 +342,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Estado del proyecto
 
-En desarrollo activo. La autenticación, los lugares (Google Places), los favoritos y los planes funcionan con Supabase. Falta: el clima real en Inicio, las pantallas de ajustes del Perfil y un detalle de plan para invitar amigos y editarlo.
+En desarrollo activo. La autenticación, los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo). Falta: las pantallas de ajustes del Perfil y un detalle de plan para invitar amigos y editarlo.
 
 ### Autores
 Juan Esteban
