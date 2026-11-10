@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CompositeScreenProps } from '@react-navigation/native';
@@ -14,6 +21,7 @@ import { PlanCard } from '../components/PlanCard';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { useFavorites } from '../services/FavoritesContext';
 import { usePlans } from '../services/usePlans';
+import { usePullToRefresh } from '../services/usePullToRefresh';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { isUpcoming } from '../utils/date';
@@ -36,6 +44,7 @@ export function PlansScreen({ navigation }: Props) {
   const plans = usePlans();
   const { isFavoritePlan, togglePlan } = useFavorites();
   const [activeTab, setActiveTab] = useState<Tab>('upcoming');
+  const pullToRefresh = usePullToRefresh(plans.refresh);
 
   const now = new Date();
   const visiblePlans = plans.plans.filter(
@@ -52,6 +61,15 @@ export function PlansScreen({ navigation }: Props) {
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16 }]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={pullToRefresh.refreshing}
+            onRefresh={pullToRefresh.onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+            progressViewOffset={insets.top}
+          />
+        }
       >
         <Text style={styles.headerTitle}>Mis planes</Text>
 
