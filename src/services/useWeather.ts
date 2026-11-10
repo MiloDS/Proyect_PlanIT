@@ -54,5 +54,10 @@ export function useWeather(coordinates: Coordinates | undefined) {
       setResult((current) => ({ ...current, key: '' }));
       setRetryCount((count) => count + 1);
     },
+    /**
+     * Vuelve a consultar sin ocultar el clima actual (deslizar para actualizar). Dentro de
+     * los 15 minutos del caché responde al instante con el mismo dato.
+     */
+    refresh: () => setRetryCount((count) => count + 1),
   };
 }
