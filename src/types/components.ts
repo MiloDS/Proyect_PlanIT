@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import type { KeyboardTypeOptions, StyleProp, ViewStyle } from 'react-native';
 
+import type { Place } from './places';
+
 export type ButtonProps = {
   onPress: () => void;
   children: ReactNode;
@@ -87,4 +89,17 @@ export type FavoriteButtonProps = {
   size?: number;
   /** floating: círculo blanco para ir sobre una foto */
   variant?: 'plain' | 'floating';
+};
+
+export type ChipProps = {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  style?: StyleProp<ViewStyle>;
+};
+
+export type PlaceMarkerProps = {
+  place: Place;
+  selected: boolean;
+  onPress: () => void;
 };

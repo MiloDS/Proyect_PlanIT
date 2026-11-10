@@ -1,14 +1,5 @@
 import { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  Modal,
-  StyleProp,
-  ViewStyle,
-} from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Modal } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -25,6 +16,7 @@ import {
 import { AppStackParamList } from '../types/navigation';
 import { Place } from '../types/places';
 import { Banner } from '../components/Banner';
+import { Chip } from '../components/Chip';
 import { Button } from '../components/Button';
 import { CustomSlider } from '../components/CustomSlider';
 import { LocationService } from '../services/locationService';
@@ -49,32 +41,6 @@ const BUDGET_OPTIONS = Object.keys(BUDGET_PRICE_LEVELS);
 const COMPANY_OPTIONS = ['Solo', 'Pareja', 'Amigos', 'Familia'];
 const MIN_DISTANCE_KM = 1;
 const MAX_DISTANCE_KM = 50;
-
-type OptionChipProps = {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-  style: StyleProp<ViewStyle>;
-};
-
-function OptionChip({ label, selected, onPress, style }: OptionChipProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      style={({ pressed }) => [
-        style,
-        selected ? styles.selectedButton : styles.unselectedButton,
-        pressed && styles.buttonPressed,
-      ]}
-    >
-      <Text style={selected ? styles.selectedButtonText : styles.unselectedButtonText}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
 
 export function SurpriseMeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
@@ -157,7 +123,7 @@ export function SurpriseMeScreen({ navigation }: Props) {
           <Text style={styles.sectionTitle}>Tipo de actividad</Text>
           <View style={styles.activityContainer}>
             {ACTIVITY_OPTIONS.map((activity) => (
-              <OptionChip
+              <Chip
                 key={activity}
                 label={activity}
                 selected={selectedActivities.includes(activity)}
@@ -172,7 +138,7 @@ export function SurpriseMeScreen({ navigation }: Props) {
           <Text style={styles.sectionTitle}>Presupuesto</Text>
           <View style={styles.budgetContainer}>
             {BUDGET_OPTIONS.map((budget) => (
-              <OptionChip
+              <Chip
                 key={budget}
                 label={budget}
                 selected={selectedBudget === budget}
@@ -215,7 +181,7 @@ export function SurpriseMeScreen({ navigation }: Props) {
           <Text style={styles.sectionTitle}>Compañía</Text>
           <View style={styles.companyContainer}>
             {COMPANY_OPTIONS.map((company) => (
-              <OptionChip
+              <Chip
                 key={company}
                 label={company}
                 selected={selectedCompany === company}
@@ -429,29 +395,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  selectedButton: {
-    backgroundColor: colors.primary,
-    elevation: 3,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  unselectedButton: {
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  selectedButtonText: {
-    color: colors.white,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  unselectedButtonText: {
-    color: colors.textBody,
-    fontSize: 12,
-    fontWeight: '500',
   },
   buttonPressed: {
     opacity: 0.7,
