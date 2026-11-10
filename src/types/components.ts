@@ -78,10 +78,6 @@ export type CustomSliderProps = {
   thumbTintColor?: string;
 };
 
-export type PlaceholderScreenProps = {
-  title: string;
-};
-
 export type FavoriteButtonProps = {
   isFavorite: boolean;
   onPress: () => void;
