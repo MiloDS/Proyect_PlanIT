@@ -20,6 +20,7 @@ Mobile app to discover activities and places based on location, weather, and per
 - **react-native-maps** for the Search map and **@react-native-community/datetimepicker** for plan dates (both included in Expo Go)
 - **Open-Meteo** for the weather on Home (free, no API key)
 - **expo-notifications** for plan reminders (local notifications, which work in Expo Go)
+- **expo-splash-screen** for the launch screen, which stays until the app knows whether there is a session. The logo (white pin with a check on the brand green, also in `assets/logo.png` for the sign-in screens) is provisional
 
 ### Project structure
 
@@ -230,6 +231,7 @@ Aplicación móvil para descubrir actividades y lugares según ubicación, clima
 - **react-native-maps** para el mapa de Buscar y **@react-native-community/datetimepicker** para la fecha de los planes (ambas vienen en Expo Go)
 - **Open-Meteo** para el clima de Inicio (gratis, sin API key)
 - **expo-notifications** para los recordatorios de planes (notificaciones locales, que funcionan en Expo Go)
+- **expo-splash-screen** para la pantalla de carga, que se queda hasta que la app sabe si hay sesión. El logo (pin blanco con un visto sobre el verde de la app, también en `assets/logo.png` para las pantallas de acceso) es provisional
 
 ### Estructura del proyecto
 
