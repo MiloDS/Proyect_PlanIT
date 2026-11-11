@@ -6,7 +6,6 @@ import {
   TextInput,
   Pressable,
   ScrollView,
-  Image,
   ActivityIndicator,
   Keyboard,
 } from 'react-native';
@@ -16,12 +15,13 @@ import MapView, { Region } from 'react-native-maps';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { LocateFixed, MapPin, RefreshCw, Search, Star, X } from 'lucide-react-native';
+import { LocateFixed, RefreshCw, Search, Star, X } from 'lucide-react-native';
 
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { Coordinates, DevicePosition, Place } from '../types/places';
 import { Chip } from '../components/Chip';
 import { FavoriteButton } from '../components/FavoriteButton';
+import { PlaceImage } from '../components/PlaceImage';
 import { PlaceMarker } from '../components/PlaceMarker';
 import { useFavorites } from '../services/FavoritesContext';
 import { LocationService } from '../services/locationService';
@@ -29,7 +29,6 @@ import { NEARBY_RADIUS_METERS, PlacesService, SEARCH_CATEGORIES } from '../servi
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { distanceKm } from '../utils/geo';
-import { getPlaceCategoryStyle } from '../utils/placeCategories';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Search'>,
@@ -296,13 +295,7 @@ export function SearchScreen({ navigation }: Props) {
           accessibilityHint="Abre el detalle del lugar"
           style={({ pressed }) => [styles.card, pressed && styles.pressed]}
         >
-          {selected.photoUrl ? (
-            <Image source={{ uri: selected.photoUrl }} style={styles.cardImage} />
-          ) : (
-            <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
-              <MapPin size={24} color={getPlaceCategoryStyle(selected.type).color} />
-            </View>
-          )}
+          <PlaceImage uri={selected.photoUrl} placeType={selected.type} style={styles.cardImage} />
 
           <View style={styles.cardInfo}>
             <Text style={styles.cardName} numberOfLines={1}>
@@ -451,11 +444,6 @@ const styles = StyleSheet.create({
     width: 84,
     height: 84,
     borderRadius: 12,
-  },
-  cardImagePlaceholder: {
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   cardInfo: {
     flex: 1,

@@ -148,6 +148,7 @@ export function HomeScreen({ navigation }: Props) {
                   name={place.name}
                   category={place.category}
                   imageUrl={place.photoUrl}
+                  placeType={place.type}
                   distanceKm={distanceKm(origin, place.location)}
                   onPress={() => navigation.navigate('PlaceDetail', { place })}
                 />
