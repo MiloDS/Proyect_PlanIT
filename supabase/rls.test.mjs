@@ -28,6 +28,29 @@ await db.exec(`
   grant usage on schema auth to anon, authenticated;
   grant usage on schema public to anon, authenticated;
   alter default privileges in schema public grant all on tables to anon, authenticated;
+
+  -- Storage: solo las columnas y la función que usan las políticas de las fotos de perfil
+  create schema storage;
+  create table storage.buckets (
+    id text primary key,
+    name text not null,
+    public boolean default false,
+    file_size_limit bigint,
+    allowed_mime_types text[]
+  );
+  create table storage.objects (
+    id uuid primary key default gen_random_uuid(),
+    bucket_id text references storage.buckets (id),
+    name text not null,
+    owner uuid default auth.uid()
+  );
+  alter table storage.objects enable row level security;
+  create function storage.foldername(name text) returns text[] language sql immutable as $$
+    select (string_to_array(name, '/'))[1:array_length(string_to_array(name, '/'), 1) - 1]
+  $$;
+  grant usage on schema storage to anon, authenticated;
+  grant all on storage.objects to anon, authenticated;
+  grant select on storage.buckets to anon, authenticated;
 `);
 
 // Usuario registrado antes de las migraciones (prueba el backfill de perfiles)
@@ -96,6 +119,51 @@ check(
   'B puede editar su perfil',
   (await as(B, `update public.profiles set full_name = 'Beto G.' where id = $1`, [B])).affected ===
     1
+);
+
+// --- Fotos de perfil (Storage)
+const bucket = (
+  await db.query(`select public, file_size_limit from storage.buckets where id = 'avatars'`)
+).rows[0];
+check('existe el bucket público avatars', bucket?.public === true, JSON.stringify(bucket));
+const uploadAvatar = (userId, name) =>
+  as(
+    userId,
+    `insert into storage.objects (bucket_id, name) values ('avatars', $1) returning name`,
+    [name]
+  );
+check('A sube una foto a su carpeta', (await uploadAvatar(A, `${A}/1.jpg`)).rows.length === 1);
+check(
+  'A no puede subir a la carpeta de B',
+  !!(await uploadAvatar(A, `${B}/1.jpg`)).error,
+  'se permitió'
+);
+check(
+  'A no puede subir fuera de una carpeta',
+  !!(await uploadAvatar(A, 'suelta.jpg')).error,
+  'se permitió'
+);
+check(
+  'anon no puede subir fotos',
+  !!(
+    await asAnon(`insert into storage.objects (bucket_id, name) values ('avatars', $1)`, [
+      `${A}/2.jpg`,
+    ])
+  ).error,
+  'se permitió'
+);
+check(
+  'B no ve los archivos de A',
+  (await as(B, `select name from storage.objects`)).rows.length === 0
+);
+check('A ve sus archivos', (await as(A, `select name from storage.objects`)).rows.length === 1);
+check(
+  'B no puede borrar la foto de A',
+  (await as(B, `delete from storage.objects where name = $1`, [`${A}/1.jpg`])).affected === 0
+);
+check(
+  'A borra su foto',
+  (await as(A, `delete from storage.objects where name = $1`, [`${A}/1.jpg`])).affected === 1
 );
 
 // --- Planes
