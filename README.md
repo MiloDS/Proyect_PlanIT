@@ -107,7 +107,7 @@ npm install
    1. In Google Cloud Console, create an OAuth client ID of type **Web application** with the authorized redirect URI `https://<project-ref>.supabase.co/auth/v1/callback`.
    2. In Supabase → **Authentication → Sign In / Providers → Google**, enable it and paste the Client ID and Client Secret.
    3. In Supabase → **Authentication → URL Configuration → Redirect URLs**, add `exp://**` (Expo Go) and `planit://**` (development builds).
-6. Database: open **SQL Editor** in Supabase and run each file in `supabase/migrations/` in order (or use the CLI: `npx supabase link --project-ref <project-ref>` and `npx supabase db push`). The migrations also create the `avatars` Storage bucket for profile photos.
+6. Database: open **SQL Editor** in Supabase and run each file in `supabase/migrations/` in order (or use the CLI: `npx supabase link --project-ref <project-ref>` and `npx supabase db push --remote`; without `--remote` the CLI targets a local Docker database). The migrations also create the `avatars` Storage bucket for profile photos.
 
 ### Database
 
@@ -320,7 +320,7 @@ npm install
    1. En Google Cloud Console, crea un OAuth client ID de tipo **Web application** con la URI de redirección autorizada `https://<project-ref>.supabase.co/auth/v1/callback`.
    2. En Supabase → **Authentication → Sign In / Providers → Google**, actívalo y pega el Client ID y el Client Secret.
    3. En Supabase → **Authentication → URL Configuration → Redirect URLs**, agrega `exp://**` (Expo Go) y `planit://**` (development builds).
-6. Base de datos: abre el **SQL Editor** de Supabase y ejecuta en orden cada archivo de `supabase/migrations/` (o usa la CLI: `npx supabase link --project-ref <project-ref>` y `npx supabase db push`). Las migraciones también crean el bucket `avatars` de Storage para las fotos de perfil.
+6. Base de datos: abre el **SQL Editor** de Supabase y ejecuta en orden cada archivo de `supabase/migrations/` (o usa la CLI: `npx supabase link --project-ref <project-ref>` y `npx supabase db push --remote`; sin `--remote` la CLI apunta a una base de datos local en Docker). Las migraciones también crean el bucket `avatars` de Storage para las fotos de perfil.
 
 ### Base de datos
 
