@@ -16,6 +16,7 @@ import { globalStyles } from '../styles/globalStyles';
 import { useAuth } from '../services/AuthContext';
 import { useProfile } from '../services/ProfileContext';
 import { useNearbyPlaces } from '../services/useNearbyPlaces';
+import { usePullToRefresh } from '../services/usePullToRefresh';
 import { useWeather } from '../services/useWeather';
 import { distanceKm } from '../utils/geo';
 import { getDisplayAvatar, getDisplayName, getFirstName } from '../utils/user';
@@ -41,6 +42,15 @@ export function HomeScreen({ navigation }: Props) {
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={pullToRefresh.refreshing}
+            onRefresh={pullToRefresh.onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+            progressViewOffset={insets.top}
+          />
+        }
       >
         <View
           style={styles.locationRow}

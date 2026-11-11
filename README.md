@@ -59,7 +59,7 @@ Following the course guide, each layer has one job:
 | `LoginScreen` | Email/password login and Google login, field validation, "forgot password" link |
 | `RegisterScreen` | Sign up with name, email, and password, or with Google |
 | `ForgotPasswordScreen` | Recover the password with a code sent by email (email → code → new password) |
-| `HomeScreen` | Greeting, current weather, "Surprise me" shortcut, and nearby places |
+| `HomeScreen` | Greeting, current weather, "Surprise me" shortcut, and nearby places; pull down to refresh the location, weather and places |
 | `SearchScreen` | Map with nearby places, category filters, text search, and "search this area" |
 | `PlaceDetailScreen` | Photo, rating, distance, hours, price, description, amenities; save to favorites, add to a plan (a new one or an upcoming plan you organize) and share |
 | `SurpriseMeScreen` | Preference form (activity, budget, distance, company) |
@@ -272,7 +272,7 @@ Siguiendo la guía del curso, cada capa tiene una sola responsabilidad:
 | `LoginScreen` | Inicio de sesión con correo/contraseña y con Google, validación de campos, enlace para recuperar la contraseña |
 | `RegisterScreen` | Registro con nombre, correo y contraseña, o con Google |
 | `ForgotPasswordScreen` | Recuperar la contraseña con un código que llega al correo (correo → código → contraseña nueva) |
-| `HomeScreen` | Saludo, clima actual, acceso a "Sorpréndeme" y lugares cercanos |
+| `HomeScreen` | Saludo, clima actual, acceso a "Sorpréndeme" y lugares cercanos; al deslizar hacia abajo se actualizan la ubicación, el clima y los lugares |
 | `SearchScreen` | Mapa con lugares cercanos, filtros por categoría, búsqueda por texto y "Buscar en esta zona" |
 | `PlaceDetailScreen` | Foto, calificación, distancia, horario, precio, descripción y servicios; guardar en favoritos, agregar a un plan (uno nuevo o uno próximo que organices) y compartir |
 | `SurpriseMeScreen` | Formulario de preferencias (actividad, presupuesto, distancia, compañía) |

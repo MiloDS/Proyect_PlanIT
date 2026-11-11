@@ -64,7 +64,10 @@ export function usePlans() {
     fetchPlans(() => false);
   };
 
+  // Deslizar para actualizar: la lista actual sigue en pantalla mientras llega la nueva
+  const refresh = () => fetchPlans(() => false);
+
   const getCoverUrl = (plan: Plan) => (plan.placeIds[0] && state.covers[plan.placeIds[0]]) || null;
 
-  return { ...state, retry, getCoverUrl };
+  return { ...state, retry, refresh, getCoverUrl };
 }

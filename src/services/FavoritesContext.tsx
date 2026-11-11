@@ -19,6 +19,8 @@ type FavoritesContextValue = FavoritesState & {
   togglePlace: (placeId: string) => void;
   togglePlan: (planId: string) => void;
   reload: () => void;
+  /** Vuelve a consultar sin quitar los favoritos de la pantalla (deslizar para actualizar) */
+  refresh: () => Promise<void>;
 };
 
 const FavoritesContext = createContext<FavoritesContextValue | undefined>(undefined);
@@ -28,6 +30,9 @@ const SERVICE = {
   plan: { add: FavoritesService.addPlan, remove: FavoritesService.removePlan },
 };
 const LIST_KEY = { place: 'places', plan: 'plans' } as const;
+
+const loadFavorites = () =>
+  Promise.all([FavoritesService.listPlaces(), FavoritesService.listPlans()]);
 
 function initialState(userId: string | null): FavoritesState {
   return { status: userId ? 'loading' : 'ready', places: [], plans: [], error: '' };
@@ -59,7 +64,7 @@ export function FavoritesProvider({ userId, children }: FavoritesProviderProps) 
     if (!userId) return;
     let cancelled = false;
 
-    Promise.all([FavoritesService.listPlaces(), FavoritesService.listPlans()])
+    loadFavorites()
       .then(([places, plans]) => {
         if (!cancelled) setState({ status: 'ready', places, plans, error: '' });
       })
@@ -116,6 +121,15 @@ export function FavoritesProvider({ userId, children }: FavoritesProviderProps) 
     reload: () => {
       setState((current) => ({ ...current, status: 'loading', error: '' }));
       setReloadKey((current) => current + 1);
+    },
+    refresh: async () => {
+      if (!userId) return;
+      try {
+        const [places, plans] = await loadFavorites();
+        setState({ status: 'ready', places, plans, error: '' });
+      } catch (err: any) {
+        setState((current) => ({ ...current, status: 'error', error: err.message }));
+      }
     },
   };
 
