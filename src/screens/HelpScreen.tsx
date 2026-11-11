@@ -15,7 +15,17 @@ const QUESTIONS = [
   {
     question: '¿Cómo creo un plan?',
     answer:
-      'En la pestaña Planes toca "Nuevo plan". Ponle un nombre, elige la fecha y la hora, y agrega los lugares que quieres visitar: cercanos, de tus favoritos o buscándolos por nombre.',
+      'En la pestaña Planes toca "Nuevo plan". Ponle un nombre, elige la fecha, la hora de inicio y cómo se van a mover, y agrega los lugares en el orden en que los van a visitar: cercanos, de tus favoritos o buscándolos por nombre. También puedes poner un presupuesto por persona y notas para todos.',
+  },
+  {
+    question: '¿Cómo se calculan las horas del itinerario?',
+    answer:
+      'El primer lugar empieza a la hora de inicio. A cada lugar le sumamos el tiempo que se van a quedar (lo propone PlanIt según el tipo de lugar y lo puedes cambiar) y el traslado hasta el siguiente, que calcula Google según vayan a pie, en carro o en transporte público. Con las flechas cambias el orden. Las horas son aproximadas.',
+  },
+  {
+    question: '¿Puedo agregar un lugar a un plan desde su ficha?',
+    answer:
+      'Sí. En la ficha del lugar toca "Agregar a un plan" y elige uno de tus próximos planes o "Nuevo plan". Solo aparecen los planes que tú organizas.',
   },
   {
     question: '¿Cómo invito a mis amigos a un plan?',

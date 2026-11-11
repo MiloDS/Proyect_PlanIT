@@ -61,12 +61,12 @@ Following the course guide, each layer has one job:
 | `ForgotPasswordScreen` | Recover the password with a code sent by email (email → code → new password) |
 | `HomeScreen` | Greeting, current weather, "Surprise me" shortcut, and nearby places |
 | `SearchScreen` | Map with nearby places, category filters, text search, and "search this area" |
-| `PlaceDetailScreen` | Photo, rating, distance, hours, price, description, amenities; save to favorites and share |
+| `PlaceDetailScreen` | Photo, rating, distance, hours, price, description, amenities; save to favorites, add to a plan (a new one or an upcoming plan you organize) and share |
 | `SurpriseMeScreen` | Preference form (activity, budget, distance, company) |
 | `RecommendationsScreen` | Places that match the Surprise me preferences, ordered by rating, weather and company, with a note explaining the order |
 | `PlansScreen` | Upcoming and past plans from Supabase (own and shared) |
-| `PlanDetailScreen` | Plan date, places and members; the owner invites people by email, removes guests, edits and deletes the plan; guests can leave |
-| `CreatePlanScreen` | New plan with name, date, time and places (nearby, favorites or search); also edits an existing plan |
+| `PlanDetailScreen` | Date, start and estimated end time, transport, budget per person, notes, the itinerary (arrival time at each place and travel time between them) and members; the owner invites people by email, removes guests, edits and deletes the plan; guests can leave |
+| `CreatePlanScreen` | Plan organizer: name, date, start time, how the group travels, places in visiting order (nearby, favorites or search) with the time spent at each, travel times, estimated end time, budget per person and notes. Opens the new plan when saved; also edits an existing plan |
 | `FavoritesScreen` | Favorite places and plans (All / Places / Plans) |
 | `ProfileScreen` | User data, settings menu, and logout |
 | `EditProfileScreen` | Change the name and the photo other people see in your plans (the email is read-only) |
@@ -118,26 +118,26 @@ Places come from the Google Places API, so the database only stores their `place
 | `profiles` | Public name and avatar of each user (created automatically on sign up) | Read: any signed-in user. Update: the user themselves |
 | `favorites` | Places saved by each user | Only the user themselves |
 | `favorite_plans` | Plans saved by each user | Only the user themselves, and only for plans they belong to |
-| `plans` | Plans (title, date, cover) | Read: plan members. Edit/delete: the owner |
+| `plans` | Plans (title, date, transport, budget per person, notes) | Read: plan members. Edit/delete: the owner |
 | `plan_members` | Members of each plan (`owner` / `member`) | Read: plan members. Invite/remove: the owner. Any member can leave |
-| `plan_places` | Places of each plan and their order | Plan members |
+| `plan_places` | Places of each plan, their order and the time spent at each (`stay_minutes`) | Plan members |
 
-The app creates plans with the `create_plan` function, which saves the plan and its places in a single transaction: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids })`. It edits them with `update_plan` (`{ p_plan_id, p_title, p_starts_at, p_place_ids }`), which works the same way and only lets the owner through. To invite someone to a plan by email, call `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. The person needs a PlanIt account with that email; they are added right away and see the plan in their plans list (there are no notifications yet).
+The app creates plans with the `create_plan` function, which saves the plan and its places in a single transaction: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids, p_stay_minutes, p_transport_mode, p_budget_per_person, p_notes })` (`p_stay_minutes` follows the order of `p_place_ids`; the last four parameters are optional). It edits them with `update_plan` (`{ p_plan_id, ...the same parameters }`), which works the same way and only lets the owner through. `add_plan_place` (`{ p_plan_id, p_place_id, p_stay_minutes }`) adds a place at the end of a plan from the place detail screen and returns `false` if it was already there. To invite someone to a plan by email, call `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. The person needs a PlanIt account with that email; they are added right away and see the plan in their plans list (there are no notifications yet).
 
 Profile photos live in the public `avatars` Storage bucket, in a folder named after each user's id: anyone can see a photo through its URL (saved in `profiles.avatar_url`), but each person can only upload, list and delete files in their own folder. Every new photo gets a new file name so phones don't keep showing the old one from their cache, and the app deletes the previous files afterwards. Removing the photo shows the person's initials instead.
 
 ### Google Places
 
-Home, Search, place details, Surprise me, favorites and plans use the Google Places API (New) through the `places` Supabase Edge Function (`supabase/functions/places/index.ts`). The API key stays in Supabase's secrets and never ships inside the app; only signed-in users can call the function. The function supports four actions: `nearby` (Nearby Search, the default), `text` (Text Search), `details` (Place Details for the detail screen) and `lookup` (basic data for up to 20 saved place IDs).
+Home, Search, place details, Surprise me, favorites and plans use the Google Places API (New) through the `places` Supabase Edge Function (`supabase/functions/places/index.ts`). The API key stays in Supabase's secrets and never ships inside the app; only signed-in users can call the function. The function supports five actions: `nearby` (Nearby Search, the default), `text` (Text Search), `details` (Place Details for the detail screen), `lookup` (basic data for up to 20 saved place IDs) and `routes` (distance and travel time between the places of a plan, with the Google Routes API).
 
-1. In Google Cloud Console, create a project, link a billing account, and enable **Places API (New)**.
-2. Create an API key and, under **API restrictions**, allow only **Places API (New)**. Optionally cap the daily quota so a bug cannot run up costs.
+1. In Google Cloud Console, create a project, link a billing account, and enable **Places API (New)** and **Routes API**.
+2. Create an API key and, under **API restrictions**, allow only **Places API (New)** and **Routes API**. Optionally cap the daily quota of both so a bug cannot run up costs. (To use a separate key for Routes, add it as the `GOOGLE_ROUTES_API_KEY` secret.)
 3. In Supabase → **Edge Functions → Secrets**, add `GOOGLE_PLACES_API_KEY` with that key.
 4. Deploy the function, keeping **Verify JWT** enabled:
    - CLI: `npx supabase login`, `npx supabase link --project-ref <project-ref>` and `npx supabase functions deploy places`.
    - Or in Supabase → **Edge Functions → Deploy a new function → Via Editor**, name it `places` and paste the contents of `index.ts`.
 
-Each Home load makes 1 Nearby Search plus up to 10 photo requests; each Search or Surprise me query makes 1 Nearby or Text Search plus up to 20 photos; opening a place makes 1 Place Details request. While the app is open, places already shown are kept in memory so favorites and plan covers don't request them again (Google's terms don't allow storing Places data on the device or in the database). If the user denies location access, the app searches around the center of Medellín.
+Each Home load makes 1 Nearby Search plus up to 10 photo requests; each Search or Surprise me query makes 1 Nearby or Text Search plus up to 20 photos; opening a place makes 1 Place Details request; each travel time between two places of a plan makes 1 Compute Routes request (basic tier, without live traffic), and the app keeps the ones already calculated in memory, so reordering or reopening a plan only asks for the new ones. While the app is open, places already shown are kept in memory so favorites and plan covers don't request them again (Google's terms don't allow storing Places data on the device or in the database). If the user denies location access, the app searches around the center of Medellín.
 
 The map works in Expo Go without extra setup. For a development or store build, Android needs a Google Maps key: enable **Maps SDK for Android** in Google Cloud, create a key restricted to that API and the app's package, and add the `react-native-maps` plugin to `app.json` with `androidGoogleMapsApiKey`.
 
@@ -207,7 +207,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Project status
 
-Actively in development. Authentication (including password recovery), places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo), which Surprise me also uses, together with the company, to order its recommendations. Plans can be shared by inviting friends by email, edited and deleted from their detail screen, and remind you before they start. Ideas for later: notify people when they are invited to a plan (push notifications, which need a development build) and more languages.
+Actively in development. Authentication (including password recovery), places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo), which Surprise me also uses, together with the company, to order its recommendations. Plans work as an organizer (visiting order, time at each place, travel times with Google Routes, estimated end time, budget and notes), can be shared by inviting friends by email, edited and deleted from their detail screen, and remind you before they start. Ideas for later: notify people when they are invited to a plan (push notifications, which need a development build) and more languages.
 
 ### Authors
 Juan Esteban
@@ -274,12 +274,12 @@ Siguiendo la guía del curso, cada capa tiene una sola responsabilidad:
 | `ForgotPasswordScreen` | Recuperar la contraseña con un código que llega al correo (correo → código → contraseña nueva) |
 | `HomeScreen` | Saludo, clima actual, acceso a "Sorpréndeme" y lugares cercanos |
 | `SearchScreen` | Mapa con lugares cercanos, filtros por categoría, búsqueda por texto y "Buscar en esta zona" |
-| `PlaceDetailScreen` | Foto, calificación, distancia, horario, precio, descripción y servicios; guardar en favoritos y compartir |
+| `PlaceDetailScreen` | Foto, calificación, distancia, horario, precio, descripción y servicios; guardar en favoritos, agregar a un plan (uno nuevo o uno próximo que organices) y compartir |
 | `SurpriseMeScreen` | Formulario de preferencias (actividad, presupuesto, distancia, compañía) |
 | `RecommendationsScreen` | Lugares que cumplen las preferencias de Sorpréndeme, ordenados por calificación, clima y compañía, con una nota que explica el orden |
 | `PlansScreen` | Planes próximos y pasados desde Supabase (propios y compartidos) |
-| `PlanDetailScreen` | Fecha, lugares y personas del plan; el dueño invita por correo, quita invitados, edita y elimina el plan; los invitados pueden salirse |
-| `CreatePlanScreen` | Nuevo plan con nombre, fecha, hora y lugares (cercanos, favoritos o búsqueda); también edita un plan existente |
+| `PlanDetailScreen` | Fecha, hora de inicio y de fin aproximada, transporte, presupuesto por persona, notas, el itinerario (hora de llegada a cada lugar y traslado entre ellos) y las personas; el dueño invita por correo, quita invitados, edita y elimina el plan; los invitados pueden salirse |
+| `CreatePlanScreen` | Organizador del plan: nombre, fecha, hora de inicio, cómo se mueven, lugares en el orden de visita (cercanos, favoritos o búsqueda) con el tiempo en cada uno, traslados, hora de fin aproximada, presupuesto por persona y notas. Al guardar abre el plan nuevo; también edita un plan existente |
 | `FavoritesScreen` | Lugares y planes favoritos (Todos / Lugares / Planes) |
 | `ProfileScreen` | Datos del usuario, menú de ajustes y cierre de sesión |
 | `EditProfileScreen` | Cambiar el nombre y la foto que ven las personas de tus planes (el correo es de solo lectura) |
@@ -331,26 +331,26 @@ Los lugares vienen de la API de Google Places, así que la base de datos solo gu
 | `profiles` | Nombre y foto públicos de cada usuario (se crea solo al registrarse) | Leer: cualquier usuario con sesión. Editar: el propio usuario |
 | `favorites` | Lugares guardados por cada usuario | Solo el propio usuario |
 | `favorite_plans` | Planes guardados por cada usuario | Solo el propio usuario, y solo de planes de los que es miembro |
-| `plans` | Planes (título, fecha, portada) | Leer: los miembros del plan. Editar/eliminar: el dueño |
+| `plans` | Planes (título, fecha, transporte, presupuesto por persona, notas) | Leer: los miembros del plan. Editar/eliminar: el dueño |
 | `plan_members` | Miembros de cada plan (`owner` / `member`) | Leer: los miembros. Invitar/expulsar: el dueño. Cualquier miembro puede salirse |
-| `plan_places` | Lugares de cada plan y su orden | Los miembros del plan |
+| `plan_places` | Lugares de cada plan, su orden y el tiempo en cada uno (`stay_minutes`) | Los miembros del plan |
 
-La app crea los planes con la función `create_plan`, que guarda el plan y sus lugares en una sola transacción: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids })`. Los edita con `update_plan` (`{ p_plan_id, p_title, p_starts_at, p_place_ids }`), que funciona igual y solo deja pasar al dueño. Para invitar a alguien a un plan por correo se usa `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. La persona necesita una cuenta de PlanIt con ese correo; queda agregada de inmediato y ve el plan en su lista de planes (todavía no hay notificaciones).
+La app crea los planes con la función `create_plan`, que guarda el plan y sus lugares en una sola transacción: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids, p_stay_minutes, p_transport_mode, p_budget_per_person, p_notes })` (`p_stay_minutes` va en el orden de `p_place_ids`; los cuatro últimos parámetros son opcionales). Los edita con `update_plan` (`{ p_plan_id, ...los mismos parámetros }`), que funciona igual y solo deja pasar al dueño. `add_plan_place` (`{ p_plan_id, p_place_id, p_stay_minutes }`) agrega un lugar al final de un plan desde la ficha del lugar y devuelve `false` si ya estaba. Para invitar a alguien a un plan por correo se usa `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. La persona necesita una cuenta de PlanIt con ese correo; queda agregada de inmediato y ve el plan en su lista de planes (todavía no hay notificaciones).
 
 Las fotos de perfil están en el bucket público `avatars` de Storage, en una carpeta con el id de cada usuario: cualquiera puede ver una foto con su URL (guardada en `profiles.avatar_url`), pero cada persona solo puede subir, listar y borrar archivos en su propia carpeta. Cada foto nueva tiene un nombre nuevo para que los teléfonos no sigan mostrando la anterior desde su caché, y la app borra los archivos anteriores después. Si la persona quita su foto, se muestran sus iniciales.
 
 ### Google Places
 
-Inicio, Buscar, el detalle de lugar, Sorpréndeme, favoritos y planes usan Google Places API (New) a través de la Edge Function `places` de Supabase (`supabase/functions/places/index.ts`). La API key queda en los secretos de Supabase y nunca viaja dentro de la app; solo los usuarios con sesión pueden llamar la función. La función tiene cuatro acciones: `nearby` (Nearby Search, la predeterminada), `text` (Text Search), `details` (Place Details para la pantalla de detalle) y `lookup` (datos básicos de hasta 20 lugares guardados por ID).
+Inicio, Buscar, el detalle de lugar, Sorpréndeme, favoritos y planes usan Google Places API (New) a través de la Edge Function `places` de Supabase (`supabase/functions/places/index.ts`). La API key queda en los secretos de Supabase y nunca viaja dentro de la app; solo los usuarios con sesión pueden llamar la función. La función tiene cinco acciones: `nearby` (Nearby Search, la predeterminada), `text` (Text Search), `details` (Place Details para la pantalla de detalle), `lookup` (datos básicos de hasta 20 lugares guardados por ID) y `routes` (distancia y tiempo de traslado entre los lugares de un plan, con Google Routes API).
 
-1. En Google Cloud Console, crea un proyecto, vincula una cuenta de facturación y activa **Places API (New)**.
-2. Crea una API key y, en **API restrictions**, permite solo **Places API (New)**. Opcionalmente limita la cuota diaria para que un error no dispare los costos.
+1. En Google Cloud Console, crea un proyecto, vincula una cuenta de facturación y activa **Places API (New)** y **Routes API**.
+2. Crea una API key y, en **API restrictions**, permite solo **Places API (New)** y **Routes API**. Opcionalmente limita la cuota diaria de ambas para que un error no dispare los costos. (Para usar otra key en Routes, agrégala como el secreto `GOOGLE_ROUTES_API_KEY`.)
 3. En Supabase → **Edge Functions → Secrets**, agrega `GOOGLE_PLACES_API_KEY` con esa key.
 4. Despliega la función dejando activo **Verify JWT**:
    - CLI: `npx supabase login`, `npx supabase link --project-ref <project-ref>` y `npx supabase functions deploy places`.
    - O en Supabase → **Edge Functions → Deploy a new function → Via Editor**, con el nombre `places`, pegando el contenido de `index.ts`.
 
-Cada carga de Inicio hace 1 búsqueda Nearby Search y hasta 10 pedidos de fotos; cada búsqueda en Buscar o en Sorpréndeme hace 1 Nearby o Text Search y hasta 20 fotos; abrir un lugar hace 1 Place Details. Mientras la app está abierta, los lugares ya mostrados quedan en memoria para que favoritos y portadas de planes no los vuelvan a pedir (las condiciones de Google no permiten guardar datos de Places en el teléfono ni en la base de datos). Si el usuario no da permiso de ubicación, la app busca alrededor del centro de Medellín.
+Cada carga de Inicio hace 1 búsqueda Nearby Search y hasta 10 pedidos de fotos; cada búsqueda en Buscar o en Sorpréndeme hace 1 Nearby o Text Search y hasta 20 fotos; abrir un lugar hace 1 Place Details; cada traslado entre dos lugares de un plan hace 1 Compute Routes (tarifa básica, sin tráfico en tiempo real), y la app guarda en memoria los que ya calculó, así que al reordenar o volver a abrir un plan solo pide los nuevos. Mientras la app está abierta, los lugares ya mostrados quedan en memoria para que favoritos y portadas de planes no los vuelvan a pedir (las condiciones de Google no permiten guardar datos de Places en el teléfono ni en la base de datos). Si el usuario no da permiso de ubicación, la app busca alrededor del centro de Medellín.
 
 El mapa funciona en Expo Go sin configuración extra. Para un development build o la tienda, Android necesita una key de Google Maps: activa **Maps SDK for Android** en Google Cloud, crea una key restringida a esa API y al paquete de la app, y agrega el plugin `react-native-maps` en `app.json` con `androidGoogleMapsApiKey`.
 
@@ -420,7 +420,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Estado del proyecto
 
-En desarrollo activo. La autenticación (con recuperación de contraseña), los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo), que Sorpréndeme también usa, junto con la compañía, para ordenar sus recomendaciones. Los planes se comparten invitando amigos por correo, se editan y eliminan desde su detalle, y avisan antes de empezar. Ideas para después: avisar a las personas cuando las invitan a un plan (notificaciones push, que necesitan un development build) y más idiomas.
+En desarrollo activo. La autenticación (con recuperación de contraseña), los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo), que Sorpréndeme también usa, junto con la compañía, para ordenar sus recomendaciones. Los planes funcionan como un organizador (orden de visita, tiempo en cada lugar, traslados con Google Routes, hora de fin aproximada, presupuesto y notas), se comparten invitando amigos por correo, se editan y eliminan desde su detalle, y avisan antes de empezar. Ideas para después: avisar a las personas cuando las invitan a un plan (notificaciones push, que necesitan un development build) y más idiomas.
 
 ### Autores
 Juan Esteban
