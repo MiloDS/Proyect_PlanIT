@@ -17,7 +17,11 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
+      "allowBackup": false,
       "package": "com.anonymous.planit"
+    },
+    "experiments": {
+      "reactCompiler": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -58,7 +62,9 @@
           "resizeMode": "contain",
           "backgroundColor": "#27ae60"
         }
-      ]
+      ],
+      "expo-image",
+      "expo-secure-store"
     ]
   }
 }
