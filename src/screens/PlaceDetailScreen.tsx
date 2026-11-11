@@ -8,6 +8,7 @@ import {
   Pressable,
   Share,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,13 +17,15 @@ import {
   Accessibility,
   Armchair,
   Baby,
+  CalendarDays,
+  CalendarPlus,
   ChevronLeft,
   Clock,
   Dog,
   ExternalLink,
-  Heart,
   LucideIcon,
   MapPin,
+  Plus,
   Share2,
   SquareParking,
   Star,
@@ -33,14 +36,22 @@ import {
 
 import { AppStackParamList } from '../types/navigation';
 import { Amenity, PlaceDetails } from '../types/places';
+import { Plan } from '../types/plans';
+import { SheetOption } from '../types/components';
 import { Button } from '../components/Button';
 import { FavoriteButton } from '../components/FavoriteButton';
+import { OptionsSheet } from '../components/OptionsSheet';
+import { useAuth } from '../services/AuthContext';
 import { useFavorites } from '../services/FavoritesContext';
 import { useDevicePosition } from '../services/useDevicePosition';
 import { PRICE_LEVEL_LABELS, PlacesService, getTodayHours } from '../services/placesService';
+import { PlansService } from '../services/plansService';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { formatShortDate, formatTime, isUpcoming } from '../utils/date';
 import { distanceKm } from '../utils/geo';
+import { getDefaultStayMinutes } from '../utils/itinerary';
+import { messages } from '../utils/messages';
 import { getPlaceCategoryStyle } from '../utils/placeCategories';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PlaceDetail'>;
@@ -86,10 +97,15 @@ export function PlaceDetailScreen({ navigation, route }: Props) {
   const { place } = route.params;
   const insets = useSafeAreaInsets();
   const position = useDevicePosition();
+  const { user } = useAuth();
   const { isFavoritePlace, togglePlace } = useFavorites();
   const [details, setDetails] = useState<PlaceDetails | null>(null);
   const [error, setError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  // Planes próximos que creó la persona: los que puede editar
+  const [ownPlans, setOwnPlans] = useState<Plan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
+  const [addSheetOpen, setAddSheetOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -119,6 +135,68 @@ export function PlaceDetailScreen({ navigation, route }: Props) {
   const share = () => {
     Share.share({ message: `${current.name}\n${PlacesService.getMapsUrl(current)}` });
   };
+
+  // Los planes se piden al tocar el botón, no cada vez que se abre un lugar
+  const openAddToPlan = async () => {
+    setLoadingPlans(true);
+    try {
+      const plans = await PlansService.list();
+      setOwnPlans(
+        plans.filter((plan) => plan.ownerId === user?.id && isUpcoming(new Date(plan.startsAt)))
+      );
+      setAddSheetOpen(true);
+    } catch (err: any) {
+      Alert.alert(messages.plans.addToPlanTitle, err.message);
+    } finally {
+      setLoadingPlans(false);
+    }
+  };
+
+  const addToPlan = async (plan: Plan) => {
+    try {
+      const added =
+        !plan.placeIds.includes(place.id) &&
+        (await PlansService.addPlace(plan.id, place.id, getDefaultStayMinutes(current.type)));
+      if (!added) {
+        Alert.alert(messages.plans.addToPlanTitle, messages.plans.placeAlreadyInPlan(plan.title));
+        return;
+      }
+      Alert.alert(
+        messages.plans.placeAddedTitle,
+        messages.plans.placeAdded(current.name, plan.title),
+        [
+          { text: 'Listo', style: 'cancel' },
+          {
+            text: 'Ver plan',
+            onPress: () =>
+              navigation.navigate('PlanDetail', {
+                plan: { ...plan, placeIds: [...plan.placeIds, place.id] },
+              }),
+          },
+        ]
+      );
+    } catch (err: any) {
+      Alert.alert(messages.plans.addToPlanTitle, err.message);
+    }
+  };
+
+  const addOptions: SheetOption[] = [
+    {
+      label: 'Nuevo plan',
+      description: 'Empieza un plan con este lugar',
+      Icon: Plus,
+      onPress: () => navigation.navigate('CreatePlan', { place }),
+    },
+    ...ownPlans.map((plan) => {
+      const startsAt = new Date(plan.startsAt);
+      return {
+        label: plan.title,
+        description: `${formatShortDate(startsAt)} · ${formatTime(startsAt)}`,
+        Icon: CalendarDays,
+        onPress: () => addToPlan(plan),
+      };
+    }),
+  ];
 
   return (
     <View style={globalStyles.screen}>
@@ -265,15 +343,21 @@ export function PlaceDetailScreen({ navigation, route }: Props) {
       <View style={[styles.bottomAction, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <Button
           variant="primary"
-          style={styles.favoriteButton}
-          onPress={() => togglePlace(place.id)}
+          style={styles.addToPlanButton}
+          loading={loadingPlans}
+          onPress={openAddToPlan}
         >
-          <Heart size={18} color={colors.white} fill={isFavorite ? colors.white : 'transparent'} />
-          <Text style={globalStyles.primaryButtonText}>
-            {isFavorite ? 'Guardado en favoritos' : 'Guardar favorito'}
-          </Text>
+          <CalendarPlus size={18} color={colors.white} />
+          <Text style={globalStyles.primaryButtonText}>Agregar a un plan</Text>
         </Button>
       </View>
+
+      <OptionsSheet
+        visible={addSheetOpen}
+        title={messages.plans.addToPlanTitle}
+        options={addOptions}
+        onClose={() => setAddSheetOpen(false)}
+      />
     </View>
   );
 }
@@ -456,7 +540,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
-  favoriteButton: {
+  addToPlanButton: {
     flexDirection: 'row',
     gap: 8,
     borderRadius: 16,
