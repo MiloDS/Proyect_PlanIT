@@ -38,8 +38,16 @@
         "expo-image-picker",
         {
           "photosPermission": "PlanIt usa tus fotos para que elijas tu foto de perfil.",
-          "cameraPermission": "PlanIt usa la cámara para que tomes tu foto de perfil.",
+          "cameraPermission": "PlanIt usa la cámara para tomar tu foto de perfil y para escanear el código QR de un plan.",
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "PlanIt usa la cámara para tomar tu foto de perfil y para escanear el código QR de un plan.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       [

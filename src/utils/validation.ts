@@ -1,5 +1,6 @@
 import { PlanFormErrors } from '../types/plans';
 import { formatPesos } from './currency';
+import { isInviteCode, normalizeInviteCode } from './inviteCode';
 import { messages } from './messages';
 
 /**
@@ -50,6 +51,13 @@ export function validateEmail(email: string): string {
 /** Contraseña para iniciar sesión: solo se revisa que no esté vacía */
 export function validatePassword(password: string): string {
   return isEmpty(password) ? messages.validation.passwordRequired : '';
+}
+
+/** Código de un plan para unirse ("K7P2-QX9M"; también sin guion o en minúsculas) */
+export function validateInviteCode(code: string): string {
+  if (!normalizeInviteCode(code)) return messages.validation.inviteCodeRequired;
+  if (!isInviteCode(code)) return messages.validation.inviteCodeInvalid;
+  return '';
 }
 
 /** Código de recuperación de contraseña que llega por correo */

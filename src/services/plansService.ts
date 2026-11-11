@@ -2,7 +2,8 @@ import { PostgrestError } from '@supabase/supabase-js';
 
 import { supabase } from '../utils/supabase';
 import { messages } from '../utils/messages';
-import { NewPlan, Plan, TransportMode } from '../types/plans';
+import { JoinPlanResult, NewPlan, Plan, TransportMode } from '../types/plans';
+import { normalizeInviteCode } from '../utils/inviteCode';
 import { DEFAULT_STAY_MINUTES } from '../utils/itinerary';
 
 type PlanRow = {
@@ -10,6 +11,7 @@ type PlanRow = {
   title: string;
   starts_at: string;
   owner_id: string;
+  invite_code: string;
   transport_mode: TransportMode;
   budget_per_person: number | null;
   notes: string | null;
@@ -22,7 +24,7 @@ type PlanRow = {
 };
 
 const PLAN_COLUMNS = `
-  id, title, starts_at, owner_id, transport_mode, budget_per_person, notes,
+  id, title, starts_at, owner_id, invite_code, transport_mode, budget_per_person, notes,
   plan_places (place_id, sort_order, stay_minutes),
   plan_members (user_id, role, profiles (full_name, avatar_url))
 `;
@@ -64,6 +66,7 @@ function toPlan(row: PlanRow): Plan {
     transportMode: row.transport_mode,
     budgetPerPerson: row.budget_per_person,
     notes: row.notes,
+    inviteCode: row.invite_code,
     // El dueño primero, como en las tarjetas del diseño
     members: [...row.plan_members]
       .sort((a, b) => Number(b.role === 'owner') - Number(a.role === 'owner'))
@@ -184,5 +187,34 @@ export class PlansService {
 
     if (error) throw toPlansError(error, messages.plans.deleteFailed);
     if (!data?.length) throw new Error(messages.plans.noPermission);
+  }
+
+  /**
+   * Se une al plan que tiene ese código (función join_plan_by_code). Cualquier persona con
+   * sesión y el código entra como invitada.
+   */
+  static async joinByCode(code: string): Promise<JoinPlanResult> {
+    const { data, error } = await supabase.rpc('join_plan_by_code', {
+      p_code: normalizeInviteCode(code),
+    });
+
+    if (error?.code === USER_NOT_FOUND) throw new Error(messages.plans.inviteCodeNotFound);
+    if (error) throw toPlansError(error, messages.plans.joinFailed);
+    const row = (data as { plan_id: string; already_member: boolean }[] | null)?.[0];
+    if (!row) throw new Error(messages.plans.joinFailed);
+    return { planId: row.plan_id, alreadyMember: row.already_member };
+  }
+
+  /**
+   * Le da al plan un código nuevo; el anterior deja de servir (solo el dueño)
+   */
+  static async regenerateInviteCode(planId: string): Promise<string> {
+    const { data, error } = await supabase.rpc('regenerate_plan_invite_code', {
+      p_plan_id: planId,
+    });
+
+    if (error?.code === NOT_OWNER) throw new Error(messages.plans.onlyOwnerCanChangeCode);
+    if (error) throw toPlansError(error, messages.plans.regenerateCodeFailed);
+    return data as string;
   }
 }

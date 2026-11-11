@@ -29,6 +29,8 @@ export const messages = {
     planPlacesRequired: 'Agrega al menos un lugar',
     budgetTooHigh: (max: string) => `El presupuesto máximo es ${max}`,
     resetCodeRequired: 'Escribe el código que te enviamos',
+    inviteCodeRequired: 'Escribe el código del plan',
+    inviteCodeInvalid: 'El código tiene 8 letras y números, por ejemplo K7P2-QX9M',
     resetCodeInvalid: (minLength: number, maxLength: number) =>
       `El código tiene entre ${minLength} y ${maxLength} números`,
   },
@@ -160,6 +162,23 @@ export const messages = {
     placeAdded: (placeName: string, planTitle: string) =>
       `Agregamos ${placeName} al final de "${planTitle}".`,
     placeAlreadyInPlan: (planTitle: string) => `Ese lugar ya está en "${planTitle}".`,
+    inviteCodeNotFound:
+      'No hay ningún plan con ese código. Revisa que esté bien escrito o pide uno nuevo.',
+    joinFailed: failed('unirte al plan'),
+    joinedTitle: '¡Te uniste al plan!',
+    joined: (planTitle: string) => `Ya eres parte de "${planTitle}". Lo verás en Mis planes.`,
+    alreadyJoinedTitle: 'Ya estabas en este plan',
+    alreadyJoined: (planTitle: string) => `Ya hacías parte de "${planTitle}".`,
+    shareCode: (planTitle: string, code: string) =>
+      `Únete a mi plan "${planTitle}" en PlanIt con el código ${code}. En la app: Planes → Unirme.`,
+    regenerateCodeTitle: 'Cambiar código',
+    regenerateCodeConfirm:
+      'El código actual dejará de servir. Quienes ya se unieron siguen en el plan.',
+    regenerateCodeFailed: failed('cambiar el código'),
+    onlyOwnerCanChangeCode: 'Solo quien creó el plan puede cambiar el código',
+    scanPermissionDenied:
+      'Para escanear el código, permite que PlanIt use la cámara en los ajustes del teléfono.',
+    qrNotPlanit: 'Ese QR no es un código de PlanIt.',
   },
 
   reminders: {
