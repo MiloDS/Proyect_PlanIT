@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, Sparkles } from 'lucide-react-native';
@@ -35,6 +43,11 @@ export function HomeScreen({ navigation }: Props) {
   const origin = nearby.position?.coordinates;
   const weather = useWeather(origin);
   const displayName = getDisplayName(user, profile);
+  // Si la posición cambió, el clima se vuelve a pedir solo al llegar las coordenadas nuevas
+  const pullToRefresh = usePullToRefresh(() => {
+    weather.refresh();
+    return nearby.refresh();
+  });
 
   return (
     <View style={globalStyles.screen}>
