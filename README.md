@@ -21,6 +21,7 @@ Mobile app to discover activities and places based on location, weather, and per
 - **Open-Meteo** for the weather on Home (free, no API key)
 - **expo-notifications** for plan reminders (local notifications, which work in Expo Go)
 - **expo-image-picker**, **expo-image-manipulator** and **expo-file-system** for the profile photo (camera or gallery, cropped square and reduced to 512 px before uploading it to Supabase Storage)
+- **expo-splash-screen** for the launch screen, which stays until the app knows whether there is a session. The logo (white pin with a check on the brand green, also in `assets/logo.png` for the sign-in screens) is provisional
 
 ### Project structure
 
@@ -234,6 +235,7 @@ Aplicación móvil para descubrir actividades y lugares según ubicación, clima
 - **Open-Meteo** para el clima de Inicio (gratis, sin API key)
 - **expo-notifications** para los recordatorios de planes (notificaciones locales, que funcionan en Expo Go)
 - **expo-image-picker**, **expo-image-manipulator** y **expo-file-system** para la foto de perfil (cámara o galería, recortada en cuadrado y reducida a 512 px antes de subirla a Supabase Storage)
+- **expo-splash-screen** para la pantalla de carga, que se queda hasta que la app sabe si hay sesión. El logo (pin blanco con un visto sobre el verde de la app, también en `assets/logo.png` para las pantallas de acceso) es provisional
 
 ### Estructura del proyecto
 

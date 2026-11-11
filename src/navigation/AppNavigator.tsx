@@ -3,6 +3,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import * as SplashScreen from 'expo-splash-screen';
 
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { HomeScreen } from '../screens/HomeScreen';
@@ -70,15 +71,31 @@ export function AppNavigator() {
   usePlanReminderSync(isLoading ? undefined : userId);
   useOpenPlanFromNotification(navigationRef, isLoading ? undefined : userId, navigationReady);
 
+  const appReady = !isLoading && seenOnboarding !== null;
+
+  // La pantalla de carga nativa (App.tsx) sigue visible hasta saber qué mostrar: Intro,
+  // Login o la app. Este efecto corre cuando esa pantalla ya está dibujada.
+  useEffect(() => {
+    if (appReady) SplashScreen.hide();
+  }, [appReady]);
+
   // Quien ya inició sesión pasó por el onboarding: al cerrar sesión debe ver Login, no Intro
   if (session && seenOnboarding === false) {
     setSeenOnboarding(true);
   }
 
-  if (isLoading || seenOnboarding === null) {
+  if (!appReady) {
+    // Queda detrás de la pantalla de carga; con sus mismos colores por si se ve un instante
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: colors.primary,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.white} />
       </View>
     );
   }
