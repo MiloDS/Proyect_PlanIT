@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 
 import { MemberAvatarProps } from '../types/components';
 import { useImageFallback } from '../services/useImageFallback';
@@ -23,7 +24,13 @@ export function MemberAvatar({ name, avatarUrl, size = 32, style }: MemberAvatar
       importantForAccessibility="no-hide-descendants"
     >
       {showImage && avatarUrl ? (
-        <Image source={{ uri: avatarUrl }} style={styles.image} onError={onError} />
+        <Image
+          source={{ uri: avatarUrl }}
+          style={styles.image}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          onError={onError}
+        />
       ) : (
         <Text style={[styles.initials, { fontSize: Math.round(size * 0.36) }]}>
           {getInitials(name) || '?'}

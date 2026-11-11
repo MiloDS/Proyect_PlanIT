@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   Pressable,
   Share,
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -344,7 +344,14 @@ export function PlanDetailScreen({ navigation, route }: Props) {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {cover.showImage && coverUrl ? (
-          <Image source={{ uri: coverUrl }} style={styles.headerImage} onError={cover.onError} />
+          <Image
+            source={{ uri: coverUrl }}
+            style={styles.headerImage}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
+            onError={cover.onError}
+          />
         ) : (
           <View style={[styles.headerImage, styles.headerPlaceholder]}>
             <CalendarDays size={56} color={colors.primary} />
