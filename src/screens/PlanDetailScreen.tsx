@@ -35,6 +35,7 @@ import { AppStackParamList } from '../types/navigation';
 import { Plan, PlanMember } from '../types/plans';
 import { EmptyState } from '../components/EmptyState';
 import { FavoriteButton } from '../components/FavoriteButton';
+import { InviteCodeCard } from '../components/InviteCodeCard';
 import { InviteMemberModal } from '../components/InviteMemberModal';
 import { ItineraryList, ItinerarySummary, TRANSPORT_ICONS } from '../components/Itinerary';
 import { MemberAvatar } from '../components/MemberAvatar';
@@ -52,6 +53,7 @@ import { globalStyles } from '../styles/globalStyles';
 import { formatPesos } from '../utils/currency';
 import { formatDuration, formatLongDate, formatTime, isUpcoming } from '../utils/date';
 import { distanceKm } from '../utils/geo';
+import { formatInviteCode } from '../utils/inviteCode';
 import { buildItinerary, getTransportLabel } from '../utils/itinerary';
 import { messages } from '../utils/messages';
 import { isSameEmail } from '../utils/validation';
@@ -189,6 +191,7 @@ export function PlanDetailScreen({ navigation, route }: Props) {
     const details = [getTransportLabel(plan.transportMode, true), budgetText].filter(Boolean);
     const lines = [plan.title, `${formatLongDate(startsAt)} · ${timeRange}`, details.join(' · ')];
     if (plan.notes) lines.push(`Notas: ${plan.notes}`);
+    lines.push(`Únete en PlanIt con el código ${formatInviteCode(plan.inviteCode)}`);
     if (places.places.length > 0) {
       lines.push(
         '',
@@ -214,6 +217,11 @@ export function PlanDetailScreen({ navigation, route }: Props) {
       return messages.plans.alreadyMember;
     }
     return messages.plans.memberAdded(email);
+  };
+
+  const regenerateCode = async () => {
+    const inviteCode = await PlansService.regenerateInviteCode(plan.id);
+    setPlan((current) => ({ ...current, inviteCode }));
   };
 
   const removeMember = (member: PlanMember) => {
@@ -400,11 +408,11 @@ export function PlanDetailScreen({ navigation, route }: Props) {
               />
             ))}
           </View>
-          {isOwner && plan.members.length === 1 && (
-            <Text style={styles.mutedText}>
-              Invita a tus amigos con el correo de su cuenta de PlanIt.
-            </Text>
-          )}
+          <InviteCodeCard
+            code={plan.inviteCode}
+            planTitle={plan.title}
+            onRegenerate={isOwner ? regenerateCode : undefined}
+          />
 
           <Pressable
             onPress={leaveOrDelete}

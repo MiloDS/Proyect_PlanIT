@@ -12,9 +12,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#27ae60",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
@@ -39,8 +38,25 @@
         "expo-image-picker",
         {
           "photosPermission": "PlanIt usa tus fotos para que elijas tu foto de perfil.",
-          "cameraPermission": "PlanIt usa la cámara para que tomes tu foto de perfil.",
+          "cameraPermission": "PlanIt usa la cámara para tomar tu foto de perfil y para escanear el código QR de un plan.",
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "PlanIt usa la cámara para tomar tu foto de perfil y para escanear el código QR de un plan.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#27ae60"
         }
       ]
     ]

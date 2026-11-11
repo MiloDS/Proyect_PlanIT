@@ -30,7 +30,12 @@ const QUESTIONS = [
   {
     question: '¿Cómo invito a mis amigos a un plan?',
     answer:
-      'Abre el plan y, en Personas, toca "Invitar". Escribe el correo con el que tu amigo entra a PlanIt y el plan le aparecerá en Mis planes. Solo quien creó el plan puede invitar.',
+      'Abre el plan: en Personas está su código. Compártelo por WhatsApp o toca "Ver QR" para que lo escaneen; quien lo tenga se une desde Planes → Unirme. Quien creó el plan también puede invitar con el correo de la cuenta de PlanIt.',
+  },
+  {
+    question: '¿Cómo me uno a un plan con un código?',
+    answer:
+      'En la pestaña Planes toca "Unirme". Escribe el código que te compartieron o toca "Escanear QR" y apunta al QR que te muestran. Si el código ya no sirve, pide uno nuevo: quien creó el plan puede cambiarlo.',
   },
   {
     question: 'Me invitaron a un plan y no lo veo',

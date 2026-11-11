@@ -23,7 +23,16 @@ export type Plan = {
   /** Presupuesto aproximado por persona, en pesos */
   budgetPerPerson: number | null;
   notes: string | null;
+  /** Código para unirse al plan (sin guion); lo ven y comparten todos sus miembros */
+  inviteCode: string;
   members: PlanMember[];
+};
+
+/** Resultado de unirse a un plan con su código */
+export type JoinPlanResult = {
+  planId: string;
+  /** La persona ya hacía parte del plan: no cambió nada */
+  alreadyMember: boolean;
 };
 
 export type NewPlan = {

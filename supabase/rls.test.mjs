@@ -558,6 +558,100 @@ check(
     editPlanId
 );
 
+// --- Unirse con código
+const codePlan = (
+  await as(
+    A,
+    `select public.create_plan('Con código', now() + interval '4 days', array['gp_1']) as id`
+  )
+).rows[0]?.id;
+const codeOf = async (userId, id) =>
+  (await as(userId, `select invite_code from public.plans where id = $1`, [id])).rows[0]
+    ?.invite_code;
+const joinWith = (userId, value) =>
+  as(userId, `select plan_id, already_member from public.join_plan_by_code($1)`, [value]);
+const roleOf = async (userId) =>
+  (
+    await db.query(`select role from public.plan_members where plan_id = $1 and user_id = $2`, [
+      codePlan,
+      userId,
+    ])
+  ).rows[0]?.role;
+
+const code = await codeOf(A, codePlan);
+check(
+  'cada plan tiene un código de 8 caracteres sin 0, O, 1, I ni L',
+  /^[A-HJKMNP-Z2-9]{8}$/.test(code ?? ''),
+  code
+);
+check(
+  'C no ve el código de un plan ajeno',
+  (await as(C, `select invite_code from public.plans where id = $1`, [codePlan])).rows.length === 0
+);
+const typed = `${code.slice(0, 4)}-${code.slice(4)}`.toLowerCase();
+const joined = await joinWith(C, typed);
+check(
+  'C se une con el código (en minúsculas y con guion)',
+  joined.rows[0]?.plan_id === codePlan && joined.rows[0]?.already_member === false,
+  JSON.stringify(joined)
+);
+check('C queda como invitado', (await roleOf(C)) === 'member');
+check('C ve el código y puede compartirlo', (await codeOf(C, codePlan)) === code);
+check(
+  'unirse otra vez avisa que ya era miembro',
+  (await joinWith(C, code)).rows[0]?.already_member === true
+);
+check(
+  'el dueño con su propio código no cambia de rol',
+  (await joinWith(A, code)).rows[0]?.already_member === true && (await roleOf(A)) === 'owner'
+);
+check(
+  'un código que no existe da error',
+  /código/.test((await joinWith(B, 'ZZZZZZZZ')).error ?? ''),
+  'se permitió'
+);
+check(
+  'anon no puede unirse con código',
+  !!(await asAnon(`select * from public.join_plan_by_code($1)`, [code])).error
+);
+
+check(
+  'un invitado no puede cambiar el código',
+  !!(await as(C, `select public.regenerate_plan_invite_code($1)`, [codePlan])).error,
+  'se permitió'
+);
+const regenerated = await as(A, `select public.regenerate_plan_invite_code($1) as code`, [
+  codePlan,
+]);
+const newCode = regenerated.rows[0]?.code;
+check(
+  'el dueño cambia el código',
+  !!newCode && newCode !== code && newCode === (await codeOf(A, codePlan)),
+  regenerated.error
+);
+check('el código anterior deja de servir', !!(await joinWith(B, code)).error, 'se permitió');
+check(
+  'con el código nuevo sí se puede unir',
+  (await joinWith(B, newCode)).rows[0]?.already_member === false
+);
+check(
+  'cambiar el código no saca a nadie del plan',
+  (
+    await db.query(`select count(*)::int as n from public.plan_members where plan_id = $1`, [
+      codePlan,
+    ])
+  ).rows[0].n === 3
+);
+check(
+  'los códigos no se repiten',
+  (
+    await db.query(
+      `select count(distinct private.generate_invite_code())::int as n from generate_series(1, 300)`
+    )
+  ).rows[0].n === 300
+);
+await as(A, `delete from public.plans where id = $1`, [codePlan]);
+
 // --- Usuario sin sesión
 check('anon no ve planes', (await asAnon(`select * from public.plans`)).rows.length === 0);
 check('anon no ve perfiles', (await asAnon(`select * from public.profiles`)).rows.length === 0);

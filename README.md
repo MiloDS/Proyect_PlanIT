@@ -21,6 +21,8 @@ Mobile app to discover activities and places based on location, weather, and per
 - **Open-Meteo** for the weather on Home (free, no API key)
 - **expo-notifications** for plan reminders (local notifications, which work in Expo Go)
 - **expo-image-picker**, **expo-image-manipulator** and **expo-file-system** for the profile photo (camera or gallery, cropped square and reduced to 512 px before uploading it to Supabase Storage)
+- **expo-splash-screen** for the launch screen, which stays until the app knows whether there is a session. The logo (white pin with a check on the brand green, also in `assets/logo.png` for the sign-in screens) is provisional
+- **expo-camera** to scan the QR of a plan, and **qrcode** with **react-native-svg** to draw it (only the core of `qrcode` that builds the QR matrix)
 
 ### Project structure
 
@@ -64,8 +66,8 @@ Following the course guide, each layer has one job:
 | `PlaceDetailScreen` | Photo, rating, distance, hours, price, description, amenities; save to favorites, add to a plan (a new one or an upcoming plan you organize) and share |
 | `SurpriseMeScreen` | Preference form (activity, budget, distance, company) |
 | `RecommendationsScreen` | Places that match the Surprise me preferences, ordered by rating, weather and company, with a note explaining the order |
-| `PlansScreen` | Upcoming and past plans from Supabase (own and shared); pull down to refresh |
-| `PlanDetailScreen` | Date, start and estimated end time, transport, budget per person, notes, the itinerary (arrival time at each place and travel time between them) and members; the owner invites people by email, removes guests, edits and deletes the plan; guests can leave |
+| `PlansScreen` | Upcoming and past plans from Supabase (own and shared); pull down to refresh; join a plan with its code or by scanning its QR |
+| `PlanDetailScreen` | Date, start and estimated end time, transport, budget per person, notes, the itinerary (arrival time at each place and travel time between them) and members; the plan code, which any member can share or show as a QR; the owner invites people by email, changes the code, removes guests, edits and deletes the plan; guests can leave |
 | `CreatePlanScreen` | Plan organizer: name, date, start time, how the group travels, places in visiting order (nearby, favorites or search) with the time spent at each, travel times, estimated end time, budget per person and notes. Opens the new plan when saved; also edits an existing plan |
 | `FavoritesScreen` | Favorite places and plans (All / Places / Plans); pull down to refresh |
 | `ProfileScreen` | User data, settings menu, and logout |
@@ -118,11 +120,11 @@ Places come from the Google Places API, so the database only stores their `place
 | `profiles` | Public name and avatar of each user (created automatically on sign up) | Read: any signed-in user. Update: the user themselves |
 | `favorites` | Places saved by each user | Only the user themselves |
 | `favorite_plans` | Plans saved by each user | Only the user themselves, and only for plans they belong to |
-| `plans` | Plans (title, date, transport, budget per person, notes) | Read: plan members. Edit/delete: the owner |
+| `plans` | Plans (title, date, transport, budget per person, notes, invite code) | Read: plan members. Edit/delete: the owner |
 | `plan_members` | Members of each plan (`owner` / `member`) | Read: plan members. Invite/remove: the owner. Any member can leave |
 | `plan_places` | Places of each plan, their order and the time spent at each (`stay_minutes`) | Plan members |
 
-The app creates plans with the `create_plan` function, which saves the plan and its places in a single transaction: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids, p_stay_minutes, p_transport_mode, p_budget_per_person, p_notes })` (`p_stay_minutes` follows the order of `p_place_ids`; the last four parameters are optional). It edits them with `update_plan` (`{ p_plan_id, ...the same parameters }`), which works the same way and only lets the owner through. `add_plan_place` (`{ p_plan_id, p_place_id, p_stay_minutes }`) adds a place at the end of a plan from the place detail screen and returns `false` if it was already there. To invite someone to a plan by email, call `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. The person needs a PlanIt account with that email; they are added right away and see the plan in their plans list (there are no notifications yet).
+The app creates plans with the `create_plan` function, which saves the plan and its places in a single transaction: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids, p_stay_minutes, p_transport_mode, p_budget_per_person, p_notes })` (`p_stay_minutes` follows the order of `p_place_ids`; the last four parameters are optional). It edits them with `update_plan` (`{ p_plan_id, ...the same parameters }`), which works the same way and only lets the owner through. `add_plan_place` (`{ p_plan_id, p_place_id, p_stay_minutes }`) adds a place at the end of a plan from the place detail screen and returns `false` if it was already there. Each plan has an 8-character `invite_code` (without 0, O, 1, I or L so it can be read out loud); `join_plan_by_code` (`{ p_code }`) adds whoever sends it as a guest and returns `{ plan_id, already_member }`, and `regenerate_plan_invite_code` (`{ p_plan_id }`) gives the plan a new code (owner only), so the old one stops working. The QR holds `PLANIT:XXXX-XXXX`, which the app's scanner reads and a phone camera shows as plain text. To invite someone to a plan by email, call `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. The person needs a PlanIt account with that email; they are added right away and see the plan in their plans list (there are no notifications yet).
 
 Profile photos live in the public `avatars` Storage bucket, in a folder named after each user's id: anyone can see a photo through its URL (saved in `profiles.avatar_url`), but each person can only upload, list and delete files in their own folder. Every new photo gets a new file name so phones don't keep showing the old one from their cache, and the app deletes the previous files afterwards. Removing the photo shows the person's initials instead.
 
@@ -207,7 +209,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Project status
 
-Actively in development. Authentication (including password recovery), places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo), which Surprise me also uses, together with the company, to order its recommendations. Plans work as an organizer (visiting order, time at each place, travel times with Google Routes, estimated end time, budget and notes), can be shared by inviting friends by email, edited and deleted from their detail screen, and remind you before they start. Ideas for later: notify people when they are invited to a plan (push notifications, which need a development build) and more languages.
+Actively in development. Authentication (including password recovery), places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo), which Surprise me also uses, together with the company, to order its recommendations. Plans work as an organizer (visiting order, time at each place, travel times with Google Routes, estimated end time, budget and notes), can be shared with a code, its QR or by inviting friends by email, edited and deleted from their detail screen, and remind you before they start. Ideas for later: notify people when they are invited to a plan (push notifications, which need a development build) and more languages.
 
 ### Authors
 Juan Esteban
@@ -234,6 +236,8 @@ Aplicación móvil para descubrir actividades y lugares según ubicación, clima
 - **Open-Meteo** para el clima de Inicio (gratis, sin API key)
 - **expo-notifications** para los recordatorios de planes (notificaciones locales, que funcionan en Expo Go)
 - **expo-image-picker**, **expo-image-manipulator** y **expo-file-system** para la foto de perfil (cámara o galería, recortada en cuadrado y reducida a 512 px antes de subirla a Supabase Storage)
+- **expo-splash-screen** para la pantalla de carga, que se queda hasta que la app sabe si hay sesión. El logo (pin blanco con un visto sobre el verde de la app, también en `assets/logo.png` para las pantallas de acceso) es provisional
+- **expo-camera** para escanear el QR de un plan, y **qrcode** con **react-native-svg** para dibujarlo (solo el núcleo de `qrcode` que arma la matriz del QR)
 
 ### Estructura del proyecto
 
@@ -277,8 +281,8 @@ Siguiendo la guía del curso, cada capa tiene una sola responsabilidad:
 | `PlaceDetailScreen` | Foto, calificación, distancia, horario, precio, descripción y servicios; guardar en favoritos, agregar a un plan (uno nuevo o uno próximo que organices) y compartir |
 | `SurpriseMeScreen` | Formulario de preferencias (actividad, presupuesto, distancia, compañía) |
 | `RecommendationsScreen` | Lugares que cumplen las preferencias de Sorpréndeme, ordenados por calificación, clima y compañía, con una nota que explica el orden |
-| `PlansScreen` | Planes próximos y pasados desde Supabase (propios y compartidos); se actualizan al deslizar hacia abajo |
-| `PlanDetailScreen` | Fecha, hora de inicio y de fin aproximada, transporte, presupuesto por persona, notas, el itinerario (hora de llegada a cada lugar y traslado entre ellos) y las personas; el dueño invita por correo, quita invitados, edita y elimina el plan; los invitados pueden salirse |
+| `PlansScreen` | Planes próximos y pasados desde Supabase (propios y compartidos); se actualizan al deslizar hacia abajo; unirse a un plan con su código o escaneando su QR |
+| `PlanDetailScreen` | Fecha, hora de inicio y de fin aproximada, transporte, presupuesto por persona, notas, el itinerario (hora de llegada a cada lugar y traslado entre ellos) y las personas; el código del plan, que cualquier miembro puede compartir o mostrar como QR; el dueño invita por correo, cambia el código, quita invitados, edita y elimina el plan; los invitados pueden salirse |
 | `CreatePlanScreen` | Organizador del plan: nombre, fecha, hora de inicio, cómo se mueven, lugares en el orden de visita (cercanos, favoritos o búsqueda) con el tiempo en cada uno, traslados, hora de fin aproximada, presupuesto por persona y notas. Al guardar abre el plan nuevo; también edita un plan existente |
 | `FavoritesScreen` | Lugares y planes favoritos (Todos / Lugares / Planes); se actualizan al deslizar hacia abajo |
 | `ProfileScreen` | Datos del usuario, menú de ajustes y cierre de sesión |
@@ -331,11 +335,11 @@ Los lugares vienen de la API de Google Places, así que la base de datos solo gu
 | `profiles` | Nombre y foto públicos de cada usuario (se crea solo al registrarse) | Leer: cualquier usuario con sesión. Editar: el propio usuario |
 | `favorites` | Lugares guardados por cada usuario | Solo el propio usuario |
 | `favorite_plans` | Planes guardados por cada usuario | Solo el propio usuario, y solo de planes de los que es miembro |
-| `plans` | Planes (título, fecha, transporte, presupuesto por persona, notas) | Leer: los miembros del plan. Editar/eliminar: el dueño |
+| `plans` | Planes (título, fecha, transporte, presupuesto por persona, notas, código para unirse) | Leer: los miembros del plan. Editar/eliminar: el dueño |
 | `plan_members` | Miembros de cada plan (`owner` / `member`) | Leer: los miembros. Invitar/expulsar: el dueño. Cualquier miembro puede salirse |
 | `plan_places` | Lugares de cada plan, su orden y el tiempo en cada uno (`stay_minutes`) | Los miembros del plan |
 
-La app crea los planes con la función `create_plan`, que guarda el plan y sus lugares en una sola transacción: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids, p_stay_minutes, p_transport_mode, p_budget_per_person, p_notes })` (`p_stay_minutes` va en el orden de `p_place_ids`; los cuatro últimos parámetros son opcionales). Los edita con `update_plan` (`{ p_plan_id, ...los mismos parámetros }`), que funciona igual y solo deja pasar al dueño. `add_plan_place` (`{ p_plan_id, p_place_id, p_stay_minutes }`) agrega un lugar al final de un plan desde la ficha del lugar y devuelve `false` si ya estaba. Para invitar a alguien a un plan por correo se usa `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. La persona necesita una cuenta de PlanIt con ese correo; queda agregada de inmediato y ve el plan en su lista de planes (todavía no hay notificaciones).
+La app crea los planes con la función `create_plan`, que guarda el plan y sus lugares en una sola transacción: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids, p_stay_minutes, p_transport_mode, p_budget_per_person, p_notes })` (`p_stay_minutes` va en el orden de `p_place_ids`; los cuatro últimos parámetros son opcionales). Los edita con `update_plan` (`{ p_plan_id, ...los mismos parámetros }`), que funciona igual y solo deja pasar al dueño. `add_plan_place` (`{ p_plan_id, p_place_id, p_stay_minutes }`) agrega un lugar al final de un plan desde la ficha del lugar y devuelve `false` si ya estaba. Cada plan tiene un `invite_code` de 8 caracteres (sin 0, O, 1, I ni L para poder dictarlo); `join_plan_by_code` (`{ p_code }`) agrega como invitado a quien lo envía y devuelve `{ plan_id, already_member }`, y `regenerate_plan_invite_code` (`{ p_plan_id }`) le da al plan un código nuevo (solo el dueño), así el anterior deja de servir. El QR guarda `PLANIT:XXXX-XXXX`, que lee el escáner de la app y que la cámara del teléfono muestra como texto. Para invitar a alguien a un plan por correo se usa `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. La persona necesita una cuenta de PlanIt con ese correo; queda agregada de inmediato y ve el plan en su lista de planes (todavía no hay notificaciones).
 
 Las fotos de perfil están en el bucket público `avatars` de Storage, en una carpeta con el id de cada usuario: cualquiera puede ver una foto con su URL (guardada en `profiles.avatar_url`), pero cada persona solo puede subir, listar y borrar archivos en su propia carpeta. Cada foto nueva tiene un nombre nuevo para que los teléfonos no sigan mostrando la anterior desde su caché, y la app borra los archivos anteriores después. Si la persona quita su foto, se muestran sus iniciales.
 
@@ -420,7 +424,7 @@ refactor(intro): split slide into background and overlapping card layers
 
 ### Estado del proyecto
 
-En desarrollo activo. La autenticación (con recuperación de contraseña), los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo), que Sorpréndeme también usa, junto con la compañía, para ordenar sus recomendaciones. Los planes funcionan como un organizador (orden de visita, tiempo en cada lugar, traslados con Google Routes, hora de fin aproximada, presupuesto y notas), se comparten invitando amigos por correo, se editan y eliminan desde su detalle, y avisan antes de empezar. Ideas para después: avisar a las personas cuando las invitan a un plan (notificaciones push, que necesitan un development build) y más idiomas.
+En desarrollo activo. La autenticación (con recuperación de contraseña), los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo), que Sorpréndeme también usa, junto con la compañía, para ordenar sus recomendaciones. Los planes funcionan como un organizador (orden de visita, tiempo en cada lugar, traslados con Google Routes, hora de fin aproximada, presupuesto y notas), se comparten con un código, su QR o invitando amigos por correo, se editan y eliminan desde su detalle, y avisan antes de empezar. Ideas para después: avisar a las personas cuando las invitan a un plan (notificaciones push, que necesitan un development build) y más idiomas.
 
 ### Autores
 Juan Esteban
