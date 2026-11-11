@@ -1,0 +1,33 @@
+import { Image, StyleSheet, View } from 'react-native';
+
+import { PlaceImageProps } from '../types/components';
+import { useImageFallback } from '../services/useImageFallback';
+import { colors } from '../styles/colors';
+import { getPlaceCategoryStyle } from '../utils/placeCategories';
+
+// Foto de un lugar o, si no tiene o no carga, el ícono de su categoría
+export function PlaceImage({ uri, placeType, style, iconSize = 24 }: PlaceImageProps) {
+  const { showImage, onError } = useImageFallback(uri);
+
+  if (showImage && uri) {
+    return <Image source={{ uri }} style={[styles.base, style]} onError={onError} />;
+  }
+
+  const { Icon, color } = getPlaceCategoryStyle(placeType);
+  return (
+    <View style={[styles.base, styles.placeholder, style]}>
+      <Icon size={iconSize} color={color} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  // El mismo fondo mientras la foto carga, para que no quede un hueco blanco
+  base: {
+    backgroundColor: colors.surfaceMuted,
+  },
+  placeholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

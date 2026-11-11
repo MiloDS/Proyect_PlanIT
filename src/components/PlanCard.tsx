@@ -4,6 +4,7 @@ import { CalendarDays } from 'lucide-react-native';
 import { PlanCardProps } from '../types/components';
 import { FavoriteButton } from './FavoriteButton';
 import { MemberAvatar } from './MemberAvatar';
+import { useImageFallback } from '../services/useImageFallback';
 import { colors } from '../styles/colors';
 import { formatShortDate, formatTime } from '../utils/date';
 
@@ -53,6 +54,7 @@ function CardContent({
 
 export function PlanCard({ coverUrl, onPress, ...props }: PlanCardProps) {
   const startsAt = new Date(props.plan.startsAt);
+  const cover = useImageFallback(coverUrl);
 
   // Al ser un botón, el lector de pantalla trata la tarjeta como un solo elemento: el
   // favorito queda disponible como acción de la tarjeta
@@ -75,11 +77,12 @@ export function PlanCard({ coverUrl, onPress, ...props }: PlanCardProps) {
       }}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
-      {coverUrl ? (
+      {cover.showImage && coverUrl ? (
         <ImageBackground
           source={{ uri: coverUrl }}
           style={styles.background}
           imageStyle={styles.image}
+          onError={cover.onError}
         >
           <CardContent {...props} />
         </ImageBackground>
