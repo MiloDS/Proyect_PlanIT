@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, ScrollView, StyleSheet, Text } from 'react-native';
+import { Image, KeyboardAvoidingView, ScrollView, StyleSheet, Text } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 import { AuthLayoutProps } from '../types/components';
@@ -15,6 +15,7 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        <Image source={require('../../assets/logo.png')} style={styles.logo} />
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
         {children}
@@ -31,9 +32,15 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     paddingHorizontal: 25,
-    paddingTop: 80,
+    paddingTop: 56,
     paddingBottom: 40,
     backgroundColor: colors.white,
+  },
+  logo: {
+    width: 72,
+    height: 72,
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   title: {
     fontSize: 22,
