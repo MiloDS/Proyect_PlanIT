@@ -64,6 +64,13 @@ export const messages = {
     loadFailed: failed('cargar tu perfil'),
     saveNameFailed: failed('guardar tu nombre'),
     signInRequired: 'Inicia sesión para editar tu perfil',
+    photoUploadFailed: failed('guardar tu foto'),
+    photoRemoveFailed: failed('quitar tu foto'),
+    photoProcessFailed: 'No se pudo preparar la foto. Prueba con otra imagen.',
+    cameraPermissionDenied:
+      'Para tomar una foto, permite que PlanIt use la cámara en los ajustes del teléfono.',
+    removePhotoTitle: 'Quitar foto',
+    removePhotoConfirm: 'En tus planes se verán tus iniciales en lugar de tu foto.',
   },
 
   places: {

@@ -24,6 +24,11 @@ export function getFirstName(name: string): string {
   return name.split(' ')[0];
 }
 
+/**
+ * Foto que se muestra en la app: la del perfil, que la persona puede cambiar o quitar.
+ * Mientras el perfil carga se usa la de la sesión (la de Google, si entró con Google).
+ */
 export function getDisplayAvatar(user: User | null, profile: Profile | null): string | undefined {
-  return profile?.avatarUrl || getAvatarUrl(user);
+  if (profile) return profile.avatarUrl ?? undefined;
+  return getAvatarUrl(user);
 }
