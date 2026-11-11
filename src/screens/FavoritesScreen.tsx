@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CompositeScreenProps } from '@react-navigation/native';
@@ -17,6 +24,7 @@ import { useFavorites } from '../services/FavoritesContext';
 import { useDevicePosition } from '../services/useDevicePosition';
 import { usePlacesById } from '../services/usePlacesById';
 import { usePlans } from '../services/usePlans';
+import { usePullToRefresh } from '../services/usePullToRefresh';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { distanceKm } from '../utils/geo';
@@ -46,6 +54,12 @@ export function FavoritesScreen({ navigation }: Props) {
   const plans = usePlans();
   const favoritePlaces = usePlacesById(favorites.places.map((entry) => entry.id));
   const [activeTab, setActiveTab] = useState<Tab>('all');
+  const pullToRefresh = usePullToRefresh(() => {
+    // Los datos de Google de los lugares ya cargados casi no cambian: solo se vuelven a
+    // pedir si habían fallado
+    if (favoritePlaces.error) favoritePlaces.retry();
+    return Promise.all([favorites.refresh(), plans.refresh()]);
+  });
 
   const favoritePlans = favorites.plans.flatMap((entry) => {
     const plan = plans.plans.find((item) => item.id === entry.id);
@@ -150,6 +164,15 @@ export function FavoritesScreen({ navigation }: Props) {
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16 }]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={pullToRefresh.refreshing}
+            onRefresh={pullToRefresh.onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+            progressViewOffset={insets.top}
+          />
+        }
       >
         <Text style={styles.headerTitle}>Favoritos</Text>
 
