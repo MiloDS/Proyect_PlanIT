@@ -64,10 +64,10 @@ Following the course guide, each layer has one job:
 | `PlaceDetailScreen` | Photo, rating, distance, hours, price, description, amenities; save to favorites, add to a plan (a new one or an upcoming plan you organize) and share |
 | `SurpriseMeScreen` | Preference form (activity, budget, distance, company) |
 | `RecommendationsScreen` | Places that match the Surprise me preferences, ordered by rating, weather and company, with a note explaining the order |
-| `PlansScreen` | Upcoming and past plans from Supabase (own and shared) |
+| `PlansScreen` | Upcoming and past plans from Supabase (own and shared); pull down to refresh |
 | `PlanDetailScreen` | Date, start and estimated end time, transport, budget per person, notes, the itinerary (arrival time at each place and travel time between them) and members; the owner invites people by email, removes guests, edits and deletes the plan; guests can leave |
 | `CreatePlanScreen` | Plan organizer: name, date, start time, how the group travels, places in visiting order (nearby, favorites or search) with the time spent at each, travel times, estimated end time, budget per person and notes. Opens the new plan when saved; also edits an existing plan |
-| `FavoritesScreen` | Favorite places and plans (All / Places / Plans) |
+| `FavoritesScreen` | Favorite places and plans (All / Places / Plans); pull down to refresh |
 | `ProfileScreen` | User data, settings menu, and logout |
 | `EditProfileScreen` | Change the name and the photo other people see in your plans (the email is read-only) |
 | `NotificationsScreen` | Turn plan reminders on or off and choose when they arrive |
@@ -277,10 +277,10 @@ Siguiendo la guía del curso, cada capa tiene una sola responsabilidad:
 | `PlaceDetailScreen` | Foto, calificación, distancia, horario, precio, descripción y servicios; guardar en favoritos, agregar a un plan (uno nuevo o uno próximo que organices) y compartir |
 | `SurpriseMeScreen` | Formulario de preferencias (actividad, presupuesto, distancia, compañía) |
 | `RecommendationsScreen` | Lugares que cumplen las preferencias de Sorpréndeme, ordenados por calificación, clima y compañía, con una nota que explica el orden |
-| `PlansScreen` | Planes próximos y pasados desde Supabase (propios y compartidos) |
+| `PlansScreen` | Planes próximos y pasados desde Supabase (propios y compartidos); se actualizan al deslizar hacia abajo |
 | `PlanDetailScreen` | Fecha, hora de inicio y de fin aproximada, transporte, presupuesto por persona, notas, el itinerario (hora de llegada a cada lugar y traslado entre ellos) y las personas; el dueño invita por correo, quita invitados, edita y elimina el plan; los invitados pueden salirse |
 | `CreatePlanScreen` | Organizador del plan: nombre, fecha, hora de inicio, cómo se mueven, lugares en el orden de visita (cercanos, favoritos o búsqueda) con el tiempo en cada uno, traslados, hora de fin aproximada, presupuesto por persona y notas. Al guardar abre el plan nuevo; también edita un plan existente |
-| `FavoritesScreen` | Lugares y planes favoritos (Todos / Lugares / Planes) |
+| `FavoritesScreen` | Lugares y planes favoritos (Todos / Lugares / Planes); se actualizan al deslizar hacia abajo |
 | `ProfileScreen` | Datos del usuario, menú de ajustes y cierre de sesión |
 | `EditProfileScreen` | Cambiar el nombre y la foto que ven las personas de tus planes (el correo es de solo lectura) |
 | `NotificationsScreen` | Activar o desactivar los recordatorios de planes y elegir cuándo llegan |
