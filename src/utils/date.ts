@@ -21,6 +21,20 @@ export function formatTime(date: Date): string {
   return `${hours % 12 || 12}:${minutes} ${hours < 12 ? 'a. m.' : 'p. m.'}`;
 }
 
+/** "45 min", "2 h", "1 h 30 min" */
+export function formatDuration(minutes: number): string {
+  const rounded = Math.round(minutes);
+  if (rounded < 1) return 'menos de 1 min';
+  const hours = Math.floor(rounded / 60);
+  const rest = rounded % 60;
+  if (hours === 0) return `${rest} min`;
+  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
+}
+
+export function addMinutes(date: Date, minutes: number): Date {
+  return new Date(date.getTime() + minutes * 60_000);
+}
+
 export function startOfDay(date: Date): Date {
   const start = new Date(date);
   start.setHours(0, 0, 0, 0);

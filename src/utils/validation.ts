@@ -1,4 +1,5 @@
 import { PlanFormErrors } from '../types/plans';
+import { formatPesos } from './currency';
 import { messages } from './messages';
 
 /**
@@ -12,6 +13,9 @@ export const MIN_PASSWORD_LENGTH = 6;
 export const MAX_NAME_LENGTH = 60;
 // Igual que la restricción de la tabla plans
 export const MAX_PLAN_TITLE_LENGTH = 100;
+// Igual que las restricciones de plans (migración del organizador)
+export const MAX_PLAN_NOTES_LENGTH = 500;
+export const MAX_BUDGET_PER_PERSON = 10_000_000;
 // Supabase deja configurar el largo del código del correo entre 6 y 10 dígitos
 export const RESET_CODE_MIN_LENGTH = 6;
 export const RESET_CODE_MAX_LENGTH = 10;
@@ -81,14 +85,16 @@ type PlanForm = {
   title: string;
   startsAt: Date;
   placeCount: number;
+  notes: string;
+  budgetPerPerson: number | null;
 };
 
 /**
- * Un plan necesita nombre, al menos un lugar y una fecha futura. `allowPast` deja
- * cambiar el nombre o los lugares de un plan que ya pasó sin moverlo al futuro.
+ * Un plan necesita nombre, al menos un lugar y una fecha futura; las notas y el presupuesto
+ * son opcionales. `allowPast` deja cambiar un plan que ya pasó sin moverlo al futuro.
  */
 export function validatePlan(
-  { title, startsAt, placeCount }: PlanForm,
+  { title, startsAt, placeCount, notes, budgetPerPerson }: PlanForm,
   { allowPast = false } = {}
 ): PlanFormErrors {
   const errors: PlanFormErrors = {};
@@ -102,6 +108,12 @@ export function validatePlan(
     errors.startsAt = messages.validation.planDateInPast;
   }
   if (placeCount === 0) errors.places = messages.validation.planPlacesRequired;
+  if (budgetPerPerson !== null && budgetPerPerson > MAX_BUDGET_PER_PERSON) {
+    errors.budget = messages.validation.budgetTooHigh(formatPesos(MAX_BUDGET_PER_PERSON));
+  }
+  if (notes.trim().length > MAX_PLAN_NOTES_LENGTH) {
+    errors.notes = messages.validation.tooLong(MAX_PLAN_NOTES_LENGTH);
+  }
 
   return errors;
 }

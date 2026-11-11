@@ -6,6 +6,13 @@ function toRadians(degrees: number): number {
   return (degrees * Math.PI) / 180;
 }
 
+/** "850 m", "2.4 km" (con punto, como las distancias de las tarjetas de lugares) */
+export function formatDistance(meters: number): string {
+  const rounded = Math.round(meters / 10) * 10;
+  if (rounded < 1000) return `${rounded} m`;
+  return `${(meters / 1000).toFixed(1)} km`;
+}
+
 // Distancia en línea recta entre dos puntos (fórmula de haversine)
 export function distanceKm(from: Coordinates, to: Coordinates): number {
   const dLat = toRadians(to.latitude - from.latitude);
