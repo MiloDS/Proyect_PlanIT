@@ -13,8 +13,11 @@ export type AppStackParamList = {
   SurpriseMe: undefined;
   PlaceDetail: { place: Place };
   Recommendations: { preferences: RecommendationPreferences };
-  /** Con `plan`, la pantalla edita ese plan en lugar de crear uno nuevo */
-  CreatePlan: { plan?: Plan } | undefined;
+  /**
+   * Con `plan`, la pantalla edita ese plan en lugar de crear uno nuevo. Con `place`, el plan
+   * nuevo empieza con ese lugar (desde su ficha, "Agregar a un plan").
+   */
+  CreatePlan: { plan?: Plan; place?: Place } | undefined;
   PlanDetail: { plan: Plan };
   EditProfile: undefined;
   Notifications: undefined;

@@ -14,26 +14,39 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import { CalendarDays, Clock, LucideIcon, Plus, X } from 'lucide-react-native';
+import { CalendarDays, Clock, Hourglass, LucideIcon, Plus } from 'lucide-react-native';
 
 import { AppStackParamList } from '../types/navigation';
 import { Place } from '../types/places';
-import { PlanFormErrors } from '../types/plans';
+import { NewPlan, PlanFormErrors, TransportMode } from '../types/plans';
+import { SheetOption } from '../types/components';
 import { Banner } from '../components/Banner';
 import { Button } from '../components/Button';
 import { InputField } from '../components/InputField';
-import { PlaceListItem } from '../components/PlaceListItem';
+import { ItineraryList, ItinerarySummary } from '../components/Itinerary';
+import { OptionsSheet } from '../components/OptionsSheet';
 import { PlacePickerModal } from '../components/PlacePickerModal';
 import { ScreenHeader } from '../components/ScreenHeader';
+import { SegmentedControl } from '../components/SegmentedControl';
 import { PlacesService } from '../services/placesService';
 import { PlansService } from '../services/plansService';
 import { useDevicePosition } from '../services/useDevicePosition';
+import { useRouteLegs } from '../services/useRouteLegs';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
-import { formatShortDate, formatTime, startOfDay } from '../utils/date';
+import { formatPesos, parsePesos } from '../utils/currency';
+import { formatDuration, formatShortDate, formatTime, startOfDay } from '../utils/date';
 import { distanceKm } from '../utils/geo';
+import {
+  buildItinerary,
+  DEFAULT_STAY_MINUTES,
+  DEFAULT_TRANSPORT_MODE,
+  getDefaultStayMinutes,
+  STAY_OPTIONS,
+  TRANSPORT_MODES,
+} from '../utils/itinerary';
 import { messages } from '../utils/messages';
-import { validatePlan } from '../utils/validation';
+import { MAX_PLAN_NOTES_LENGTH, validatePlan } from '../utils/validation';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'CreatePlan'>;
 
@@ -89,22 +102,40 @@ function PickerField({ label, value, Icon, onPress, error }: PickerFieldProps) {
 
 export function CreatePlanScreen({ navigation, route }: Props) {
   const editingPlan = route.params?.plan;
+  // Lugar elegido desde su ficha con "Agregar a un plan" → "Nuevo plan"
+  const initialPlace = route.params?.place;
   const insets = useSafeAreaInsets();
   const position = useDevicePosition();
   const [title, setTitle] = useState(editingPlan?.title ?? '');
   const [startsAt, setStartsAt] = useState(() =>
     editingPlan ? new Date(editingPlan.startsAt) : getDefaultStart()
   );
-  const [places, setPlaces] = useState<Place[]>([]);
+  const [places, setPlaces] = useState<Place[]>(initialPlace ? [initialPlace] : []);
+  const [stayMinutes, setStayMinutes] = useState<Record<string, number>>(() => {
+    if (editingPlan) return editingPlan.stayMinutes;
+    return initialPlace ? { [initialPlace.id]: getDefaultStayMinutes(initialPlace.type) } : {};
+  });
+  const [transportMode, setTransportMode] = useState<TransportMode>(
+    editingPlan?.transportMode ?? DEFAULT_TRANSPORT_MODE
+  );
+  const [budgetText, setBudgetText] = useState(
+    editingPlan?.budgetPerPerson != null ? formatPesos(editingPlan.budgetPerPerson) : ''
+  );
+  const [notes, setNotes] = useState(editingPlan?.notes ?? '');
   const [placesStatus, setPlacesStatus] = useState<'loading' | 'ready' | 'error'>(
     editingPlan ? 'loading' : 'ready'
   );
   const [placesReloadKey, setPlacesReloadKey] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [iosPickerMode, setIosPickerMode] = useState<PickerMode | null>(null);
+  const [stayEditIndex, setStayEditIndex] = useState<number | null>(null);
   const [errors, setErrors] = useState<PlanFormErrors>({});
   const [saveError, setSaveError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const placeIds = places.map((place) => place.id);
+  const routeLegs = useRouteLegs(placeIds, transportMode);
+  const itinerary = buildItinerary(startsAt, placeIds, stayMinutes, routeLegs.legs);
 
   // Al editar se cargan los datos de Google de los lugares que ya tiene el plan. Los que
   // Google ya no tiene (cerrados o eliminados) no vuelven y se quitan al guardar.
@@ -136,9 +167,13 @@ export function CreatePlanScreen({ navigation, route }: Props) {
     setPlacesReloadKey((key) => key + 1);
   };
 
+  const clearError = (field: keyof PlanFormErrors) => {
+    if (errors[field]) setErrors((current) => ({ ...current, [field]: undefined }));
+  };
+
   const changeStartsAt = (picked: Date, mode: PickerMode) => {
     setStartsAt((current) => mergePickedValue(current, picked, mode));
-    setErrors((current) => ({ ...current, startsAt: undefined }));
+    clearError('startsAt');
   };
 
   const openDateTimePicker = (mode: PickerMode) => {
@@ -160,15 +195,45 @@ export function CreatePlanScreen({ navigation, route }: Props) {
         ? current.filter((item) => item.id !== place.id)
         : [...current, place]
     );
-    setErrors((current) => ({ ...current, places: undefined }));
+    // Cada lugar nuevo empieza con un tiempo típico para su tipo; se puede cambiar
+    setStayMinutes((current) =>
+      current[place.id] === undefined
+        ? { ...current, [place.id]: getDefaultStayMinutes(place.type) }
+        : current
+    );
+    clearError('places');
   };
 
+  const movePlace = (index: number, direction: -1 | 1) => {
+    setPlaces((current) => {
+      const target = index + direction;
+      if (target < 0 || target >= current.length) return current;
+      const next = [...current];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  };
+
+  const stayOptions: SheetOption[] =
+    stayEditIndex === null || !places[stayEditIndex]
+      ? []
+      : STAY_OPTIONS.map((minutes) => {
+          const placeId = places[stayEditIndex].id;
+          return {
+            label: formatDuration(minutes),
+            Icon: Hourglass,
+            selected: (stayMinutes[placeId] ?? DEFAULT_STAY_MINUTES) === minutes,
+            onPress: () => setStayMinutes((current) => ({ ...current, [placeId]: minutes })),
+          };
+        });
+
   const handleSave = async () => {
-    // Al editar un plan que ya pasó se puede cambiar el nombre o los lugares sin moverlo
+    const budgetPerPerson = parsePesos(budgetText);
+    // Al editar un plan que ya pasó se puede cambiar el resto sin moverlo al futuro
     const keepsPastDate =
       !!editingPlan && startsAt.getTime() === new Date(editingPlan.startsAt).getTime();
     const formErrors = validatePlan(
-      { title, startsAt, placeCount: places.length },
+      { title, startsAt, placeCount: places.length, notes, budgetPerPerson },
       { allowPast: keepsPastDate }
     );
     setErrors(formErrors);
@@ -176,12 +241,27 @@ export function CreatePlanScreen({ navigation, route }: Props) {
     if (Object.keys(formErrors).length > 0) return;
 
     setSaving(true);
+    const plan: NewPlan = {
+      title,
+      startsAt,
+      placeIds,
+      stayMinutes,
+      transportMode,
+      budgetPerPerson,
+      notes,
+    };
     try {
-      const plan = { title, startsAt, placeIds: places.map((place) => place.id) };
-      if (editingPlan) await PlansService.update(editingPlan.id, plan);
-      else await PlansService.create(plan);
-      // Mis planes y el detalle del plan se recargan al volver a mostrarse
-      navigation.goBack();
+      if (editingPlan) {
+        await PlansService.update(editingPlan.id, plan);
+        // El detalle del plan se recarga al volver a mostrarse
+        navigation.goBack();
+        return;
+      }
+      const planId = await PlansService.create(plan);
+      // Se abre el plan recién creado, listo para invitar a los amigos
+      const created = await PlansService.get(planId).catch(() => null);
+      if (created) navigation.replace('PlanDetail', { plan: created });
+      else navigation.goBack();
     } catch (err: any) {
       setSaveError(err.message);
       setSaving(false);
@@ -194,7 +274,7 @@ export function CreatePlanScreen({ navigation, route }: Props) {
 
       <ScreenHeader
         title={editingPlan ? 'Editar plan' : 'Crear plan'}
-        subtitle={editingPlan ? 'Cambia lo que necesites' : 'Dale un nombre a tu plan'}
+        subtitle={editingPlan ? 'Cambia lo que necesites' : 'Arma el recorrido de tu plan'}
         onBack={() => navigation.goBack()}
       />
 
@@ -210,7 +290,7 @@ export function CreatePlanScreen({ navigation, route }: Props) {
             value={title}
             onChangeText={(text) => {
               setTitle(text);
-              if (errors.title) setErrors((current) => ({ ...current, title: undefined }));
+              clearError('title');
             }}
             autoCapitalize="sentences"
             error={errors.title}
@@ -225,7 +305,7 @@ export function CreatePlanScreen({ navigation, route }: Props) {
               error={errors.startsAt}
             />
             <PickerField
-              label="Hora"
+              label="Hora de inicio"
               value={formatTime(startsAt)}
               Icon={Clock}
               onPress={() => openDateTimePicker('time')}
@@ -234,7 +314,14 @@ export function CreatePlanScreen({ navigation, route }: Props) {
           </View>
           {!!errors.startsAt && <Text style={styles.errorText}>{errors.startsAt}</Text>}
 
-          <Text style={[styles.label, styles.placesLabel]}>Lugares</Text>
+          <Text style={[styles.label, styles.sectionLabel]}>Cómo se mueven</Text>
+          <SegmentedControl
+            options={TRANSPORT_MODES.map(({ value, label }) => ({ value, label }))}
+            value={transportMode}
+            onChange={setTransportMode}
+          />
+
+          <Text style={[styles.label, styles.sectionLabel]}>Itinerario</Text>
           {placesStatus === 'loading' && (
             <ActivityIndicator color={colors.primary} style={styles.placesLoading} />
           )}
@@ -246,26 +333,26 @@ export function CreatePlanScreen({ navigation, route }: Props) {
               </Pressable>
             </View>
           )}
-          <View style={styles.places}>
-            {places.map((place) => (
-              <PlaceListItem
-                key={place.id}
-                place={place}
-                distanceKm={position ? distanceKm(position.coordinates, place.location) : null}
-                showRating={false}
-                action={
-                  <Pressable
-                    onPress={() => togglePlace(place)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Quitar ${place.name}`}
-                    hitSlop={8}
-                  >
-                    <X size={18} color={colors.textSecondary} />
-                  </Pressable>
-                }
-              />
-            ))}
-          </View>
+          {places.length === 0 && placesStatus === 'ready' && (
+            <Text style={styles.hint}>
+              Agrega los lugares en el orden en que los van a visitar. Calculamos a qué hora llegan
+              a cada uno y cuánto se demoran entre ellos.
+            </Text>
+          )}
+
+          <ItineraryList
+            places={places}
+            itinerary={itinerary}
+            transportMode={transportMode}
+            legs={routeLegs.legs}
+            legsLoading={routeLegs.loading}
+            getDistanceKm={(place) =>
+              position ? distanceKm(position.coordinates, place.location) : null
+            }
+            onMove={movePlace}
+            onRemove={(index) => togglePlace(places[index])}
+            onChangeStay={setStayEditIndex}
+          />
 
           <Pressable
             onPress={() => setPickerOpen(true)}
@@ -280,6 +367,43 @@ export function CreatePlanScreen({ navigation, route }: Props) {
             <Text style={styles.addPlaceText}>Agregar lugar</Text>
           </Pressable>
           {!!errors.places && <Text style={styles.errorText}>{errors.places}</Text>}
+
+          {places.length > 0 && (
+            <ItinerarySummary
+              itinerary={itinerary}
+              legsLoading={routeLegs.loading}
+              legsError={routeLegs.error}
+              onRetryLegs={routeLegs.retry}
+            />
+          )}
+
+          <View style={styles.extras}>
+            <InputField
+              label="Presupuesto por persona (opcional)"
+              placeholder="$0"
+              value={budgetText}
+              onChangeText={(text) => {
+                const amount = parsePesos(text);
+                setBudgetText(amount === null ? '' : formatPesos(amount));
+                clearError('budget');
+              }}
+              keyboardType="number-pad"
+              error={errors.budget}
+            />
+            <InputField
+              label="Notas (opcional)"
+              placeholder="Nos vemos en la entrada. Lleven efectivo."
+              value={notes}
+              onChangeText={(text) => {
+                setNotes(text);
+                clearError('notes');
+              }}
+              autoCapitalize="sentences"
+              maxLength={MAX_PLAN_NOTES_LENGTH}
+              multiline
+              error={errors.notes}
+            />
+          </View>
         </ScrollView>
 
         <View style={[styles.bottomAction, { paddingBottom: Math.max(insets.bottom, 16) }]}>
@@ -293,7 +417,7 @@ export function CreatePlanScreen({ navigation, route }: Props) {
             onPress={handleSave}
           >
             <Text style={globalStyles.primaryButtonText}>
-              {editingPlan ? 'Guardar cambios' : 'Guardar plan'}
+              {editingPlan ? 'Guardar cambios' : 'Crear plan'}
             </Text>
           </Button>
         </View>
@@ -301,9 +425,20 @@ export function CreatePlanScreen({ navigation, route }: Props) {
 
       <PlacePickerModal
         visible={pickerOpen}
-        selectedIds={places.map((place) => place.id)}
+        selectedIds={placeIds}
         onToggle={togglePlace}
         onClose={() => setPickerOpen(false)}
+      />
+
+      <OptionsSheet
+        visible={stayEditIndex !== null}
+        title={
+          stayEditIndex !== null && places[stayEditIndex]
+            ? `Tiempo en ${places[stayEditIndex].name}`
+            : 'Tiempo en el lugar'
+        }
+        options={stayOptions}
+        onClose={() => setStayEditIndex(null)}
       />
 
       {Platform.OS === 'ios' && (
@@ -354,6 +489,10 @@ const styles = StyleSheet.create({
     color: colors.textBody,
     marginBottom: 6,
   },
+  sectionLabel: {
+    marginTop: 20,
+    marginBottom: 10,
+  },
   dateRow: {
     flexDirection: 'row',
     gap: 12,
@@ -385,8 +524,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginLeft: 4,
   },
-  placesLabel: {
-    marginTop: 20,
+  hint: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: colors.textSecondary,
+    marginBottom: 4,
   },
   placesLoading: {
     marginVertical: 12,
@@ -400,15 +542,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.danger,
   },
-  places: {
-    gap: 10,
-  },
   addPlace: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    marginTop: 10,
+    marginTop: 12,
     minHeight: 50,
     borderRadius: 12,
     borderWidth: 1.5,
@@ -422,6 +561,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: colors.primary,
+  },
+  extras: {
+    marginTop: 24,
   },
   pressed: {
     opacity: 0.7,
