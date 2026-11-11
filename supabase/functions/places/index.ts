@@ -1,5 +1,6 @@
-// Edge Function de Supabase: lugares con Google Places API (New).
-// La API key vive en los secretos de Supabase (GOOGLE_PLACES_API_KEY), nunca en la app.
+// Edge Function de Supabase: lugares con Google Places API (New) y traslados con Google Routes API.
+// La API key vive en los secretos de Supabase (GOOGLE_PLACES_API_KEY), nunca en la app. Para los
+// traslados se usa GOOGLE_ROUTES_API_KEY si existe; si no, la misma key (con Routes API permitida).
 // Solo responde a usuarios con sesión iniciada (ver isSignedIn).
 //
 // Acciones (campo `action` del cuerpo; sin él se asume "nearby"):
@@ -7,8 +8,10 @@
 //   text    → búsqueda por texto cerca de un punto { query, location, radiusMeters, includedType, maxResults }
 //   details → ficha completa de un lugar           { placeId }
 //   lookup  → datos básicos de varios lugares      { placeIds }  (favoritos y planes guardan solo el ID)
+//   routes  → distancia y tiempo entre lugares     { mode: walk | drive | transit, legs: [{ from, to }] }
 
 const PLACES_API_URL = 'https://places.googleapis.com/v1';
+const ROUTES_API_URL = 'https://routes.googleapis.com/directions/v2:computeRoutes';
 
 // Campos de las tarjetas y listas (Nearby y Text Search los piden con el prefijo "places.")
 const BASIC_FIELDS = [
@@ -49,6 +52,9 @@ const MAX_QUERY_LENGTH = 100;
 const PHOTO_MAX_WIDTH_PX = 400;
 const DETAIL_PHOTO_MAX_WIDTH_PX = 800;
 const PLACE_ID_PATTERN = /^[A-Za-z0-9_-]{1,300}$/;
+const MAX_ROUTE_LEGS = 10;
+// Cómo se mueve el grupo en el plan → modo de viaje de Google Routes
+const TRAVEL_MODES: Record<string, string> = { walk: 'WALK', drive: 'DRIVE', transit: 'TRANSIT' };
 
 type LatLng = { latitude: number; longitude: number };
 
@@ -77,6 +83,8 @@ type GooglePlace = {
 };
 
 type PlaceWithLocation = GooglePlace & { location: LatLng };
+
+type RouteLeg = { from: string; to: string };
 
 class RequestError extends Error {
   status: number;
@@ -124,6 +132,11 @@ function isPlaceId(value: unknown): value is string {
 
 function hasLocation(place: GooglePlace): place is PlaceWithLocation {
   return Boolean(place.location);
+}
+
+function isRouteLeg(value: unknown): value is RouteLeg {
+  const { from, to } = (value ?? {}) as Partial<RouteLeg>;
+  return isPlaceId(from) && isPlaceId(to) && from !== to;
 }
 
 // "Verify JWT" también deja pasar la clave pública de la app (rol anónimo), que cualquiera
@@ -324,6 +337,74 @@ async function lookup(params: Record<string, unknown>, apiKey: string) {
   };
 }
 
+// Un tramo del plan: de un lugar al siguiente. Sin ruta posible (por ejemplo, sin transporte
+// público entre los dos) devuelve null en distancia y tiempo.
+async function computeLeg({ from, to }: RouteLeg, travelMode: string, apiKey: string) {
+  const response = await fetch(ROUTES_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration',
+    },
+    body: JSON.stringify({
+      origin: { placeId: from },
+      destination: { placeId: to },
+      travelMode,
+      // Sin tráfico en tiempo real: es la tarifa básica de Routes y el plan suele ser otro día
+      ...(travelMode === 'DRIVE' ? { routingPreference: 'TRAFFIC_UNAWARE' } : {}),
+      languageCode: 'es',
+      units: 'METRIC',
+    }),
+  });
+
+  if (!response.ok) {
+    console.error('Google Routes respondió', response.status, await response.text());
+    throw new RequestError('Google Routes no respondió correctamente', 502);
+  }
+  const data: { routes?: { distanceMeters?: number; duration?: string }[] } = await response.json();
+  const route = data.routes?.[0];
+  // Google omite los valores en cero (dos lugares en el mismo edificio)
+  return {
+    from,
+    to,
+    distanceMeters: route ? (route.distanceMeters ?? 0) : null,
+    durationSeconds: route ? parseInt(route.duration ?? '0s', 10) : null,
+  };
+}
+
+async function computeRoutes(params: Record<string, unknown>, apiKey: string) {
+  const travelMode = TRAVEL_MODES[String(params.mode)];
+  if (!travelMode) throw new RequestError('mode debe ser walk, drive o transit', 400);
+  const { legs } = params;
+  if (
+    !Array.isArray(legs) ||
+    legs.length === 0 ||
+    legs.length > MAX_ROUTE_LEGS ||
+    !legs.every(isRouteLeg)
+  ) {
+    throw new RequestError(`legs debe ser una lista de hasta ${MAX_ROUTE_LEGS} tramos`, 400);
+  }
+
+  const routesKey = Deno.env.get('GOOGLE_ROUTES_API_KEY') || apiKey;
+  const results = await Promise.allSettled(
+    legs.map((leg) => computeLeg(leg, travelMode, routesKey))
+  );
+  // Si fallan todos, lo más probable es que Routes API no esté permitida para la key
+  if (results.every((result) => result.status === 'rejected')) {
+    throw new RequestError('No se pudieron calcular los traslados. Intenta de nuevo.', 502);
+  }
+
+  return {
+    legs: results.map((result, index) =>
+      result.status === 'fulfilled'
+        ? result.value
+        : // `failed`: la app puede volver a pedir este tramo más tarde
+          { ...legs[index], distanceMeters: null, durationSeconds: null, failed: true }
+    ),
+  };
+}
+
 const ACTIONS: Record<
   string,
   (params: Record<string, unknown>, apiKey: string) => Promise<unknown>
@@ -332,6 +413,7 @@ const ACTIONS: Record<
   text: searchText,
   details: getDetails,
   lookup,
+  routes: computeRoutes,
 };
 
 Deno.serve(async (req) => {
