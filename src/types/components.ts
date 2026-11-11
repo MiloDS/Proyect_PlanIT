@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { KeyboardTypeOptions, StyleProp, TextInputProps, ViewStyle } from 'react-native';
+import type { LucideIcon } from 'lucide-react-native';
 
 import type { Place } from './places';
 import type { Plan } from './plans';
@@ -170,4 +171,19 @@ export type WeatherCardProps = {
   status: 'loading' | 'ready' | 'error';
   weather: Weather | null;
   onRetry: () => void;
+};
+
+export type SheetOption = {
+  label: string;
+  Icon: LucideIcon;
+  onPress: () => void;
+  /** Acción que borra algo: se muestra en rojo */
+  destructive?: boolean;
+};
+
+export type OptionsSheetProps = {
+  visible: boolean;
+  title: string;
+  options: SheetOption[];
+  onClose: () => void;
 };

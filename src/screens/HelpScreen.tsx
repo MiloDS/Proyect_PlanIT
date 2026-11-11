@@ -58,8 +58,9 @@ const QUESTIONS = [
       'En Iniciar sesión toca "¿Olvidaste tu contraseña?". Te enviaremos un código a tu correo para crear una contraseña nueva. Si entras con Google, no necesitas contraseña.',
   },
   {
-    question: '¿Cómo cambio mi nombre?',
-    answer: 'En Perfil > Información personal. Es el nombre que ven las personas de tus planes.',
+    question: '¿Cómo cambio mi nombre o mi foto?',
+    answer:
+      'En Perfil, toca tu foto o entra a Información personal. Puedes tomar una foto, elegirla de la galería o quitarla. Tu nombre y tu foto son los que ven las personas de tus planes.',
   },
 ];
 
