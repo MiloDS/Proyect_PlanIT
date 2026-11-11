@@ -76,7 +76,8 @@ async function toPlacesError(error: unknown): Promise<Error> {
   return new Error(GENERIC_ERROR);
 }
 
-async function invokePlaces<T>(body: Record<string, unknown>): Promise<T> {
+/** Llama a la Edge Function `places` (también la usa RoutesService para los traslados) */
+export async function invokePlaces<T>(body: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabase.functions.invoke<T>('places', { body });
   if (error) throw await toPlacesError(error);
   if (!data) throw new Error(GENERIC_ERROR);

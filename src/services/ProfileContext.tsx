@@ -8,6 +8,9 @@ type ProfileContextValue = {
   /** null mientras carga o si no se pudo cargar (la app usa los datos de la sesión) */
   profile: Profile | null;
   updateFullName: (fullName: string) => Promise<void>;
+  /** Sube la foto ya reducida (PhotoService) y la deja como foto del perfil */
+  updateAvatar: (imageUri: string) => Promise<void>;
+  removeAvatar: () => Promise<void>;
 };
 
 const ProfileContext = createContext<ProfileContextValue | undefined>(undefined);
@@ -48,13 +51,25 @@ export function ProfileProvider({ userId, children }: ProfileProviderProps) {
     };
   }, [userId]);
 
-  const updateFullName = async (fullName: string) => {
+  const requireUserId = () => {
     if (!userId) throw new Error(messages.profile.signInRequired);
-    setProfile(await ProfileService.updateFullName(userId, fullName));
+    return userId;
+  };
+
+  const updateFullName = async (fullName: string) => {
+    setProfile(await ProfileService.updateFullName(requireUserId(), fullName));
+  };
+
+  const updateAvatar = async (imageUri: string) => {
+    setProfile(await ProfileService.updateAvatar(requireUserId(), imageUri));
+  };
+
+  const removeAvatar = async () => {
+    setProfile(await ProfileService.removeAvatar(requireUserId()));
   };
 
   return (
-    <ProfileContext.Provider value={{ profile, updateFullName }}>
+    <ProfileContext.Provider value={{ profile, updateFullName, updateAvatar, removeAvatar }}>
       {children}
     </ProfileContext.Provider>
   );

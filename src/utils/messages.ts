@@ -27,6 +27,7 @@ export const messages = {
     planTitleRequired: 'Dale un nombre a tu plan',
     planDateInPast: 'Elige una fecha y hora futuras',
     planPlacesRequired: 'Agrega al menos un lugar',
+    budgetTooHigh: (max: string) => `El presupuesto máximo es ${max}`,
     resetCodeRequired: 'Escribe el código que te enviamos',
     resetCodeInvalid: (minLength: number, maxLength: number) =>
       `El código tiene entre ${minLength} y ${maxLength} números`,
@@ -64,6 +65,13 @@ export const messages = {
     loadFailed: failed('cargar tu perfil'),
     saveNameFailed: failed('guardar tu nombre'),
     signInRequired: 'Inicia sesión para editar tu perfil',
+    photoUploadFailed: failed('guardar tu foto'),
+    photoRemoveFailed: failed('quitar tu foto'),
+    photoProcessFailed: 'No se pudo preparar la foto. Prueba con otra imagen.',
+    cameraPermissionDenied:
+      'Para tomar una foto, permite que PlanIt use la cámara en los ajustes del teléfono.',
+    removePhotoTitle: 'Quitar foto',
+    removePhotoConfirm: 'En tus planes se verán tus iniciales en lugar de tu foto.',
   },
 
   places: {
@@ -145,6 +153,13 @@ export const messages = {
     leaveConfirm: (planTitle: string) =>
       `Ya no verás "${planTitle}" en tus planes. Para volver, quien lo organiza tendrá que invitarte de nuevo.`,
     leaveFailedTitle: 'No se pudo salir del plan',
+    routesFailed: 'No pudimos calcular los traslados.',
+    addToPlanTitle: 'Agregar a un plan',
+    addPlaceFailed: failed('agregar el lugar al plan'),
+    placeAddedTitle: 'Lugar agregado',
+    placeAdded: (placeName: string, planTitle: string) =>
+      `Agregamos ${placeName} al final de "${planTitle}".`,
+    placeAlreadyInPlan: (planTitle: string) => `Ese lugar ya está en "${planTitle}".`,
   },
 
   reminders: {

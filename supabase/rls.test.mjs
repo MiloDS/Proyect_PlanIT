@@ -28,6 +28,29 @@ await db.exec(`
   grant usage on schema auth to anon, authenticated;
   grant usage on schema public to anon, authenticated;
   alter default privileges in schema public grant all on tables to anon, authenticated;
+
+  -- Storage: solo las columnas y la función que usan las políticas de las fotos de perfil
+  create schema storage;
+  create table storage.buckets (
+    id text primary key,
+    name text not null,
+    public boolean default false,
+    file_size_limit bigint,
+    allowed_mime_types text[]
+  );
+  create table storage.objects (
+    id uuid primary key default gen_random_uuid(),
+    bucket_id text references storage.buckets (id),
+    name text not null,
+    owner uuid default auth.uid()
+  );
+  alter table storage.objects enable row level security;
+  create function storage.foldername(name text) returns text[] language sql immutable as $$
+    select (string_to_array(name, '/'))[1:array_length(string_to_array(name, '/'), 1) - 1]
+  $$;
+  grant usage on schema storage to anon, authenticated;
+  grant all on storage.objects to anon, authenticated;
+  grant select on storage.buckets to anon, authenticated;
 `);
 
 // Usuario registrado antes de las migraciones (prueba el backfill de perfiles)
@@ -96,6 +119,51 @@ check(
   'B puede editar su perfil',
   (await as(B, `update public.profiles set full_name = 'Beto G.' where id = $1`, [B])).affected ===
     1
+);
+
+// --- Fotos de perfil (Storage)
+const bucket = (
+  await db.query(`select public, file_size_limit from storage.buckets where id = 'avatars'`)
+).rows[0];
+check('existe el bucket público avatars', bucket?.public === true, JSON.stringify(bucket));
+const uploadAvatar = (userId, name) =>
+  as(
+    userId,
+    `insert into storage.objects (bucket_id, name) values ('avatars', $1) returning name`,
+    [name]
+  );
+check('A sube una foto a su carpeta', (await uploadAvatar(A, `${A}/1.jpg`)).rows.length === 1);
+check(
+  'A no puede subir a la carpeta de B',
+  !!(await uploadAvatar(A, `${B}/1.jpg`)).error,
+  'se permitió'
+);
+check(
+  'A no puede subir fuera de una carpeta',
+  !!(await uploadAvatar(A, 'suelta.jpg')).error,
+  'se permitió'
+);
+check(
+  'anon no puede subir fotos',
+  !!(
+    await asAnon(`insert into storage.objects (bucket_id, name) values ('avatars', $1)`, [
+      `${A}/2.jpg`,
+    ])
+  ).error,
+  'se permitió'
+);
+check(
+  'B no ve los archivos de A',
+  (await as(B, `select name from storage.objects`)).rows.length === 0
+);
+check('A ve sus archivos', (await as(A, `select name from storage.objects`)).rows.length === 1);
+check(
+  'B no puede borrar la foto de A',
+  (await as(B, `delete from storage.objects where name = $1`, [`${A}/1.jpg`])).affected === 0
+);
+check(
+  'A borra su foto',
+  (await as(A, `delete from storage.objects where name = $1`, [`${A}/1.jpg`])).affected === 1
 );
 
 // --- Planes
@@ -356,6 +424,115 @@ check(
   'anon no puede usar update_plan',
   !!(await asAnon(`select public.update_plan($1, 'x', now(), array['gp_x'])`, [editPlanId])).error
 );
+
+// --- Organizador: tiempo en cada lugar, transporte, presupuesto y notas
+const stops = async (id) =>
+  (
+    await as(
+      A,
+      `select place_id, sort_order, stay_minutes from public.plan_places where plan_id = $1 order by sort_order`,
+      [id]
+    )
+  ).rows.map((row) => [row.place_id, row.sort_order, row.stay_minutes]);
+const planExtras = async (id) =>
+  (
+    await as(A, `select transport_mode, budget_per_person, notes from public.plans where id = $1`, [
+      id,
+    ])
+  ).rows[0];
+
+const organized = await as(
+  A,
+  `select public.create_plan('Ruta', now() + interval '3 days', array['gp_1', 'gp_2'], array[45, 120], 'transit', 30000, '  Lleven efectivo  ') as id`
+);
+const organizedId = organized.rows[0]?.id;
+check('create_plan guarda el organizador', !organized.error && !!organizedId, organized.error);
+check(
+  'create_plan guarda transporte, presupuesto y notas (recortadas)',
+  JSON.stringify(await planExtras(organizedId)) ===
+    JSON.stringify({
+      transport_mode: 'transit',
+      budget_per_person: 30000,
+      notes: 'Lleven efectivo',
+    }),
+  JSON.stringify(await planExtras(organizedId))
+);
+check(
+  'create_plan guarda el tiempo en cada lugar',
+  JSON.stringify(await stops(organizedId)) ===
+    JSON.stringify([
+      ['gp_1', 0, 45],
+      ['gp_2', 1, 120],
+    ]),
+  JSON.stringify(await stops(organizedId))
+);
+const legacy = await as(A, `select public.create_plan('Viejo', now(), array['gp_1']) as id`);
+check(
+  'la versión anterior de la app puede seguir creando planes (valores por defecto)',
+  JSON.stringify(await planExtras(legacy.rows[0]?.id)) ===
+    JSON.stringify({ transport_mode: 'walk', budget_per_person: null, notes: null }) &&
+    (await stops(legacy.rows[0]?.id))[0]?.[2] === 60,
+  legacy.error
+);
+
+const organizedEdit = await as(
+  A,
+  `select public.update_plan($1, 'Ruta', now() + interval '3 days', array['gp_2', 'gp_3'], array[30, 90], 'drive', 50000, '   ')`,
+  [organizedId]
+);
+check('update_plan guarda el organizador', !organizedEdit.error, organizedEdit.error);
+check(
+  'update_plan cambia transporte y presupuesto, y deja las notas vacías en null',
+  JSON.stringify(await planExtras(organizedId)) ===
+    JSON.stringify({ transport_mode: 'drive', budget_per_person: 50000, notes: null }),
+  JSON.stringify(await planExtras(organizedId))
+);
+check(
+  'update_plan reordena y cambia el tiempo en cada lugar',
+  JSON.stringify(await stops(organizedId)) ===
+    JSON.stringify([
+      ['gp_2', 0, 30],
+      ['gp_3', 1, 90],
+    ]),
+  JSON.stringify(await stops(organizedId))
+);
+for (const [name, sql] of [
+  ['un transporte desconocido', `array['gp_1'], array[60], 'bike', null, null`],
+  ['un tiempo en un lugar de 0 minutos', `array['gp_1'], array[0], 'walk', null, null`],
+  ['un presupuesto negativo', `array['gp_1'], array[60], 'walk', -1, null`],
+  ['notas de más de 500 caracteres', `array['gp_1'], array[60], 'walk', null, repeat('a', 501)`],
+]) {
+  check(
+    `create_plan rechaza ${name}`,
+    !!(await as(A, `select public.create_plan('x', now(), ${sql})`)).error,
+    'se permitió'
+  );
+}
+
+const addPlace = (userId, placeId) =>
+  as(userId, `select public.add_plan_place($1, $2, 75) as added`, [organizedId, placeId]);
+await as(A, `select public.add_plan_member_by_email($1, 'beto@test.com')`, [organizedId]);
+check('A agrega un lugar al final de su plan', (await addPlace(A, 'gp_4')).rows[0]?.added === true);
+check(
+  'add_plan_place lo deja de último con su tiempo',
+  JSON.stringify((await stops(organizedId)).at(-1)) === JSON.stringify(['gp_4', 2, 75]),
+  JSON.stringify(await stops(organizedId))
+);
+check(
+  'add_plan_place avisa si el lugar ya estaba',
+  (await addPlace(A, 'gp_4')).rows[0]?.added === false
+);
+check('B (miembro) puede agregar un lugar', (await addPlace(B, 'gp_5')).rows[0]?.added === true);
+check(
+  'C (no miembro) no puede agregar lugares',
+  !!(await addPlace(C, 'gp_6')).error,
+  'se permitió'
+);
+check(
+  'anon no puede usar add_plan_place',
+  !!(await asAnon(`select public.add_plan_place($1, 'gp_7', 60)`, [organizedId])).error
+);
+await as(A, `delete from public.plans where id = any($1)`, [[organizedId, legacy.rows[0]?.id]]);
 
 const removed = await as(
   A,

@@ -1,13 +1,4 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  Image,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, Sparkles } from 'lucide-react-native';
@@ -18,6 +9,7 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { PlaceCard } from '../components/PlaceCard';
 import { Button } from '../components/Button';
+import { MemberAvatar } from '../components/MemberAvatar';
 import { WeatherCard } from '../components/WeatherCard';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
@@ -27,7 +19,7 @@ import { useNearbyPlaces } from '../services/useNearbyPlaces';
 import { usePullToRefresh } from '../services/usePullToRefresh';
 import { useWeather } from '../services/useWeather';
 import { distanceKm } from '../utils/geo';
-import { getDisplayName, getFirstName } from '../utils/user';
+import { getDisplayAvatar, getDisplayName, getFirstName } from '../utils/user';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Home'>,
@@ -42,11 +34,7 @@ export function HomeScreen({ navigation }: Props) {
   const locationLabel = nearby.locationLabel || 'Buscando ubicación…';
   const origin = nearby.position?.coordinates;
   const weather = useWeather(origin);
-  // Si la posición cambió, el clima se vuelve a pedir solo al llegar las coordenadas nuevas
-  const pullToRefresh = usePullToRefresh(() => {
-    weather.refresh();
-    return nearby.refresh();
-  });
+  const displayName = getDisplayName(user, profile);
 
   return (
     <View style={globalStyles.screen}>
@@ -73,17 +61,17 @@ export function HomeScreen({ navigation }: Props) {
           <Text style={styles.locationText}>{locationLabel}</Text>
         </View>
 
-        <Text style={styles.greeting}>
-          ¡Hola, {getFirstName(getDisplayName(user, profile))}! 👋
-        </Text>
+        <Text style={styles.greeting}>¡Hola, {getFirstName(displayName)}! 👋</Text>
         <Text style={styles.subGreeting}>¿Qué plan tienes hoy?</Text>
 
         <WeatherCard status={weather.status} weather={weather.weather} onRetry={weather.retry} />
 
         <View style={styles.surpriseCard}>
           <View style={styles.surpriseHeader}>
-            <Image
-              source={{ uri: 'https://i.imgur.com/abrpNLZ.jpeg' }}
+            <MemberAvatar
+              name={displayName}
+              avatarUrl={getDisplayAvatar(user, profile) ?? null}
+              size={42}
               style={styles.surpriseAvatar}
             />
             <View style={styles.surpriseText}>
@@ -205,9 +193,6 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   surpriseAvatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
     marginRight: 12,
   },
   surpriseText: {

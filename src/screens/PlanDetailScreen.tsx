@@ -24,9 +24,11 @@ import {
   LucideIcon,
   Pencil,
   Share2,
+  StickyNote,
   Trash2,
   UserMinus,
   UserPlus,
+  Wallet,
 } from 'lucide-react-native';
 
 import { AppStackParamList } from '../types/navigation';
@@ -34,8 +36,8 @@ import { Plan, PlanMember } from '../types/plans';
 import { EmptyState } from '../components/EmptyState';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { InviteMemberModal } from '../components/InviteMemberModal';
+import { ItineraryList, ItinerarySummary, TRANSPORT_ICONS } from '../components/Itinerary';
 import { MemberAvatar } from '../components/MemberAvatar';
-import { PlaceListItem } from '../components/PlaceListItem';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../services/AuthContext';
 import { useFavorites } from '../services/FavoritesContext';
@@ -44,10 +46,13 @@ import { PlanReminders } from '../services/planReminders';
 import { PlansService } from '../services/plansService';
 import { useDevicePosition } from '../services/useDevicePosition';
 import { usePlacesById } from '../services/usePlacesById';
+import { useRouteLegs } from '../services/useRouteLegs';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
-import { formatLongDate, formatTime, isUpcoming } from '../utils/date';
+import { formatPesos } from '../utils/currency';
+import { formatDuration, formatLongDate, formatTime, isUpcoming } from '../utils/date';
 import { distanceKm } from '../utils/geo';
+import { buildItinerary, getTransportLabel } from '../utils/itinerary';
 import { messages } from '../utils/messages';
 import { isSameEmail } from '../utils/validation';
 
@@ -116,6 +121,9 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const places = usePlacesById(plan.placeIds);
+  // El itinerario usa los lugares que Google todavía tiene, en el orden del plan
+  const foundPlaceIds = places.places.map((place) => place.id);
+  const routeLegs = useRouteLegs(foundPlaceIds, plan.transportMode);
 
   // La versión más reciente del plan; null si se eliminó o el usuario ya no es miembro
   const refresh = useCallback(
@@ -170,15 +178,27 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   const coverUrl = places.places[0]?.photoUrl ?? null;
   const missingPlaces = places.loading ? 0 : plan.placeIds.length - places.places.length;
 
+  const itinerary = buildItinerary(startsAt, foundPlaceIds, plan.stayMinutes, routeLegs.legs);
+  const timeRange = itinerary.endsAt
+    ? `${formatTime(startsAt)} – ${formatTime(itinerary.endsAt)} (aprox.)`
+    : formatTime(startsAt);
+  const budgetText =
+    plan.budgetPerPerson !== null ? `${formatPesos(plan.budgetPerPerson)} por persona` : null;
+
   const share = () => {
-    const lines = [plan.title, `${formatLongDate(startsAt)} · ${formatTime(startsAt)}`];
+    const details = [getTransportLabel(plan.transportMode, true), budgetText].filter(Boolean);
+    const lines = [plan.title, `${formatLongDate(startsAt)} · ${timeRange}`, details.join(' · ')];
+    if (plan.notes) lines.push(`Notas: ${plan.notes}`);
     if (places.places.length > 0) {
       lines.push(
         '',
-        'Lugares:',
-        ...places.places.map(
-          (place, index) => `${index + 1}. ${place.name}: ${PlacesService.getMapsUrl(place)}`
-        )
+        'Itinerario:',
+        ...places.places.map((place, index) => {
+          const stop = itinerary.stops[index];
+          const time = stop ? `${formatTime(stop.arrivesAt)} ` : '';
+          const stay = stop ? ` (${formatDuration(stop.stayMinutes)})` : '';
+          return `${index + 1}. ${time}${place.name}${stay}: ${PlacesService.getMapsUrl(place)}`;
+        })
       );
     }
     Share.share({ message: lines.join('\n') });
@@ -280,17 +300,28 @@ export function PlanDetailScreen({ navigation, route }: Props) {
       return <Text style={styles.mutedText}>Este plan todavía no tiene lugares.</Text>;
     }
     return (
-      <View style={styles.list}>
-        {places.places.map((place) => (
-          <PlaceListItem
-            key={place.id}
-            place={place}
-            distanceKm={position ? distanceKm(position.coordinates, place.location) : null}
-            onPress={() => navigation.navigate('PlaceDetail', { place })}
-          />
-        ))}
+      <View>
+        <ItineraryList
+          places={places.places}
+          itinerary={itinerary}
+          transportMode={plan.transportMode}
+          legs={routeLegs.legs}
+          legsLoading={routeLegs.loading}
+          getDistanceKm={(place) =>
+            position ? distanceKm(position.coordinates, place.location) : null
+          }
+          onPressPlace={(place) => navigation.navigate('PlaceDetail', { place })}
+        />
+        <ItinerarySummary
+          itinerary={itinerary}
+          legsLoading={routeLegs.loading}
+          legsError={routeLegs.error}
+          onRetryLegs={routeLegs.retry}
+        />
         {missingPlaces > 0 && (
-          <Text style={styles.mutedText}>{messages.plans.missingPlaces(missingPlaces)}</Text>
+          <Text style={[styles.mutedText, styles.missingPlaces]}>
+            {messages.plans.missingPlaces(missingPlaces)}
+          </Text>
         )}
       </View>
     );
@@ -317,7 +348,12 @@ export function PlanDetailScreen({ navigation, route }: Props) {
 
           <View style={styles.infoList}>
             <InfoRow Icon={CalendarDays} text={formatLongDate(startsAt)} />
-            <InfoRow Icon={Clock} text={formatTime(startsAt)} />
+            <InfoRow Icon={Clock} text={timeRange} />
+            <InfoRow
+              Icon={TRANSPORT_ICONS[plan.transportMode]}
+              text={getTransportLabel(plan.transportMode, true)}
+            />
+            {!!budgetText && <InfoRow Icon={Wallet} text={budgetText} />}
             {!!owner && (
               <InfoRow
                 Icon={Crown}
@@ -326,8 +362,15 @@ export function PlanDetailScreen({ navigation, route }: Props) {
             )}
           </View>
 
+          {!!plan.notes && (
+            <View style={styles.notes}>
+              <StickyNote size={17} color={colors.textSecondary} />
+              <Text style={styles.notesText}>{plan.notes}</Text>
+            </View>
+          )}
+
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Lugares ({plan.placeIds.length})</Text>
+            <Text style={styles.sectionTitle}>Itinerario ({plan.placeIds.length})</Text>
           </View>
           {renderPlaces()}
 
@@ -523,6 +566,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     marginTop: 4,
+  },
+  missingPlaces: {
+    marginTop: 10,
+  },
+  notes: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 16,
+    padding: 14,
+    borderRadius: 14,
+    backgroundColor: colors.surface,
+  },
+  notesText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.textBody,
   },
   memberRow: {
     flexDirection: 'row',

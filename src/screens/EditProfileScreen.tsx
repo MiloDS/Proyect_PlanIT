@@ -1,35 +1,102 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Pressable,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Lock } from 'lucide-react-native';
+import { Camera, ImageIcon, Lock, Trash2 } from 'lucide-react-native';
 
 import { AppStackParamList } from '../types/navigation';
+import { SheetOption } from '../types/components';
 import { Banner } from '../components/Banner';
 import { Button } from '../components/Button';
 import { InputField } from '../components/InputField';
 import { MemberAvatar } from '../components/MemberAvatar';
+import { OptionsSheet } from '../components/OptionsSheet';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../services/AuthContext';
+import { PhotoService, PhotoSource } from '../services/photoService';
 import { useProfile } from '../services/ProfileContext';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { messages } from '../utils/messages';
 import { getDisplayAvatar, getDisplayName } from '../utils/user';
 import { validateName } from '../utils/validation';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'EditProfile'>;
 
+const AVATAR_SIZE = 96;
+
 export function EditProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { profile, updateFullName } = useProfile();
+  const { profile, updateFullName, updateAvatar, removeAvatar } = useProfile();
   const currentName = getDisplayName(user, profile);
+  const avatarUrl = getDisplayAvatar(user, profile) ?? null;
   const [name, setName] = useState(currentName);
   const [nameError, setNameError] = useState('');
   const [saveError, setSaveError] = useState('');
   const [saving, setSaving] = useState(false);
-  const signedInWithGoogle = user?.app_metadata?.provider === 'google';
+  const [photoOptionsOpen, setPhotoOptionsOpen] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+
+  // La foto se guarda en cuanto se elige; el botón de abajo es solo para el nombre
+  const changePhoto = async (source: PhotoSource) => {
+    setPhotoError('');
+    try {
+      const imageUri = await PhotoService.pickAvatar(source);
+      if (!imageUri) return;
+      setPhotoBusy(true);
+      await updateAvatar(imageUri);
+    } catch (err: any) {
+      setPhotoError(err.message);
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
+  const confirmRemovePhoto = () => {
+    Alert.alert(messages.profile.removePhotoTitle, messages.profile.removePhotoConfirm, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Quitar',
+        style: 'destructive',
+        onPress: async () => {
+          setPhotoError('');
+          setPhotoBusy(true);
+          try {
+            await removeAvatar();
+          } catch (err: any) {
+            setPhotoError(err.message);
+          } finally {
+            setPhotoBusy(false);
+          }
+        },
+      },
+    ]);
+  };
+
+  const photoOptions: SheetOption[] = [
+    { label: 'Tomar foto', Icon: Camera, onPress: () => changePhoto('camera') },
+    { label: 'Elegir de la galería', Icon: ImageIcon, onPress: () => changePhoto('library') },
+  ];
+  if (avatarUrl) {
+    photoOptions.push({
+      label: 'Quitar foto',
+      Icon: Trash2,
+      onPress: confirmRemovePhoto,
+      destructive: true,
+    });
+  }
 
   const save = async () => {
     const error = validateName(name);
@@ -67,13 +134,41 @@ export function EditProfileScreen({ navigation }: Props) {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.avatarSection}>
-            <MemberAvatar
-              name={name.trim() || currentName}
-              avatarUrl={getDisplayAvatar(user, profile) ?? null}
-              size={88}
-            />
-            {signedInWithGoogle && (
-              <Text style={styles.hint}>Tu foto viene de tu cuenta de Google.</Text>
+            <Pressable
+              onPress={() => setPhotoOptionsOpen(true)}
+              disabled={photoBusy}
+              accessibilityRole="button"
+              accessibilityLabel="Cambiar foto de perfil"
+              style={({ pressed }) => pressed && styles.pressed}
+            >
+              <MemberAvatar
+                name={name.trim() || currentName}
+                avatarUrl={avatarUrl}
+                size={AVATAR_SIZE}
+              />
+              {photoBusy && (
+                <View style={styles.avatarBusy}>
+                  <ActivityIndicator color={colors.white} />
+                </View>
+              )}
+              <View style={styles.cameraBadge}>
+                <Camera size={16} color={colors.white} />
+              </View>
+            </Pressable>
+            <Pressable
+              onPress={() => setPhotoOptionsOpen(true)}
+              disabled={photoBusy}
+              accessibilityRole="button"
+              hitSlop={8}
+            >
+              <Text style={styles.changePhotoText}>
+                {photoBusy ? 'Guardando foto…' : 'Cambiar foto'}
+              </Text>
+            </Pressable>
+            {!!photoError && (
+              <View style={styles.photoErrorBox}>
+                <Banner type="error" message={photoError} />
+              </View>
             )}
           </View>
 
@@ -112,6 +207,13 @@ export function EditProfileScreen({ navigation }: Props) {
           </Button>
         </View>
       </KeyboardAvoidingView>
+
+      <OptionsSheet
+        visible={photoOptionsOpen}
+        title="Foto de perfil"
+        options={photoOptions}
+        onClose={() => setPhotoOptionsOpen(false)}
+      />
     </View>
   );
 }
@@ -127,8 +229,43 @@ const styles = StyleSheet.create({
   },
   avatarSection: {
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
     marginBottom: 24,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  avatarBusy: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.overlay,
+  },
+  cameraBadge: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primaryDark,
+  },
+  changePhotoText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  photoErrorBox: {
+    alignSelf: 'stretch',
   },
   label: {
     fontSize: 13,

@@ -134,13 +134,13 @@ function matchesType(type: string | null, candidate: string): boolean {
   return !!type && (type === candidate || type.endsWith(`_${candidate}`));
 }
 
-function matchesAny(type: string | null, candidates: string[]): boolean {
+export function matchesAnyType(type: string | null, candidates: string[]): boolean {
   return candidates.some((candidate) => matchesType(type, candidate));
 }
 
 export function getPlaceSetting(type: string | null): PlaceSetting {
-  if (matchesAny(type, OUTDOOR_TYPES)) return 'outdoor';
-  if (matchesAny(type, INDOOR_TYPES)) return 'indoor';
+  if (matchesAnyType(type, OUTDOOR_TYPES)) return 'outdoor';
+  if (matchesAnyType(type, INDOOR_TYPES)) return 'indoor';
   return 'unknown';
 }
 
@@ -174,12 +174,12 @@ export function rankRecommendations(places: Place[], { weather, company }: Ranki
     if (advice && setting !== 'unknown') {
       total += setting === advice ? WEATHER_WEIGHT : -WEATHER_WEIGHT;
     }
-    if (rule && matchesAny(place.type, rule.preferredTypes)) total += COMPANY_WEIGHT;
+    if (rule && matchesAnyType(place.type, rule.preferredTypes)) total += COMPANY_WEIGHT;
     return total;
   };
 
   return places
-    .filter((place) => !rule || !matchesAny(place.type, rule.excludedTypes))
+    .filter((place) => !rule || !matchesAnyType(place.type, rule.excludedTypes))
     .map((place) => ({ place, score: score(place) }))
     .sort((a, b) => b.score - a.score)
     .map(({ place }) => place);

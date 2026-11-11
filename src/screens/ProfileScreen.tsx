@@ -1,19 +1,11 @@
 import { ReactNode } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  Image,
-  Alert,
-  DevSettings,
-} from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Alert, DevSettings } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   User,
   Bell,
+  Camera,
   Globe,
   HelpCircle,
   LogOut,
@@ -26,6 +18,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
+import { MemberAvatar } from '../components/MemberAvatar';
 import { colors } from '../styles/colors';
 import { useAuth } from '../services/AuthContext';
 import { AuthService } from '../services/authService';
@@ -96,7 +89,8 @@ export function ProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { profile } = useProfile();
-  const avatarUrl = getDisplayAvatar(user, profile);
+  const avatarUrl = getDisplayAvatar(user, profile) ?? null;
+  const displayName = getDisplayName(user, profile);
   const editProfile = () => navigation.navigate('EditProfile');
 
   const handleLogout = () => {
@@ -122,16 +116,22 @@ export function ProfileScreen({ navigation }: Props) {
       <StatusBar style="light" />
 
       <View style={[styles.profileHeader, { paddingTop: insets.top + 16 }]}>
-        <View style={styles.avatarContainer}>
-          {avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-          ) : (
-            <User size={44} color={colors.white} />
-          )}
-        </View>
+        <Pressable
+          onPress={editProfile}
+          accessibilityRole="button"
+          accessibilityLabel="Cambiar foto de perfil"
+          style={({ pressed }) => [styles.avatarButton, pressed && styles.editButtonPressed]}
+        >
+          <View style={styles.avatarContainer}>
+            <MemberAvatar name={displayName} avatarUrl={avatarUrl} size={92} />
+          </View>
+          <View style={styles.cameraBadge}>
+            <Camera size={15} color={colors.primary} />
+          </View>
+        </Pressable>
 
         <View style={styles.nameContainer}>
-          <Text style={styles.userName}>{getDisplayName(user, profile)}</Text>
+          <Text style={styles.userName}>{displayName}</Text>
           <Pressable
             onPress={editProfile}
             accessibilityRole="button"
@@ -207,6 +207,9 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
     paddingHorizontal: 24,
   },
+  avatarButton: {
+    marginBottom: 12,
+  },
   avatarContainer: {
     width: 96,
     height: 96,
@@ -214,7 +217,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.white,
     overflow: 'hidden',
-    marginBottom: 12,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.primaryDark,
@@ -224,9 +226,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
-  avatar: {
-    width: '100%',
-    height: '100%',
+  cameraBadge: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.white,
+    elevation: 3,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   nameContainer: {
     flexDirection: 'row',
