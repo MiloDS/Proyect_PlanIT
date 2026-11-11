@@ -6,20 +6,24 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  Pressable,
+  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { CalendarDays, CalendarPlus, CloudOff, Plus } from 'lucide-react-native';
+import { CalendarDays, CalendarPlus, CloudOff, Plus, ScanLine } from 'lucide-react-native';
 
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
+import { JoinPlanModal } from '../components/JoinPlanModal';
 import { PlanCard } from '../components/PlanCard';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { useFavorites } from '../services/FavoritesContext';
+import { PlansService } from '../services/plansService';
 import { usePlans } from '../services/usePlans';
 import { usePullToRefresh } from '../services/usePullToRefresh';
 import { colors } from '../styles/colors';
@@ -45,6 +49,20 @@ export function PlansScreen({ navigation }: Props) {
   const { isFavoritePlan, togglePlan } = useFavorites();
   const [activeTab, setActiveTab] = useState<Tab>('upcoming');
   const pullToRefresh = usePullToRefresh(plans.refresh);
+  const [joinOpen, setJoinOpen] = useState(false);
+
+  // Con el código (escrito o del QR) entra al plan y lo abre
+  const joinPlan = async (code: string) => {
+    const { planId, alreadyMember } = await PlansService.joinByCode(code);
+    const plan = await PlansService.get(planId);
+    if (!plan) throw new Error(messages.plans.joinFailed);
+    setJoinOpen(false);
+    navigation.navigate('PlanDetail', { plan });
+    Alert.alert(
+      alreadyMember ? messages.plans.alreadyJoinedTitle : messages.plans.joinedTitle,
+      alreadyMember ? messages.plans.alreadyJoined(plan.title) : messages.plans.joined(plan.title)
+    );
+  };
 
   const now = new Date();
   const visiblePlans = plans.plans.filter(
@@ -71,7 +89,19 @@ export function PlansScreen({ navigation }: Props) {
           />
         }
       >
-        <Text style={styles.headerTitle}>Mis planes</Text>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Mis planes</Text>
+          <Pressable
+            onPress={() => setJoinOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Unirme a un plan con un código"
+            hitSlop={8}
+            style={({ pressed }) => [styles.joinButton, pressed && styles.pressed]}
+          >
+            <ScanLine size={17} color={colors.primary} />
+            <Text style={styles.joinText}>Unirme</Text>
+          </Pressable>
+        </View>
 
         <View style={styles.tabs}>
           <SegmentedControl options={TABS} value={activeTab} onChange={setActiveTab} />
@@ -107,7 +137,7 @@ export function PlansScreen({ navigation }: Props) {
             }
             message={
               activeTab === 'upcoming'
-                ? 'Crea uno con los lugares que quieres visitar.'
+                ? 'Crea uno con los lugares que quieres visitar, o únete con el código que te compartieron.'
                 : 'Aquí verás los planes cuando ya hayan pasado.'
             }
             actionLabel={activeTab === 'upcoming' ? 'Crear plan' : undefined}
@@ -137,6 +167,8 @@ export function PlansScreen({ navigation }: Props) {
           <Text style={styles.fabText}>Nuevo plan</Text>
         </Button>
       </View>
+
+      <JoinPlanModal visible={joinOpen} onClose={() => setJoinOpen(false)} onJoin={joinPlan} />
     </View>
   );
 }
@@ -146,11 +178,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 96,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 18,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.textPrimary,
-    marginBottom: 18,
+  },
+  joinButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 36,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    backgroundColor: colors.primaryLight,
+  },
+  joinText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.primaryDark,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   tabs: {
     marginBottom: 20,
