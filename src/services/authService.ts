@@ -1,4 +1,6 @@
 import { AuthError, isAuthRetryableFetchError } from '@supabase/supabase-js';
+import { isRunningInExpoGo } from 'expo';
+import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 
@@ -43,6 +45,22 @@ export class AuthServiceError extends Error {
     this.name = 'AuthServiceError';
     this.code = code;
   }
+}
+
+/**
+ * Enlace al que Supabase devuelve el navegador después de Google. Expo Go solo abre enlaces
+ * exp://, pero hay versiones que se presentan como una app instalada y entonces createURL
+ * arma planit://auth/callback: Supabase lo acepta, ninguna app lo abre y Chrome se queda en
+ * la página de Google. En Expo Go se arma con la dirección del servidor de desarrollo.
+ */
+function getOAuthRedirectUrl(): string {
+  const url = Linking.createURL(OAUTH_CALLBACK_PATH);
+  const devServer = Constants.expoConfig?.hostUri;
+
+  if (isRunningInExpoGo() && devServer && !/^exps?:\/\//.test(url)) {
+    return `exp://${devServer}/--/${OAUTH_CALLBACK_PATH}`;
+  }
+  return url;
 }
 
 function toAuthServiceError(error: AuthError): AuthServiceError {
@@ -122,7 +140,8 @@ export class AuthService {
    * usuario cierra el navegador sin terminar.
    */
   static async loginWithGoogle(): Promise<boolean> {
-    const redirectTo = Linking.createURL(OAUTH_CALLBACK_PATH);
+    const redirectTo = getOAuthRedirectUrl();
+    if (__DEV__) console.log(`Google: el navegador volverá a ${redirectTo}`);
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
