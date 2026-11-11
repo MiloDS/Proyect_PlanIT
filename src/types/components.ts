@@ -3,7 +3,7 @@ import type { KeyboardTypeOptions, StyleProp, TextInputProps, ViewStyle } from '
 import type { LucideIcon } from 'lucide-react-native';
 
 import type { Place } from './places';
-import type { Plan } from './plans';
+import type { Itinerary, Plan, RouteLeg, TransportMode } from './plans';
 import type { Weather } from './weather';
 
 export type ButtonProps = {
@@ -28,6 +28,8 @@ export type CustomInputFieldProps = {
   /** Permite que el teclado sugiera, por ejemplo, el código que llegó por correo */
   autoComplete?: TextInputProps['autoComplete'];
   maxLength?: number;
+  /** Campo de varias líneas, por ejemplo las notas de un plan */
+  multiline?: boolean;
   error?: string;
 };
 
@@ -175,8 +177,12 @@ export type WeatherCardProps = {
 
 export type SheetOption = {
   label: string;
+  /** Segunda línea en gris, por ejemplo la fecha de un plan */
+  description?: string;
   Icon: LucideIcon;
   onPress: () => void;
+  /** Opción elegida actualmente: se marca con un visto */
+  selected?: boolean;
   /** Acción que borra algo: se muestra en rojo */
   destructive?: boolean;
 };
@@ -186,4 +192,27 @@ export type OptionsSheetProps = {
   title: string;
   options: SheetOption[];
   onClose: () => void;
+};
+
+export type ItineraryListProps = {
+  /** Lugares en el orden del recorrido, con su horario en `itinerary.stops` */
+  places: Place[];
+  itinerary: Itinerary;
+  transportMode: TransportMode;
+  legs: (RouteLeg | null)[];
+  legsLoading: boolean;
+  /** Distancia desde la posición del usuario hasta cada lugar */
+  getDistanceKm: (place: Place) => number | null;
+  onPressPlace?: (place: Place) => void;
+  /** Edición (Crear plan); sin estas funciones el itinerario solo se muestra */
+  onMove?: (index: number, direction: -1 | 1) => void;
+  onRemove?: (index: number) => void;
+  onChangeStay?: (index: number) => void;
+};
+
+export type ItinerarySummaryProps = {
+  itinerary: Itinerary;
+  legsLoading: boolean;
+  legsError: string;
+  onRetryLegs: () => void;
 };

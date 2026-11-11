@@ -1,6 +1,7 @@
 import { useRef } from 'react';
-import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Check } from 'lucide-react-native';
 
 import { OptionsSheetProps, SheetOption } from '../types/components';
 import { Button } from './Button';
@@ -48,20 +49,31 @@ export function OptionsSheet({ visible, title, options, onClose }: OptionsSheetP
             {title}
           </Text>
 
-          {options.map((option) => {
-            const color = option.destructive ? colors.danger : colors.textPrimary;
-            return (
-              <Pressable
-                key={option.label}
-                onPress={() => choose(option)}
-                accessibilityRole="button"
-                style={({ pressed }) => [styles.option, pressed && styles.optionPressed]}
-              >
-                <option.Icon size={21} color={color} />
-                <Text style={[styles.optionLabel, { color }]}>{option.label}</Text>
-              </Pressable>
-            );
-          })}
+          <ScrollView style={styles.options} bounces={false}>
+            {options.map((option) => {
+              const color = option.destructive ? colors.danger : colors.textPrimary;
+              return (
+                <Pressable
+                  key={`${option.label}-${option.description ?? ''}`}
+                  onPress={() => choose(option)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: !!option.selected }}
+                  style={({ pressed }) => [styles.option, pressed && styles.optionPressed]}
+                >
+                  <option.Icon size={21} color={color} />
+                  <View style={styles.optionText}>
+                    <Text style={[styles.optionLabel, { color }]} numberOfLines={2}>
+                      {option.label}
+                    </Text>
+                    {!!option.description && (
+                      <Text style={styles.optionDescription}>{option.description}</Text>
+                    )}
+                  </View>
+                  {option.selected && <Check size={20} color={colors.primary} />}
+                </Pressable>
+              );
+            })}
+          </ScrollView>
 
           <Button style={styles.cancelButton} onPress={onClose}>
             <Text style={styles.cancelText}>Cancelar</Text>
@@ -102,21 +114,33 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     marginBottom: 8,
   },
+  options: {
+    maxHeight: 420,
+  },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
     minHeight: 56,
     paddingHorizontal: 4,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   optionPressed: {
     backgroundColor: colors.surface,
   },
+  optionText: {
+    flex: 1,
+  },
   optionLabel: {
     fontSize: 16,
     fontWeight: '500',
+  },
+  optionDescription: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   cancelButton: {
     alignItems: 'center',
