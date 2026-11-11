@@ -216,3 +216,24 @@ export type ItinerarySummaryProps = {
   legsError: string;
   onRetryLegs: () => void;
 };
+
+export type QrCodeProps = {
+  value: string;
+  size: number;
+  accessibilityLabel?: string;
+};
+
+export type InviteCodeCardProps = {
+  /** Código sin guion, como lo guarda la base de datos */
+  code: string;
+  planTitle: string;
+  /** Solo el dueño puede cambiar el código */
+  onRegenerate?: () => Promise<void>;
+};
+
+export type JoinPlanModalProps = {
+  visible: boolean;
+  onClose: () => void;
+  /** Se une al plan; lanza un error con el mensaje para mostrar si no se pudo */
+  onJoin: (code: string) => Promise<void>;
+};
