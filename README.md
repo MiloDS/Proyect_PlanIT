@@ -43,7 +43,9 @@ PlanIt/
 ├── .env.example            # Environment variables template
 ├── App.tsx
 ├── index.ts
-└── app.json
+├── app.json                # App configuration (name, icons, permissions, plugins)
+├── app.config.ts           # Adds the Google Maps key from the environment when building
+└── eas.json                # EAS Build profiles (preview = APK)
 ```
 
 ### Code organization
@@ -150,7 +152,7 @@ Home, Search, place details, Surprise me, favorites and plans use the Google Pla
 
 Each Home load makes 1 Nearby Search plus up to 10 photo requests; each Search or Surprise me query makes 1 Nearby or Text Search plus up to 20 photos; opening a place makes 1 Place Details request; each travel time between two places of a plan makes 1 Compute Routes request (basic tier, without live traffic), and the app keeps the ones already calculated in memory, so reordering or reopening a plan only asks for the new ones. While the app is open, places already shown are kept in memory so favorites and plan covers don't request them again (Google's terms don't allow storing Places data on the device or in the database). If the user denies location access, the app searches around the center of Medellín. When a place has no photo, or its photo fails to load (an expired link, no connection), the app shows the icon of its category instead of an empty box.
 
-The map works in Expo Go without extra setup. For a development or store build, Android needs a Google Maps key: enable **Maps SDK for Android** in Google Cloud, create a key restricted to that API and the app's package, and add the `react-native-maps` plugin to `app.json` with `androidGoogleMapsApiKey`.
+The map works in Expo Go without extra setup. The APK needs its own Google Maps key, which `app.config.ts` reads from `GOOGLE_MAPS_ANDROID_API_KEY` (see "Building the APK").
 
 ### Weather
 
@@ -187,6 +189,37 @@ If you run into cache issues after installing new dependencies or changing `.env
 ```bash
 npx expo start -c
 ```
+
+### Building the APK
+
+The APK is built in the cloud with [EAS Build](https://docs.expo.dev/build/introduction/), using the `preview` profile in `eas.json` (an installable `.apk` for internal distribution; `production` makes the `.aab` for Google Play). `app.config.ts` takes `app.json` and adds the Google Maps key from the environment, because `.env` is not uploaded.
+
+1. **Google Maps key** (the map in Search; Expo Go uses its own). In Google Cloud, enable **Maps SDK for Android**, create an API key and, under API restrictions, allow only that API. Add it to your local `.env` (never committed):
+   ```
+   GOOGLE_MAPS_ANDROID_API_KEY=your-maps-key
+   ```
+2. **EAS account and project.** Install the CLI, sign in with your Expo account and link the project:
+   ```bash
+   npm install --global eas-cli
+   eas login
+   eas init
+   ```
+   Because the project uses `app.config.ts`, `eas init` cannot write the project ID by itself: copy the block it prints (`extra.eas.projectId`) into `app.json`, inside `"expo"`, and commit it (it is not a secret).
+3. **Variables in EAS.** Upload the three variables of `.env` to the `preview` environment (the `EXPO_PUBLIC_` ones as plain text, since they end up inside the app anyway; the Maps key as sensitive):
+   ```bash
+   eas env:push preview --path .env
+   ```
+   If one is missing, `app.config.ts` stops the build and says which.
+4. **Build.** On the first build, accept generating a new Android keystore (EAS keeps it; losing it means the app cannot be updated):
+   ```bash
+   eas build --platform android --profile preview
+   ```
+   When it finishes, the terminal and expo.dev show a link and a QR to download the APK on the phone (Android asks to allow installing apps from that source).
+5. **Restrict the Maps key to the app.** In expo.dev → project → **Credentials** → Android → `co.edu.pascualbravo.planit`, copy the keystore's **SHA-1 fingerprint**. In Google Cloud, set the key's application restriction to **Android apps** with package `co.edu.pascualbravo.planit` and that SHA-1.
+
+Google sign-in in the APK returns through `planit://auth/callback`, which is already allowed in Supabase (`planit://**`, see "Supabase setup").
+
+The release build uses `expo-build-properties` to make the app lighter: R8 removes and shortens unused Java/Kotlin code, unused resources are dropped, and only the ARM architectures of real phones are included (`arm64-v8a` and `armeabi-v7a`; x86 is only for emulators, so the APK does not install on an x86 emulator). If the APK closes on a screen that works in Expo Go, build again with `enableMinifyInReleaseBuilds` and `enableShrinkResourcesInReleaseBuilds` set to `false` in `app.json` to rule out R8. `app.json` also blocks permissions the app does not use (`SYSTEM_ALERT_WINDOW` and the old storage ones): the gallery opens with Android's photo picker, which needs no permission, and camera photos stay in the app's cache.
 
 ### Code quality
 
@@ -267,7 +300,9 @@ PlanIt/
 ├── .env.example            # Plantilla de variables de entorno
 ├── App.tsx
 ├── index.ts
-└── app.json
+├── app.json                # Configuración de la app (nombre, íconos, permisos, plugins)
+├── app.config.ts           # Agrega la key de Google Maps desde el entorno al compilar
+└── eas.json                # Perfiles de EAS Build (preview = APK)
 ```
 
 ### Organización del código
@@ -374,7 +409,7 @@ Inicio, Buscar, el detalle de lugar, Sorpréndeme, favoritos y planes usan Googl
 
 Cada carga de Inicio hace 1 búsqueda Nearby Search y hasta 10 pedidos de fotos; cada búsqueda en Buscar o en Sorpréndeme hace 1 Nearby o Text Search y hasta 20 fotos; abrir un lugar hace 1 Place Details; cada traslado entre dos lugares de un plan hace 1 Compute Routes (tarifa básica, sin tráfico en tiempo real), y la app guarda en memoria los que ya calculó, así que al reordenar o volver a abrir un plan solo pide los nuevos. Mientras la app está abierta, los lugares ya mostrados quedan en memoria para que favoritos y portadas de planes no los vuelvan a pedir (las condiciones de Google no permiten guardar datos de Places en el teléfono ni en la base de datos). Si el usuario no da permiso de ubicación, la app busca alrededor del centro de Medellín. Si un lugar no tiene foto, o su foto no carga (enlace vencido, sin conexión), la app muestra el ícono de su categoría en vez de un recuadro vacío.
 
-El mapa funciona en Expo Go sin configuración extra. Para un development build o la tienda, Android necesita una key de Google Maps: activa **Maps SDK for Android** en Google Cloud, crea una key restringida a esa API y al paquete de la app, y agrega el plugin `react-native-maps` en `app.json` con `androidGoogleMapsApiKey`.
+El mapa funciona en Expo Go sin configuración extra. El APK necesita su propia key de Google Maps, que `app.config.ts` lee de `GOOGLE_MAPS_ANDROID_API_KEY` (ver "Generar el APK").
 
 ### Clima
 
@@ -411,6 +446,37 @@ Si hay problemas de caché tras instalar dependencias nuevas o cambiar el `.env`
 ```bash
 npx expo start -c
 ```
+
+### Generar el APK
+
+El APK se compila en la nube con [EAS Build](https://docs.expo.dev/build/introduction/), con el perfil `preview` de `eas.json` (un `.apk` instalable para distribución interna; `production` arma el `.aab` para Google Play). `app.config.ts` toma `app.json` y le agrega la key de Google Maps desde el entorno, porque el `.env` no se sube.
+
+1. **Key de Google Maps** (el mapa de Buscar; Expo Go usa la suya). En Google Cloud, activa **Maps SDK for Android**, crea una API key y, en las restricciones de API, permite solo esa API. Agrégala a tu `.env` local (nunca se sube al repositorio):
+   ```
+   GOOGLE_MAPS_ANDROID_API_KEY=tu-key-de-maps
+   ```
+2. **Cuenta y proyecto de EAS.** Instala la CLI, entra con tu cuenta de Expo y vincula el proyecto:
+   ```bash
+   npm install --global eas-cli
+   eas login
+   eas init
+   ```
+   Como el proyecto usa `app.config.ts`, `eas init` no puede escribir solo el ID del proyecto: copia el bloque que muestra (`extra.eas.projectId`) en `app.json`, dentro de `"expo"`, y súbelo al repositorio (no es secreto).
+3. **Variables en EAS.** Sube las tres variables del `.env` al entorno `preview` (las `EXPO_PUBLIC_` como texto visible, porque igual quedan dentro de la app; la key de Maps como sensible):
+   ```bash
+   eas env:push preview --path .env
+   ```
+   Si falta alguna, `app.config.ts` detiene la compilación y dice cuál.
+4. **Compilar.** En la primera compilación, acepta generar un keystore de Android nuevo (EAS lo guarda; si se pierde, la app ya no se puede actualizar):
+   ```bash
+   eas build --platform android --profile preview
+   ```
+   Al terminar, la terminal y expo.dev muestran un enlace y un QR para descargar el APK en el teléfono (Android pide permitir instalar apps de ese origen).
+5. **Restringir la key de Maps a la app.** En expo.dev → proyecto → **Credentials** → Android → `co.edu.pascualbravo.planit`, copia la **huella SHA-1** del keystore. En Google Cloud, pon como restricción de aplicación **Apps para Android** con el paquete `co.edu.pascualbravo.planit` y esa SHA-1.
+
+En el APK, el inicio de sesión con Google regresa por `planit://auth/callback`, que ya está permitido en Supabase (`planit://**`, ver "Configuración de Supabase").
+
+La compilación de release usa `expo-build-properties` para que la app pese menos: R8 quita y acorta el código Java/Kotlin que no se usa, se eliminan los recursos sin uso y solo se incluyen las arquitecturas ARM de los teléfonos reales (`arm64-v8a` y `armeabi-v7a`; x86 es solo para emuladores, así que el APK no se instala en un emulador x86). Si el APK se cierra en una pantalla que en Expo Go funciona, vuelve a compilar con `enableMinifyInReleaseBuilds` y `enableShrinkResourcesInReleaseBuilds` en `false` en `app.json` para descartar R8. `app.json` también bloquea permisos que la app no usa (`SYSTEM_ALERT_WINDOW` y los de almacenamiento antiguos): la galería se abre con el selector de fotos de Android, que no necesita permiso, y las fotos de la cámara quedan en la caché de la app.
 
 ### Calidad del código
 
