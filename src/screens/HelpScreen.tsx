@@ -25,7 +25,7 @@ const QUESTIONS = [
   {
     question: '¿Puedo agregar un lugar a un plan desde su ficha?',
     answer:
-      'Sí. En la ficha del lugar toca "Agregar a un plan" y elige uno de tus próximos planes o "Nuevo plan". Solo aparecen los planes que tú organizas.',
+      'Sí. En la ficha del lugar toca "Agregar a un plan" y elige uno de tus próximos planes o "Nuevo plan". En los planes que tú organizas el lugar se agrega de una vez; en los demás se envía como sugerencia a quien lo organiza.',
   },
   {
     question: '¿Cómo invito a mis amigos a un plan?',
@@ -46,6 +46,11 @@ const QUESTIONS = [
     question: '¿Cómo edito, elimino o salgo de un plan?',
     answer:
       'Abre el plan. Si lo creaste, toca el lápiz para editarlo o baja hasta el final para eliminarlo para todos. Si te invitaron, al final encontrarás "Salir del plan".',
+  },
+  {
+    question: 'Me invitaron a un plan, ¿puedo cambiarlo?',
+    answer:
+      'Solo quien creó el plan lo modifica, pero puedes sugerir cambios: abre el plan y toca el lápiz o "Sugerir cambios". Cambia lo que quieras (fecha, hora, lugares, transporte, presupuesto o notas) y envíalo con un mensaje si quieres. Quien organiza ve el antes y el después y decide si lo acepta; mientras espera, puedes retirar tu sugerencia.',
   },
   {
     question: '¿Cómo elige Sorpréndeme los lugares?',
