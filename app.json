@@ -9,7 +9,14 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "co.edu.pascualbravo.planit",
+      "supportsTablet": false,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -38,7 +45,11 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "PlanIt usa tu ubicación para mostrarte lugares y planes cerca de ti."
+          "locationWhenInUsePermission": "PlanIt usa tu ubicación para mostrarte lugares y planes cerca de ti.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "locationFullAccuracyPermission": false,
+          "motionUsagePermission": false
         }
       ],
       "expo-status-bar",
@@ -70,7 +81,12 @@
         }
       ],
       "expo-image",
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
       [
         "expo-build-properties",
         {
