@@ -37,7 +37,7 @@ PlanIt is a mobile app to discover places and organize outings based on location
 - 📍 **Nearby places**: map with nearby places, category filters and text search (Google Places), with photos, rating, hours and price for each place.
 - 🌦️ **Weather-aware suggestions**: the home screen shows the current weather, and _Sorpréndeme_ ranks places by rating, weather and company.
 - 🗓️ **Plan organizer**: visiting order, time at each place, travel times (Google Routes), estimated end time, budget per person and notes.
-- 👥 **Shared plans**: members join with a code, by scanning a QR or through an email invitation.
+- 👥 **Shared plans**: members join with a code, by scanning a QR or through an email invitation. Only the creator changes the plan; guests suggest changes and the creator accepts or rejects them.
 - ⭐ **Favorites**: saved places and plans.
 - 🔔 **Reminders**: local notification before each plan, even with the app closed.
 - 🌙 **Dark mode**: follows the system theme or the setting in Profile.
@@ -150,9 +150,10 @@ Only the `place_id` of each Google place is stored, as Google's terms do not all
 | `favorite_plans` | Saved plans                                       | Owner only, for plans they belong to                           |
 | `plans`          | Title, date, transport, budget, notes and code    | Read by members; edited and deleted by the owner               |
 | `plan_members`   | Members of each plan (`owner` / `member`)         | Read by members; the owner invites and removes; members can leave |
-| `plan_places`    | Places of each plan, their order and time at each | Plan members                                                   |
+| `plan_places`    | Places of each plan, their order and time at each | Read by members; changed by the owner                          |
+| `plan_suggestions` | Changes a guest proposes, with an optional message | Read by members; a guest suggests or withdraws; the owner answers |
 
-Plans are created, edited and shared through database functions (`create_plan`, `update_plan`, `add_plan_place`, `join_plan_by_code`, `regenerate_plan_invite_code` and `add_plan_member_by_email`) that check permissions on the server. Profile photos are stored in the `avatars` bucket, where each user can only write to their own folder.
+Plans are created, edited and shared through database functions (`create_plan`, `update_plan`, `add_plan_place`, `join_plan_by_code`, `regenerate_plan_invite_code`, `add_plan_member_by_email`, `accept_plan_suggestion` and `reject_plan_suggestion`) that check permissions on the server. Profile photos are stored in the `avatars` bucket, where each user can only write to their own folder.
 
 ### Security
 
@@ -251,7 +252,7 @@ PlanIt es una aplicación móvil para descubrir lugares y organizar salidas seg�
 - 📍 **Lugares cercanos**: mapa con lugares cercanos, filtros por categoría y búsqueda por texto (Google Places), con fotos, calificación, horario y precio de cada lugar.
 - 🌦️ **Sugerencias según el clima**: la pantalla de inicio muestra el clima actual, y _Sorpréndeme_ ordena los lugares por calificación, clima y compañía.
 - 🗓️ **Organizador de planes**: orden de visita, tiempo en cada lugar, traslados (Google Routes), hora de fin aproximada, presupuesto por persona y notas.
-- 👥 **Planes compartidos**: los integrantes se unen con un código, escaneando un QR o por invitación al correo.
+- 👥 **Planes compartidos**: los integrantes se unen con un código, escaneando un QR o por invitación al correo. Solo el creador modifica el plan; los invitados sugieren cambios y el creador los acepta o los rechaza.
 - ⭐ **Favoritos**: lugares y planes guardados.
 - 🔔 **Recordatorios**: notificación local antes de cada plan, incluso con la app cerrada.
 - 🌙 **Modo oscuro**: sigue el tema del sistema o el ajuste de Perfil.
@@ -364,9 +365,10 @@ De cada lugar de Google solo se guarda su `place_id`, porque los términos de Go
 | `favorite_plans` | Planes guardados                                       | Solo su dueño, y solo de planes de los que hace parte                    |
 | `plans`          | Título, fecha, transporte, presupuesto, notas y código | Lectura para los integrantes; el creador edita y elimina                 |
 | `plan_members`   | Integrantes de cada plan (`owner` / `member`)          | Lectura para los integrantes; el creador invita y retira; los integrantes pueden salir |
-| `plan_places`    | Lugares de cada plan, su orden y el tiempo en cada uno | Integrantes del plan                                                     |
+| `plan_places`    | Lugares de cada plan, su orden y el tiempo en cada uno | Lectura para los integrantes; el creador los cambia                      |
+| `plan_suggestions` | Cambios que propone un invitado, con un mensaje opcional | Lectura para los integrantes; un invitado sugiere o retira; el creador responde |
 
-Los planes se crean, editan y comparten con funciones de la base de datos (`create_plan`, `update_plan`, `add_plan_place`, `join_plan_by_code`, `regenerate_plan_invite_code` y `add_plan_member_by_email`), que revisan los permisos en el servidor. Las fotos de perfil se guardan en el bucket `avatars`, donde cada usuario solo puede escribir en su propia carpeta.
+Los planes se crean, editan y comparten con funciones de la base de datos (`create_plan`, `update_plan`, `add_plan_place`, `join_plan_by_code`, `regenerate_plan_invite_code`, `add_plan_member_by_email`, `accept_plan_suggestion` y `reject_plan_suggestion`), que revisan los permisos en el servidor. Las fotos de perfil se guardan en el bucket `avatars`, donde cada usuario solo puede escribir en su propia carpeta.
 
 ### Seguridad
 
