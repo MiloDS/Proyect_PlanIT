@@ -51,6 +51,7 @@ import { useImageFallback } from '../services/useImageFallback';
 import { useRouteLegs } from '../services/useRouteLegs';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { formatPesos } from '../utils/currency';
 import { formatDuration, formatLongDate, formatTime, isUpcoming } from '../utils/date';
 import { distanceKm } from '../utils/geo';
@@ -68,6 +69,8 @@ function getMemberName(member: PlanMember): string {
 }
 
 function InfoRow({ Icon, text }: { Icon: LucideIcon; text: string }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.infoRow}>
       <Icon size={17} color={colors.textSecondary} />
@@ -83,6 +86,8 @@ type MemberRowProps = {
 };
 
 function MemberRow({ member, isMe, onRemove }: MemberRowProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const name = getMemberName(member);
   const role = member.role === 'owner' ? 'Organiza el plan' : 'Invitado';
 
@@ -116,6 +121,8 @@ function MemberRow({ member, isMe, onRemove }: MemberRowProps) {
 export function PlanDetailScreen({ navigation, route }: Props) {
   const planId = route.params.plan.id;
   const insets = useSafeAreaInsets();
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
   const { user } = useAuth();
   const position = useDevicePosition();
   const favorites = useFavorites();
@@ -339,8 +346,8 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   };
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style={cover.showImage ? 'light' : 'dark'} />
+    <View style={[globalStyles.screen, { backgroundColor: themeColors.background }]}>
+      <StatusBar style={cover.showImage ? 'light' : (isDark ? 'light' : 'dark')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {cover.showImage && coverUrl ? (
@@ -497,7 +504,8 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   scrollContent: {
     paddingBottom: 32,
   },
@@ -512,7 +520,7 @@ const styles = StyleSheet.create({
   },
   sheet: {
     marginTop: -24,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
@@ -670,7 +678,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 3,
@@ -683,3 +691,4 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
 });
+}

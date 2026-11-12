@@ -34,6 +34,7 @@ import { useDevicePosition } from '../services/useDevicePosition';
 import { useRouteLegs } from '../services/useRouteLegs';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { formatPesos, parsePesos } from '../utils/currency';
 import { formatDuration, formatShortDate, formatTime, startOfDay } from '../utils/date';
 import { distanceKm } from '../utils/geo';
@@ -78,7 +79,15 @@ type PickerFieldProps = {
   error?: string;
 };
 
-function PickerField({ label, value, Icon, onPress, error }: PickerFieldProps) {
+function PickerField({
+  label,
+  value,
+  Icon,
+  onPress,
+  error,
+  styles,
+  iconColor,
+}: PickerFieldProps & { styles: ReturnType<typeof makeStyles>; iconColor: string }) {
   return (
     <View style={styles.pickerField}>
       <Text style={styles.label}>{label}</Text>
@@ -94,7 +103,7 @@ function PickerField({ label, value, Icon, onPress, error }: PickerFieldProps) {
         ]}
       >
         <Text style={styles.pickerValue}>{value}</Text>
-        <Icon size={18} color={colors.textSecondary} />
+        <Icon size={18} color={iconColor} />
       </Pressable>
     </View>
   );
@@ -105,6 +114,8 @@ export function CreatePlanScreen({ navigation, route }: Props) {
   // Lugar elegido desde su ficha con "Agregar a un plan" → "Nuevo plan"
   const initialPlace = route.params?.place;
   const insets = useSafeAreaInsets();
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
   const position = useDevicePosition();
   const [title, setTitle] = useState(editingPlan?.title ?? '');
   const [startsAt, setStartsAt] = useState(() =>
@@ -269,8 +280,8 @@ export function CreatePlanScreen({ navigation, route }: Props) {
   };
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: themeColors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
 
       <ScreenHeader
         title={editingPlan ? 'Editar plan' : 'Crear plan'}
@@ -303,6 +314,8 @@ export function CreatePlanScreen({ navigation, route }: Props) {
               Icon={CalendarDays}
               onPress={() => openDateTimePicker('date')}
               error={errors.startsAt}
+              styles={styles}
+              iconColor={themeColors.textSecondary}
             />
             <PickerField
               label="Hora de inicio"
@@ -310,6 +323,8 @@ export function CreatePlanScreen({ navigation, route }: Props) {
               Icon={Clock}
               onPress={() => openDateTimePicker('time')}
               error={errors.startsAt}
+              styles={styles}
+              iconColor={themeColors.textSecondary}
             />
           </View>
           {!!errors.startsAt && <Text style={styles.errorText}>{errors.startsAt}</Text>}
@@ -475,7 +490,8 @@ export function CreatePlanScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   flex: {
     flex: 1,
   },
@@ -571,7 +587,7 @@ const styles = StyleSheet.create({
   bottomAction: {
     paddingHorizontal: 24,
     paddingTop: 12,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
@@ -584,10 +600,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.overlay,
   },
   iosSheet: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
     paddingTop: 12,
   },
 });
+}

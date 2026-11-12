@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { SegmentedControlProps } from '../types/components';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 // Pestañas de Mis planes (Próximos/Pasados) y Favoritos (Todos/Lugares/Planes)
 export function SegmentedControl<T extends string>({
@@ -9,6 +9,9 @@ export function SegmentedControl<T extends string>({
   value,
   onChange,
 }: SegmentedControlProps<T>) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+
   return (
     <View style={styles.container} accessibilityRole="tablist">
       {options.map((option) => {
@@ -29,7 +32,8 @@ export function SegmentedControl<T extends string>({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: colors.surfaceMuted,
@@ -61,3 +65,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+}

@@ -3,7 +3,7 @@ import { Star } from 'lucide-react-native';
 
 import { PlaceListItemProps } from '../types/components';
 import { PlaceImage } from './PlaceImage';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 // Fila de lugar de Recomendaciones, Favoritos y Crear plan
 export function PlaceListItem({
@@ -13,6 +13,8 @@ export function PlaceListItem({
   action,
   showRating = true,
 }: PlaceListItemProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const distanceText = distanceKm === null ? null : `${distanceKm.toFixed(1)} km`;
 
   return (
@@ -54,13 +56,14 @@ export function PlaceListItem({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   card: {
     flexDirection: 'row',
     gap: 12,
     padding: 10,
     borderRadius: 16,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
     elevation: 2,
@@ -118,3 +121,4 @@ const styles = StyleSheet.create({
     color: colors.textBody,
   },
 });
+}

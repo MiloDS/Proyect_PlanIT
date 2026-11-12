@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Alert, DevSettings } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Alert, Switch } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -11,7 +11,7 @@ import {
   LogOut,
   ChevronRight,
   Pencil,
-  RotateCcw,
+  Moon,
 } from 'lucide-react-native';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -19,11 +19,10 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { MemberAvatar } from '../components/MemberAvatar';
-import { colors } from '../styles/colors';
 import { useAuth } from '../services/AuthContext';
 import { AuthService } from '../services/authService';
 import { useProfile } from '../services/ProfileContext';
-import { resetOnboarding } from '../utils/storage';
+import { useTheme } from '../services/ThemeContext';
 import { getDisplayAvatar, getDisplayName } from '../utils/user';
 import { messages } from '../utils/messages';
 
@@ -32,6 +31,8 @@ type Props = CompositeScreenProps<
   NativeStackScreenProps<AppStackParamList>
 >;
 
+// ─── MenuItem: fila de menú reutilizable ──────────────────────────────────────
+
 type MenuItemProps = {
   icon: ReactNode;
   title: string;
@@ -39,56 +40,91 @@ type MenuItemProps = {
   isDestructive?: boolean;
   /** Sin onPress la fila solo muestra información */
   onPress?: () => void;
+  /** Cuando se pasa, se renderiza el switch en lugar de la flecha */
+  switchValue?: boolean;
+  onSwitchChange?: (value: boolean) => void;
+  switchTrackColorOn?: string;
 };
 
-function MenuItem({ icon, title, value, isDestructive = false, onPress }: MenuItemProps) {
-  if (!onPress) {
+function MenuItem({
+  icon,
+  title,
+  value,
+  isDestructive = false,
+  onPress,
+  switchValue,
+  onSwitchChange,
+  switchTrackColorOn,
+}: MenuItemProps) {
+  const { colors } = useTheme();
+  const themedStyles = makeStyles(colors);
+
+  const hasSwitchControl = switchValue !== undefined && onSwitchChange !== undefined;
+
+  // Fila de solo lectura (sin botón ni switch)
+  if (!onPress && !hasSwitchControl) {
     return (
-      <View style={styles.menuItem} accessible accessibilityLabel={`${title}: ${value ?? ''}`}>
-        <View style={styles.menuLeft}>
-          <View style={styles.menuIcon}>{icon}</View>
-          <Text style={styles.menuTitle}>{title}</Text>
+      <View style={themedStyles.menuItem} accessible accessibilityLabel={`${title}: ${value ?? ''}`}>
+        <View style={themedStyles.menuLeft}>
+          <View style={themedStyles.menuIcon}>{icon}</View>
+          <Text style={themedStyles.menuTitle}>{title}</Text>
         </View>
-        {!!value && <Text style={styles.menuValue}>{value}</Text>}
+        {!!value && <Text style={themedStyles.menuValue}>{value}</Text>}
       </View>
     );
   }
 
+  // Fila con switch (modo oscuro u otras preferencias de toggle)
+  if (hasSwitchControl) {
+    return (
+      <View style={themedStyles.menuItem} accessible accessibilityLabel={title}>
+        <View style={themedStyles.menuLeft}>
+          <View style={themedStyles.menuIcon}>{icon}</View>
+          <Text style={themedStyles.menuTitle}>{title}</Text>
+        </View>
+        <Switch
+          value={switchValue}
+          onValueChange={onSwitchChange}
+          trackColor={{ false: colors.inactive, true: switchTrackColorOn ?? colors.primary }}
+          thumbColor={colors.white}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: switchValue }}
+        />
+      </View>
+    );
+  }
+
+  // Fila con botón (flecha o destructivo)
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
+      style={({ pressed }) => [themedStyles.menuItem, pressed && themedStyles.menuItemPressed]}
     >
-      <View style={styles.menuLeft}>
-        <View style={styles.menuIcon}>{icon}</View>
-        <Text style={[styles.menuTitle, isDestructive && styles.destructiveText]}>{title}</Text>
+      <View style={themedStyles.menuLeft}>
+        <View style={themedStyles.menuIcon}>{icon}</View>
+        <Text style={[themedStyles.menuTitle, isDestructive && themedStyles.destructiveText]}>
+          {title}
+        </Text>
       </View>
 
-      <View style={styles.menuRight}>
-        {!!value && <Text style={styles.menuValue}>{value}</Text>}
+      <View style={themedStyles.menuRight}>
+        {!!value && <Text style={themedStyles.menuValue}>{value}</Text>}
         {!isDestructive && <ChevronRight size={18} color={colors.textMuted} />}
       </View>
     </Pressable>
   );
 }
 
-// Solo en desarrollo: la Intro aparece únicamente sin sesión y sin la marca de onboarding,
-// así que se borran ambas y se recarga la app
-async function replayOnboarding() {
-  try {
-    await resetOnboarding();
-    await AuthService.logout();
-    DevSettings.reload();
-  } catch (err: any) {
-    Alert.alert(messages.common.errorTitle, err.message || messages.auth.onboardingResetFailed);
-  }
-}
+// ─── Pantalla de Perfil ───────────────────────────────────────────────────────
 
 export function ProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { isDark, toggleTheme, colors } = useTheme();
+  const themedStyles = makeStyles(colors);
+
   const avatarUrl = getDisplayAvatar(user, profile) ?? null;
   const displayName = getDisplayName(user, profile);
   const editProfile = () => navigation.navigate('EditProfile');
@@ -112,43 +148,43 @@ export function ProfileScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={themedStyles.container}>
       <StatusBar style="light" />
 
-      <View style={[styles.profileHeader, { paddingTop: insets.top + 16 }]}>
+      <View style={[themedStyles.profileHeader, { paddingTop: insets.top + 16 }]}>
         <Pressable
           onPress={editProfile}
           accessibilityRole="button"
           accessibilityLabel="Cambiar foto de perfil"
-          style={({ pressed }) => [styles.avatarButton, pressed && styles.editButtonPressed]}
+          style={({ pressed }) => [themedStyles.avatarButton, pressed && themedStyles.editButtonPressed]}
         >
-          <View style={styles.avatarContainer}>
+          <View style={themedStyles.avatarContainer}>
             <MemberAvatar name={displayName} avatarUrl={avatarUrl} size={92} />
           </View>
-          <View style={styles.cameraBadge}>
+          <View style={themedStyles.cameraBadge}>
             <Camera size={15} color={colors.primary} />
           </View>
         </Pressable>
 
-        <View style={styles.nameContainer}>
-          <Text style={styles.userName}>{displayName}</Text>
+        <View style={themedStyles.nameContainer}>
+          <Text style={themedStyles.userName}>{displayName}</Text>
           <Pressable
             onPress={editProfile}
             accessibilityRole="button"
             accessibilityLabel="Editar perfil"
-            style={({ pressed }) => [styles.editButton, pressed && styles.editButtonPressed]}
+            style={({ pressed }) => [themedStyles.editButton, pressed && themedStyles.editButtonPressed]}
           >
             <Pencil size={17} color={colors.white} />
           </Pressable>
         </View>
 
-        <Text style={styles.userEmail}>{user?.email}</Text>
+        <Text style={themedStyles.userEmail}>{user?.email}</Text>
       </View>
 
-      <View style={styles.contentContainer}>
+      <View style={themedStyles.contentContainer}>
         <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+          style={themedStyles.scrollView}
+          contentContainerStyle={themedStyles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
           <MenuItem
@@ -167,19 +203,19 @@ export function ProfileScreen({ navigation }: Props) {
             title="Idioma"
             value="Español"
           />
+          {/* Modo oscuro */}
+          <MenuItem
+            icon={<Moon size={21} color={colors.textBody} />}
+            title="Modo oscuro"
+            switchValue={isDark}
+            onSwitchChange={toggleTheme}
+            switchTrackColorOn={colors.primary}
+          />
           <MenuItem
             icon={<HelpCircle size={21} color={colors.textBody} />}
             title="Ayuda y soporte"
             onPress={() => navigation.navigate('Help')}
           />
-
-          {__DEV__ && (
-            <MenuItem
-              icon={<RotateCcw size={21} color={colors.textBody} />}
-              title="Ver la Intro de nuevo (desarrollo)"
-              onPress={replayOnboarding}
-            />
-          )}
 
           <MenuItem
             icon={<LogOut size={21} color={colors.danger} />}
@@ -193,139 +229,143 @@ export function ProfileScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.primary,
-  },
+// ─── Estilos dinámicos ────────────────────────────────────────────────────────
 
-  /* Encabezado del perfil */
-  profileHeader: {
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 30,
-    paddingHorizontal: 24,
-  },
-  avatarButton: {
-    marginBottom: 12,
-  },
-  avatarContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 2,
-    borderColor: colors.white,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primaryDark,
-    elevation: 5,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  cameraBadge: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-    elevation: 3,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-  },
-  nameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 3,
-  },
-  userName: {
-    color: colors.white,
-    fontSize: 21,
-    fontWeight: '700',
-  },
-  editButton: {
-    marginLeft: 8,
-    padding: 5,
-  },
-  editButtonPressed: {
-    opacity: 0.6,
-    transform: [{ scale: 0.95 }],
-  },
-  userEmail: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 12,
-    fontWeight: '400',
-  },
+function makeStyles(colors: ReturnType<typeof import('../services/ThemeContext').useTheme>['colors']) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.primary,
+    },
 
-  /* Contenido */
-  contentContainer: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    marginTop: -16,
-    overflow: 'hidden',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 8,
-    paddingBottom: 20,
-  },
+    /* Encabezado del perfil */
+    profileHeader: {
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingBottom: 30,
+      paddingHorizontal: 24,
+    },
+    avatarButton: {
+      marginBottom: 12,
+    },
+    avatarContainer: {
+      width: 96,
+      height: 96,
+      borderRadius: 48,
+      borderWidth: 2,
+      borderColor: colors.white,
+      overflow: 'hidden',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primaryDark,
+      elevation: 5,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+    },
+    cameraBadge: {
+      position: 'absolute',
+      right: 0,
+      bottom: 0,
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.card,
+      elevation: 3,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 2,
+    },
+    nameContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 3,
+    },
+    userName: {
+      color: colors.white,
+      fontSize: 21,
+      fontWeight: '700',
+    },
+    editButton: {
+      marginLeft: 8,
+      padding: 5,
+    },
+    editButtonPressed: {
+      opacity: 0.6,
+      transform: [{ scale: 0.95 }],
+    },
+    userEmail: {
+      color: 'rgba(255,255,255,0.8)',
+      fontSize: 12,
+      fontWeight: '400',
+    },
 
-  /* Elementos del menú */
-  menuItem: {
-    minHeight: 65,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 15,
-    paddingHorizontal: 2,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  menuItemPressed: {
-    backgroundColor: colors.surface,
-  },
-  menuLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  menuIcon: {
-    width: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 9,
-  },
-  menuTitle: {
-    color: colors.textPrimary,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  destructiveText: {
-    color: colors.danger,
-    fontWeight: '600',
-  },
-  menuRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  menuValue: {
-    color: colors.textMuted,
-    fontSize: 12,
-    marginRight: 5,
-    fontWeight: '400',
-  },
-});
+    /* Contenido */
+    contentContainer: {
+      flex: 1,
+      backgroundColor: colors.card,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      marginTop: -16,
+      overflow: 'hidden',
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: 24,
+      paddingTop: 8,
+      paddingBottom: 20,
+    },
+
+    /* Elementos del menú */
+    menuItem: {
+      minHeight: 65,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 15,
+      paddingHorizontal: 2,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    menuItemPressed: {
+      backgroundColor: colors.surface,
+    },
+    menuLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    menuIcon: {
+      width: 28,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: 9,
+    },
+    menuTitle: {
+      color: colors.textPrimary,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    destructiveText: {
+      color: colors.danger,
+      fontWeight: '600',
+    },
+    menuRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    menuValue: {
+      color: colors.textMuted,
+      fontSize: 12,
+      marginRight: 5,
+      fontWeight: '400',
+    },
+  });
+}

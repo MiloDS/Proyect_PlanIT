@@ -2,7 +2,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { MapPin } from 'lucide-react-native';
 import { PlaceCardProps } from '../types/components';
 import { PlaceImage } from './PlaceImage';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 export function PlaceCard({
   imageUrl,
@@ -12,6 +12,8 @@ export function PlaceCard({
   distanceKm,
   onPress,
 }: PlaceCardProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const distanceText = `${distanceKm.toFixed(1)} km`;
 
   return (
@@ -38,7 +40,8 @@ export function PlaceCard({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   card: {
     width: 140,
     marginRight: 12,
@@ -77,3 +80,4 @@ const styles = StyleSheet.create({
     marginLeft: 3,
   },
 });
+}

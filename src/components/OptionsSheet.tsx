@@ -5,7 +5,7 @@ import { Check } from 'lucide-react-native';
 
 import { OptionsSheetProps, SheetOption } from '../types/components';
 import { Button } from './Button';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 /**
  * Hoja inferior con una lista de acciones, por ejemplo tomar o elegir una foto. Reemplaza
@@ -13,6 +13,8 @@ import { colors } from '../styles/colors';
  */
 export function OptionsSheet({ visible, title, options, onClose }: OptionsSheetProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   // En iOS no se puede abrir otra pantalla (como la cámara) mientras la hoja se cierra:
   // la acción espera a que termine de cerrarse
   const pendingAction = useRef<(() => void) | null>(null);
@@ -84,7 +86,8 @@ export function OptionsSheet({ visible, title, options, onClose }: OptionsSheetP
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -94,7 +97,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sheet: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
@@ -154,3 +157,4 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
 });
+}

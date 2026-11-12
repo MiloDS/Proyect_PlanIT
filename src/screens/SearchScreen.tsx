@@ -26,8 +26,8 @@ import { PlaceMarker } from '../components/PlaceMarker';
 import { useFavorites } from '../services/FavoritesContext';
 import { LocationService } from '../services/locationService';
 import { NEARBY_RADIUS_METERS, PlacesService, SEARCH_CATEGORIES } from '../services/placesService';
-import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { distanceKm } from '../utils/geo';
 
 type Props = CompositeScreenProps<
@@ -68,6 +68,8 @@ function radiusForRegion(region: Region): number {
 export function SearchScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors);
   const { isFavoritePlace, togglePlace } = useFavorites();
 
   const [position, setPosition] = useState<DevicePosition | null>(null);
@@ -152,8 +154,8 @@ export function SearchScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: colors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
 
       {position ? (
         <MapView
@@ -333,7 +335,8 @@ export function SearchScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   mapLoading: {
     position: 'absolute',
     top: 0,
@@ -358,7 +361,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     elevation: 4,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
@@ -388,7 +391,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 18,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     elevation: 3,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
@@ -414,7 +417,9 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
@@ -433,7 +438,7 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 12,
     borderRadius: 18,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     elevation: 6,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 3 },
@@ -477,3 +482,4 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
 });
+}

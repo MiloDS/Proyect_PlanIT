@@ -1,9 +1,12 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { ChipProps } from '../types/components';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 export function Chip({ label, selected, onPress, style }: ChipProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+
   return (
     <Pressable
       onPress={onPress}
@@ -21,7 +24,8 @@ export function Chip({ label, selected, onPress, style }: ChipProps) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   chip: {
     paddingHorizontal: 16,
     paddingVertical: 9,
@@ -38,7 +42,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   unselected: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.borderStrong,
   },
@@ -57,3 +61,4 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.97 }],
   },
 });
+}

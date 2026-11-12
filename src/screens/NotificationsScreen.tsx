@@ -19,14 +19,16 @@ import { Banner } from '../components/Banner';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { PlanReminders, REMINDER_OPTIONS, ReminderPermission } from '../services/planReminders';
 import { PlansService } from '../services/plansService';
-import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { ReminderSettings, getReminderSettings, saveReminderSettings } from '../utils/storage';
 import { messages } from '../utils/messages';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Notifications'>;
 
 export function NotificationsScreen({ navigation }: Props) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors);
   const [settings, setSettings] = useState<ReminderSettings | null>(null);
   const [permission, setPermission] = useState<ReminderPermission | null>(null);
   const [askedPermission, setAskedPermission] = useState(false);
@@ -57,7 +59,7 @@ export function NotificationsScreen({ navigation }: Props) {
 
   if (!settings || !permission) {
     return (
-      <View style={globalStyles.screen}>
+      <View style={[globalStyles.screen, { backgroundColor: colors.background }]}>
         <ScreenHeader title="Notificaciones" onBack={() => navigation.goBack()} />
         <ActivityIndicator color={colors.primary} style={styles.loading} />
       </View>
@@ -98,8 +100,8 @@ export function NotificationsScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: colors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScreenHeader
         title="Notificaciones"
         subtitle="Recordatorios de tus planes"
@@ -181,7 +183,8 @@ export function NotificationsScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   loading: {
     marginTop: 40,
   },
@@ -205,7 +208,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -263,7 +266,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
   },
   pressed: {
     backgroundColor: colors.surface,
@@ -297,3 +300,4 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 });
+}

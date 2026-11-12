@@ -22,7 +22,7 @@ import { SegmentedControl } from './SegmentedControl';
 import { useFavorites } from '../services/FavoritesContext';
 import { LocationService } from '../services/locationService';
 import { PlacesService } from '../services/placesService';
-import { colors } from '../styles/colors';
+import { ThemeColors, useTheme } from '../services/ThemeContext';
 import { globalStyles } from '../styles/globalStyles';
 import { distanceKm } from '../utils/geo';
 import { messages } from '../utils/messages';
@@ -50,6 +50,8 @@ const TEXT_SEARCH_RADIUS_METERS = 15000;
 // El contenido solo se monta con el modal abierto: cada vez empieza de cero
 function PlacePickerContent({ selectedIds, onToggle, onClose }: PlacePickerModalProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const favorites = useFavorites();
   const [query, setQuery] = useState('');
   const [request, setRequest] = useState<PickerRequest>({ source: 'nearby', query: '' });
@@ -234,6 +236,8 @@ function PlacePickerContent({ selectedIds, onToggle, onClose }: PlacePickerModal
 }
 
 export function PlacePickerModal(props: PlacePickerModalProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <Modal visible={props.visible} animationType="slide" transparent onRequestClose={props.onClose}>
       <View style={styles.overlay}>{props.visible && <PlacePickerContent {...props} />}</View>
@@ -241,84 +245,86 @@ export function PlacePickerModal(props: PlacePickerModalProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: colors.overlay,
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    height: '88%',
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingTop: 18,
-    paddingHorizontal: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 14,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  closeButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    height: 46,
-    paddingHorizontal: 14,
-    borderRadius: 23,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.surface,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: colors.textPrimary,
-    paddingVertical: 0,
-  },
-  sources: {
-    marginTop: 12,
-  },
-  list: {
-    flex: 1,
-    marginTop: 12,
-  },
-  listContent: {
-    gap: 10,
-    paddingBottom: 12,
-  },
-  loading: {
-    marginTop: 32,
-  },
-  toggle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  toggleSelected: {
-    backgroundColor: colors.primary,
-  },
-  doneButton: {
-    marginTop: 8,
-    borderRadius: 16,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      justifyContent: 'flex-end',
+    },
+    sheet: {
+      height: '88%',
+      backgroundColor: colors.card,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      paddingTop: 18,
+      paddingHorizontal: 20,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 14,
+    },
+    title: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    closeButton: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      height: 46,
+      paddingHorizontal: 14,
+      borderRadius: 23,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surface,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 15,
+      color: colors.textPrimary,
+      paddingVertical: 0,
+    },
+    sources: {
+      marginTop: 12,
+    },
+    list: {
+      flex: 1,
+      marginTop: 12,
+    },
+    listContent: {
+      gap: 10,
+      paddingBottom: 12,
+    },
+    loading: {
+      marginTop: 32,
+    },
+    toggle: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      borderWidth: 1.5,
+      borderColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    toggleSelected: {
+      backgroundColor: colors.primary,
+    },
+    doneButton: {
+      marginTop: 8,
+      borderRadius: 16,
+    },
+  });
+}

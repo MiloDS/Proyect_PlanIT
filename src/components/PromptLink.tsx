@@ -1,9 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { PromptLinkProps } from '../types/components';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 export function PromptLink({ prompt, linkLabel, onPress, style }: PromptLinkProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+
   return (
     <View style={[styles.row, style]}>
       <Text style={styles.prompt}>{prompt} </Text>
@@ -20,7 +23,8 @@ export function PromptLink({ prompt, linkLabel, onPress, style }: PromptLinkProp
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -40,3 +44,4 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
 });
+}

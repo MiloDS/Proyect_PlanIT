@@ -23,6 +23,7 @@ import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { useAuth } from '../services/AuthContext';
 import { useProfile } from '../services/ProfileContext';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { useNearbyPlaces } from '../services/useNearbyPlaces';
 import { usePullToRefresh } from '../services/usePullToRefresh';
 import { useWeather } from '../services/useWeather';
@@ -36,6 +37,8 @@ type Props = CompositeScreenProps<
 
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
   const { user } = useAuth();
   const { profile } = useProfile();
   const nearby = useNearbyPlaces();
@@ -50,8 +53,8 @@ export function HomeScreen({ navigation }: Props) {
   });
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: themeColors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
         showsVerticalScrollIndicator={false}
@@ -59,8 +62,8 @@ export function HomeScreen({ navigation }: Props) {
           <RefreshControl
             refreshing={pullToRefresh.refreshing}
             onRefresh={pullToRefresh.onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
+            colors={[themeColors.primary]}
+            tintColor={themeColors.primary}
             progressViewOffset={insets.top}
           />
         }
@@ -70,7 +73,7 @@ export function HomeScreen({ navigation }: Props) {
           accessible
           accessibilityLabel={`Ubicación: ${locationLabel}`}
         >
-          <MapPin size={16} color={colors.textPrimary} />
+          <MapPin size={16} color={themeColors.textPrimary} />
           <Text style={styles.locationText}>{locationLabel}</Text>
         </View>
 
@@ -101,7 +104,7 @@ export function HomeScreen({ navigation }: Props) {
             onPress={() => navigation.navigate('SurpriseMe')}
           >
             <Text style={styles.surpriseButtonText}>Sorpréndeme</Text>
-            <Sparkles size={16} color={colors.white} />
+            <Sparkles size={16} color={themeColors.white} />
           </Button>
         </View>
 
@@ -117,7 +120,7 @@ export function HomeScreen({ navigation }: Props) {
         </View>
 
         {nearby.status === 'loading' && (
-          <ActivityIndicator color={colors.primary} style={styles.placesStatus} />
+          <ActivityIndicator color={themeColors.primary} style={styles.placesStatus} />
         )}
 
         {nearby.status === 'error' && (
@@ -166,7 +169,8 @@ export function HomeScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 16,
@@ -268,3 +272,4 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
+}
