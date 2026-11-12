@@ -183,6 +183,34 @@ export const messages = {
     qrNotPlanit: 'Ese QR no es un código de PlanIt.',
   },
 
+  suggestions: {
+    loadFailed: failed('cargar las sugerencias'),
+    sendFailed: failed('enviar la sugerencia'),
+    answerFailed: failed('responder la sugerencia'),
+    withdrawFailed: failed('retirar la sugerencia'),
+    noChanges: 'No cambiaste nada del plan. Cambia lo que quieras proponer y envíalo.',
+    alreadyPendingTitle: 'Ya enviaste una sugerencia',
+    alreadyPending:
+      'Ya tienes una sugerencia esperando respuesta en este plan. Retírala desde el plan para proponer otra.',
+    cannotSuggest: 'Solo las personas invitadas al plan pueden sugerir cambios.',
+    onlyOwnerCanAnswer: 'Solo quien creó el plan puede responder sugerencias.',
+    alreadyAnswered: 'Esa sugerencia ya fue respondida.',
+    gone: 'Esa sugerencia ya no existe. Puede que la hayan retirado.',
+    sentTitle: 'Sugerencia enviada',
+    sent: (ownerName: string) =>
+      `${ownerName} la verá en el plan y decidirá si aplica los cambios.`,
+    placeSuggested: (placeName: string, planTitle: string, ownerName: string) =>
+      `Le sugerimos a ${ownerName} agregar ${placeName} a "${planTitle}". Verás su respuesta en el plan.`,
+    acceptTitle: 'Aceptar sugerencia',
+    acceptConfirm: (authorName: string) =>
+      `Los cambios que propone ${authorName} se aplicarán al plan para todas las personas.`,
+    rejectTitle: 'Rechazar sugerencia',
+    rejectConfirm: (authorName: string) =>
+      `${authorName} verá que no aplicaste sus cambios. El plan queda como está.`,
+    withdrawTitle: 'Retirar sugerencia',
+    withdrawConfirm: 'Quien organiza ya no la verá. Después puedes proponer otra.',
+  },
+
   reminders: {
     syncFailed:
       'Guardamos tu preferencia, pero no pudimos programar los recordatorios. Se programarán la próxima vez que abras PlanIt con conexión.',

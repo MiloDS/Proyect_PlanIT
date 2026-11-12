@@ -222,12 +222,19 @@ check('C no ve el plan', (await as(C, `select id from public.plans`)).rows.lengt
 check('C no ve los miembros', (await as(C, `select * from public.plan_members`)).rows.length === 0);
 
 check(
-  'B agrega un lugar al plan',
+  'A agrega un lugar a su plan',
   !(
-    await as(B, `insert into public.plan_places (plan_id, place_id) values ($1, 'gp_arvi')`, [
+    await as(A, `insert into public.plan_places (plan_id, place_id) values ($1, 'gp_arvi')`, [
       planId,
     ])
   ).error
+);
+check(
+  'B (invitado) no puede agregar lugares directamente',
+  !!(
+    await as(B, `insert into public.plan_places (plan_id, place_id) values ($1, 'gp_b')`, [planId])
+  ).error,
+  'se permitió'
 );
 check(
   'C no puede agregar lugares',
@@ -240,8 +247,21 @@ check(
   (await as(C, `select * from public.plan_places`)).rows.length === 0
 );
 check(
-  'B reordena lugares',
+  'B ve los lugares del plan',
+  (await as(B, `select * from public.plan_places where plan_id = $1`, [planId])).rows.length === 1
+);
+check(
+  'B (invitado) no puede reordenar lugares',
   (await as(B, `update public.plan_places set sort_order = 2 where plan_id = $1`, [planId]))
+    .affected === 0
+);
+check(
+  'B (invitado) no puede quitar lugares',
+  (await as(B, `delete from public.plan_places where plan_id = $1`, [planId])).affected === 0
+);
+check(
+  'A reordena los lugares de su plan',
+  (await as(A, `update public.plan_places set sort_order = 2 where plan_id = $1`, [planId]))
     .affected === 1
 );
 
@@ -522,7 +542,12 @@ check(
   'add_plan_place avisa si el lugar ya estaba',
   (await addPlace(A, 'gp_4')).rows[0]?.added === false
 );
-check('B (miembro) puede agregar un lugar', (await addPlace(B, 'gp_5')).rows[0]?.added === true);
+const memberAdd = await addPlace(B, 'gp_5');
+check(
+  'B (invitado) no puede usar add_plan_place',
+  /dueño/.test(memberAdd.error ?? ''),
+  memberAdd.error ?? 'se permitió'
+);
 check(
   'C (no miembro) no puede agregar lugares',
   !!(await addPlace(C, 'gp_6')).error,
@@ -651,6 +676,219 @@ check(
   ).rows[0].n === 300
 );
 await as(A, `delete from public.plans where id = $1`, [codePlan]);
+
+// --- Sugerencias de cambios (plan_suggestions)
+const sugPlan = (
+  await as(
+    A,
+    `select public.create_plan('Paseo', '2030-03-01 15:00:00+00', array['gp_1', 'gp_2'], array[60, 90], 'walk', 20000, 'Llevar efectivo') as id`
+  )
+).rows[0]?.id;
+await as(A, `select public.add_plan_member_by_email($1, 'beto@test.com')`, [sugPlan]);
+const suggest = (userId, columns, values) =>
+  as(
+    userId,
+    `insert into public.plan_suggestions (plan_id, ${columns}) values ($1, ${values}) returning id`,
+    [sugPlan]
+  );
+const planState = async () =>
+  (
+    await db.query(
+      `select p.title, p.starts_at, p.transport_mode, p.budget_per_person, p.notes,
+         (select array_agg(place_id || ':' || stay_minutes order by sort_order)
+          from public.plan_places where plan_id = p.id) as stops
+       from public.plans p where p.id = $1`,
+      [sugPlan]
+    )
+  ).rows[0];
+const suggestionStatus = async (id) =>
+  (await db.query(`select status, resolved_at from public.plan_suggestions where id = $1`, [id]))
+    .rows[0];
+
+for (const [name, columns, values] of [
+  ['sin cambios', 'changed_fields', `'{}'`],
+  ['un dato desconocido', 'changed_fields', `array['owner_id']`],
+  ['un título marcado pero vacío', 'changed_fields, title', `array['title'], null`],
+  ['un título de solo espacios', 'changed_fields, title', `array['title'], '   '`],
+  ['lugares sin sus tiempos', 'changed_fields, place_ids', `array['places'], array['gp_1']`],
+  [
+    'más lugares que tiempos',
+    'changed_fields, place_ids, stay_minutes',
+    `array['places'], array['gp_1', 'gp_2'], array[60]`,
+  ],
+  [
+    'un tiempo en un lugar de 0 minutos',
+    'changed_fields, place_ids, stay_minutes',
+    `array['places'], array['gp_1'], array[0]`,
+  ],
+  [
+    'un lugar vacío',
+    'changed_fields, place_ids, stay_minutes',
+    `array['places'], array[null::text], array[60]`,
+  ],
+  [
+    'un transporte desconocido',
+    'changed_fields, transport_mode',
+    `array['transport_mode'], 'bike'`,
+  ],
+  [
+    'un mensaje de más de 300 caracteres',
+    'changed_fields, title, message',
+    `array['title'], 'x', repeat('a', 301)`,
+  ],
+]) {
+  check(
+    `una sugerencia no acepta ${name}`,
+    !!(await suggest(B, columns, values)).error,
+    'se permitió'
+  );
+}
+
+const firstSuggestion = await suggest(
+  B,
+  'changed_fields, starts_at, budget_per_person, place_ids, stay_minutes, message',
+  `array['starts_at', 'budget_per_person', 'places'], '2030-03-02 10:00:00+00', null, array['gp_3', 'gp_1', 'gp_3'], array[45, 30, 120], '¿Mejor el domingo?'`
+);
+check('B (invitado) sugiere un cambio', !firstSuggestion.error, firstSuggestion.error);
+const firstId = firstSuggestion.rows[0]?.id;
+check(
+  'B no puede tener dos sugerencias pendientes en el mismo plan',
+  !!(await suggest(B, 'changed_fields, title', `array['title'], 'Otro'`)).error,
+  'se permitió'
+);
+check(
+  'A (dueño) no se sugiere cambios: edita el plan',
+  !!(await suggest(A, 'changed_fields, title', `array['title'], 'Otro'`)).error,
+  'se permitió'
+);
+check(
+  'C (no miembro) no puede sugerir',
+  !!(await suggest(C, 'changed_fields, title', `array['title'], 'Otro'`)).error,
+  'se permitió'
+);
+check(
+  'nadie sugiere a nombre de otra persona',
+  !!(
+    await as(
+      B,
+      `insert into public.plan_suggestions (plan_id, author_id, changed_fields, title) values ($1, $2, array['title'], 'x')`,
+      [sugPlan, A]
+    )
+  ).error,
+  'se permitió'
+);
+check(
+  'A ve la sugerencia de B',
+  (await as(A, `select id from public.plan_suggestions where plan_id = $1`, [sugPlan])).rows
+    .length === 1
+);
+check(
+  'C no ve las sugerencias',
+  (await as(C, `select id from public.plan_suggestions`)).rows.length === 0
+);
+
+const memberAccept = await as(B, `select public.accept_plan_suggestion($1)`, [firstId]);
+check(
+  'B no puede aceptar su propia sugerencia',
+  /dueño/.test(memberAccept.error ?? ''),
+  memberAccept.error ?? 'se permitió'
+);
+check(
+  'B no puede marcarla como aceptada directamente',
+  (
+    await as(
+      B,
+      `update public.plan_suggestions set status = 'accepted', resolved_at = now() where id = $1`,
+      [firstId]
+    )
+  ).affected === 0
+);
+check(
+  'anon no puede aceptar sugerencias',
+  !!(await asAnon(`select public.accept_plan_suggestion($1)`, [firstId])).error
+);
+
+const accepted = await as(A, `select public.accept_plan_suggestion($1)`, [firstId]);
+check('A acepta la sugerencia', !accepted.error, accepted.error);
+const afterAccept = await planState();
+check(
+  'aceptar cambia solo lo sugerido (fecha y presupuesto)',
+  afterAccept.title === 'Paseo' &&
+    afterAccept.transport_mode === 'walk' &&
+    afterAccept.notes === 'Llevar efectivo' &&
+    afterAccept.budget_per_person === null &&
+    new Date(afterAccept.starts_at).toISOString() === '2030-03-02T10:00:00.000Z',
+  JSON.stringify(afterAccept)
+);
+check(
+  'aceptar reemplaza el recorrido, en orden y sin repetir lugares',
+  JSON.stringify(afterAccept.stops) === JSON.stringify(['gp_3:45', 'gp_1:30']),
+  JSON.stringify(afterAccept.stops)
+);
+const firstStatus = await suggestionStatus(firstId);
+check(
+  'la sugerencia queda aceptada con su fecha de respuesta',
+  firstStatus.status === 'accepted' && !!firstStatus.resolved_at,
+  JSON.stringify(firstStatus)
+);
+const acceptTwice = await as(A, `select public.accept_plan_suggestion($1)`, [firstId]);
+check(
+  'una sugerencia respondida no se vuelve a aplicar',
+  /respondida/.test(acceptTwice.error ?? ''),
+  acceptTwice.error ?? 'se permitió'
+);
+check(
+  'B no puede borrar una sugerencia ya respondida',
+  (await as(B, `delete from public.plan_suggestions where id = $1`, [firstId])).affected === 0
+);
+
+const withdrawn = await suggest(
+  B,
+  'changed_fields, transport_mode',
+  `array['transport_mode'], 'drive'`
+);
+check('B puede sugerir de nuevo después de la respuesta', !withdrawn.error, withdrawn.error);
+check(
+  'B retira su sugerencia pendiente',
+  (await as(B, `delete from public.plan_suggestions where id = $1`, [withdrawn.rows[0]?.id]))
+    .affected === 1
+);
+
+const toReject = await suggest(B, 'changed_fields, notes', `array['notes'], null`);
+const beforeReject = await planState();
+const rejected = await as(A, `select public.reject_plan_suggestion($1)`, [toReject.rows[0]?.id]);
+check('A rechaza una sugerencia', !rejected.error, rejected.error);
+check(
+  'rechazar no cambia el plan',
+  JSON.stringify(await planState()) === JSON.stringify(beforeReject)
+);
+check(
+  'la sugerencia queda rechazada',
+  (await suggestionStatus(toReject.rows[0]?.id)).status === 'rejected'
+);
+
+const clearNotes = await suggest(B, 'changed_fields, notes', `array['notes'], '  '`);
+await as(A, `select public.accept_plan_suggestion($1)`, [clearNotes.rows[0]?.id]);
+check('una sugerencia puede quitar las notas', (await planState()).notes === null);
+
+await suggest(B, 'changed_fields, title', `array['title'], 'Pendiente'`);
+await as(B, `delete from public.plan_members where plan_id = $1 and user_id = $2`, [sugPlan, B]);
+const pendingAfterLeave = await db.query(
+  `select count(*)::int as n from public.plan_suggestions where plan_id = $1 and status = 'pending'`,
+  [sugPlan]
+);
+check(
+  'al salir del plan se borran las sugerencias pendientes de esa persona',
+  pendingAfterLeave.rows[0].n === 0,
+  JSON.stringify(pendingAfterLeave.rows)
+);
+
+await as(A, `delete from public.plans where id = $1`, [sugPlan]);
+const orphanSuggestions = await db.query(
+  `select count(*)::int as n from public.plan_suggestions where plan_id = $1`,
+  [sugPlan]
+);
+check('al eliminar el plan se borran sus sugerencias', orphanSuggestions.rows[0].n === 0);
 
 // --- Usuario sin sesión
 check('anon no ve planes', (await asAnon(`select * from public.plans`)).rows.length === 0);

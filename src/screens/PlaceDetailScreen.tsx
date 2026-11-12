@@ -22,6 +22,7 @@ import {
   Clock,
   Dog,
   ExternalLink,
+  Lightbulb,
   LucideIcon,
   MapPin,
   Plus,
@@ -46,6 +47,7 @@ import { useFavorites } from '../services/FavoritesContext';
 import { useDevicePosition } from '../services/useDevicePosition';
 import { PRICE_LEVEL_LABELS, PlacesService, getTodayHours } from '../services/placesService';
 import { PlansService } from '../services/plansService';
+import { PlanSuggestionsService } from '../services/planSuggestionsService';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { useTheme, ThemeColors } from '../services/ThemeContext';
@@ -53,6 +55,7 @@ import { formatShortDate, formatTime, isUpcoming } from '../utils/date';
 import { distanceKm } from '../utils/geo';
 import { getDefaultStayMinutes } from '../utils/itinerary';
 import { messages } from '../utils/messages';
+import { getAddPlaceChanges } from '../utils/planSuggestions';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PlaceDetail'>;
 
@@ -107,7 +110,8 @@ export function PlaceDetailScreen({ navigation, route }: Props) {
   const [error, setError] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
   // Planes próximos que creó la persona: los que puede editar
-  const [ownPlans, setOwnPlans] = useState<Plan[]>([]);
+  // Próximos planes: en los propios el lugar se agrega; en los demás se sugiere
+  const [upcomingPlans, setUpcomingPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
   const [addSheetOpen, setAddSheetOpen] = useState(false);
 
@@ -144,8 +148,11 @@ export function PlaceDetailScreen({ navigation, route }: Props) {
     setLoadingPlans(true);
     try {
       const plans = await PlansService.list();
-      setOwnPlans(
-        plans.filter((plan) => plan.ownerId === user?.id && isUpcoming(new Date(plan.startsAt)))
+      // Primero los que organiza la persona
+      setUpcomingPlans(
+        plans
+          .filter((plan) => isUpcoming(new Date(plan.startsAt)))
+          .sort((a, b) => Number(b.ownerId === user?.id) - Number(a.ownerId === user?.id))
       );
       setAddSheetOpen(true);
     } catch (err: any) {
@@ -183,6 +190,28 @@ export function PlaceDetailScreen({ navigation, route }: Props) {
     }
   };
 
+  // En un plan ajeno no se agrega: se le sugiere a quien lo organiza
+  const suggestPlace = async (plan: Plan) => {
+    if (plan.placeIds.includes(place.id)) {
+      Alert.alert(messages.plans.addToPlanTitle, messages.plans.placeAlreadyInPlan(plan.title));
+      return;
+    }
+    const ownerName =
+      plan.members.find((member) => member.role === 'owner')?.fullName?.trim() || 'quien organiza';
+    try {
+      await PlanSuggestionsService.create(
+        plan.id,
+        getAddPlaceChanges(plan, place.id, getDefaultStayMinutes(current.type))
+      );
+      Alert.alert(
+        messages.suggestions.sentTitle,
+        messages.suggestions.placeSuggested(current.name, plan.title, ownerName)
+      );
+    } catch (err: any) {
+      Alert.alert(messages.plans.addToPlanTitle, err.message);
+    }
+  };
+
   const addOptions: SheetOption[] = [
     {
       label: 'Nuevo plan',
@@ -190,14 +219,22 @@ export function PlaceDetailScreen({ navigation, route }: Props) {
       Icon: Plus,
       onPress: () => navigation.navigate('CreatePlan', { place }),
     },
-    ...ownPlans.map((plan) => {
+    ...upcomingPlans.map((plan) => {
       const startsAt = new Date(plan.startsAt);
-      return {
-        label: plan.title,
-        description: `${formatShortDate(startsAt)} · ${formatTime(startsAt)}`,
-        Icon: CalendarDays,
-        onPress: () => addToPlan(plan),
-      };
+      const when = `${formatShortDate(startsAt)} · ${formatTime(startsAt)}`;
+      return plan.ownerId === user?.id
+        ? {
+            label: plan.title,
+            description: when,
+            Icon: CalendarDays,
+            onPress: () => addToPlan(plan),
+          }
+        : {
+            label: plan.title,
+            description: `${when} · Se envía como sugerencia`,
+            Icon: Lightbulb,
+            onPress: () => suggestPlace(plan),
+          };
     }),
   ];
 

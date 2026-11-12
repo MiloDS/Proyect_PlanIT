@@ -20,6 +20,7 @@ import {
   ChevronLeft,
   Clock,
   Crown,
+  Lightbulb,
   LogOut,
   LucideIcon,
   Pencil,
@@ -32,22 +33,26 @@ import {
 } from 'lucide-react-native';
 
 import { AppStackParamList } from '../types/navigation';
-import { Plan, PlanMember } from '../types/plans';
+import { SuggestionAction } from '../types/components';
+import { Plan, PlanMember, PlanSuggestion } from '../types/plans';
 import { EmptyState } from '../components/EmptyState';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { InviteCodeCard } from '../components/InviteCodeCard';
 import { InviteMemberModal } from '../components/InviteMemberModal';
 import { ItineraryList, ItinerarySummary, TRANSPORT_ICONS } from '../components/Itinerary';
 import { MemberAvatar } from '../components/MemberAvatar';
+import { PlanSuggestionCard } from '../components/PlanSuggestionCard';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../services/AuthContext';
 import { useFavorites } from '../services/FavoritesContext';
 import { PlacesService } from '../services/placesService';
 import { PlanReminders } from '../services/planReminders';
 import { PlansService } from '../services/plansService';
+import { PlanSuggestionsService } from '../services/planSuggestionsService';
 import { useDevicePosition } from '../services/useDevicePosition';
 import { usePlacesById } from '../services/usePlacesById';
 import { useImageFallback } from '../services/useImageFallback';
+import { usePlanSuggestions } from '../services/usePlanSuggestions';
 import { useRouteLegs } from '../services/useRouteLegs';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
@@ -58,6 +63,7 @@ import { distanceKm } from '../utils/geo';
 import { formatInviteCode } from '../utils/inviteCode';
 import { buildItinerary, getTransportLabel } from '../utils/itinerary';
 import { messages } from '../utils/messages';
+import { describePlanChanges, getSuggestedPlaceIds } from '../utils/planSuggestions';
 import { isSameEmail } from '../utils/validation';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PlanDetail'>;
@@ -130,6 +136,8 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   const [isGone, setIsGone] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [answering, setAnswering] = useState<{ id: string; action: SuggestionAction } | null>(null);
+  const { suggestions, reload: reloadSuggestions } = usePlanSuggestions(planId);
   const places = usePlacesById(plan.placeIds);
   // El itinerario usa los lugares que Google todavía tiene, en el orden del plan
   const foundPlaceIds = places.places.map((place) => place.id);
@@ -137,6 +145,20 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   // Portada: la foto del primer lugar o, si no tiene o no carga, el ícono del plan
   const coverUrl = places.places[0]?.photoUrl ?? null;
   const cover = useImageFallback(coverUrl);
+
+  // Todos ven las pendientes; las respondidas (de los últimos días) solo quien las envió
+  const pendingSuggestions = suggestions.filter((item) => item.status === 'pending');
+  const myAnswered = suggestions.filter(
+    (item) => item.status !== 'pending' && item.authorId === user?.id
+  );
+  const visibleSuggestions = [...pendingSuggestions, ...myAnswered];
+  const myPendingSuggestion = pendingSuggestions.find((item) => item.authorId === user?.id);
+  // Nombres de los lugares que las sugerencias agregan (los del plan ya están cargados)
+  const suggestedPlaces = usePlacesById(
+    getSuggestedPlaceIds(pendingSuggestions.map((item) => item.changes)).filter(
+      (id) => !plan.placeIds.includes(id)
+    )
+  );
 
   // La versión más reciente del plan; null si se eliminó o el usuario ya no es miembro
   const refresh = useCallback(
@@ -163,10 +185,11 @@ export function PlanDetailScreen({ navigation, route }: Props) {
     useCallback(() => {
       let cancelled = false;
       refresh(() => cancelled);
+      reloadSuggestions();
       return () => {
         cancelled = true;
       };
-    }, [refresh])
+    }, [refresh, reloadSuggestions])
   );
 
   if (isGone) {
@@ -232,6 +255,73 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   const regenerateCode = async () => {
     const inviteCode = await PlansService.regenerateInviteCode(plan.id);
     setPlan((current) => ({ ...current, inviteCode }));
+  };
+
+  const ownerName = owner ? getMemberName(owner) : 'Quien organiza';
+  const canSuggest = !isOwner && isUpcoming(startsAt);
+
+  const getPlaceName = (placeId: string): string => {
+    const place = [...places.places, ...suggestedPlaces.places].find((item) => item.id === placeId);
+    if (place) return place.name;
+    return places.loading || suggestedPlaces.loading ? 'Cargando lugar…' : 'Lugar no disponible';
+  };
+
+  // Un invitado no edita el plan: propone los cambios en el mismo formulario
+  const suggestChanges = () => {
+    if (myPendingSuggestion) {
+      Alert.alert(messages.suggestions.alreadyPendingTitle, messages.suggestions.alreadyPending);
+      return;
+    }
+    navigation.navigate('CreatePlan', { plan, suggest: true });
+  };
+
+  const answerSuggestion = (suggestion: PlanSuggestion, action: SuggestionAction) => {
+    const name = suggestion.authorName?.trim() || 'Esta persona';
+    const confirmations = {
+      accept: {
+        title: messages.suggestions.acceptTitle,
+        message: messages.suggestions.acceptConfirm(name),
+        confirm: 'Aceptar',
+        style: 'default' as const,
+        run: () => PlanSuggestionsService.accept(suggestion.id),
+      },
+      reject: {
+        title: messages.suggestions.rejectTitle,
+        message: messages.suggestions.rejectConfirm(name),
+        confirm: 'Rechazar',
+        style: 'destructive' as const,
+        run: () => PlanSuggestionsService.reject(suggestion.id),
+      },
+      withdraw: {
+        title: messages.suggestions.withdrawTitle,
+        message: messages.suggestions.withdrawConfirm,
+        confirm: 'Retirar',
+        style: 'destructive' as const,
+        run: () => PlanSuggestionsService.withdraw(suggestion.id),
+      },
+    };
+    const { title, message, confirm, style, run } = confirmations[action];
+
+    Alert.alert(title, message, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: confirm,
+        style,
+        onPress: async () => {
+          setAnswering({ id: suggestion.id, action });
+          try {
+            await run();
+            // Al aceptar cambian los datos, el itinerario y el recordatorio del plan
+            if (action === 'accept') await refresh();
+          } catch (err: any) {
+            Alert.alert(title, err.message);
+          } finally {
+            await reloadSuggestions();
+            setAnswering(null);
+          }
+        },
+      },
+    ]);
   };
 
   const removeMember = (member: PlanMember) => {
@@ -394,6 +484,47 @@ export function PlanDetailScreen({ navigation, route }: Props) {
             </View>
           )}
 
+          {(visibleSuggestions.length > 0 || canSuggest) && (
+            <>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>
+                  Sugerencias
+                  {pendingSuggestions.length > 0 ? ` (${pendingSuggestions.length})` : ''}
+                </Text>
+                {canSuggest && !myPendingSuggestion && (
+                  <Pressable
+                    onPress={suggestChanges}
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    style={({ pressed }) => [styles.inviteButton, pressed && styles.pressed]}
+                  >
+                    <Lightbulb size={16} color={colors.primary} />
+                    <Text style={styles.link}>Sugerir cambios</Text>
+                  </Pressable>
+                )}
+              </View>
+              {visibleSuggestions.length === 0 ? (
+                <Text style={styles.mutedText}>
+                  ¿Cambiarías algo del plan? Sugiérelo y {ownerName} decide si lo aplica.
+                </Text>
+              ) : (
+                <View style={styles.list}>
+                  {visibleSuggestions.map((suggestion) => (
+                    <PlanSuggestionCard
+                      key={suggestion.id}
+                      suggestion={suggestion}
+                      rows={describePlanChanges(plan, suggestion.changes, getPlaceName)}
+                      isMine={suggestion.authorId === user?.id}
+                      canAnswer={isOwner}
+                      busyAction={answering?.id === suggestion.id ? answering.action : null}
+                      onAction={(action) => answerSuggestion(suggestion, action)}
+                    />
+                  ))}
+                </View>
+              )}
+            </>
+          )}
+
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Itinerario ({plan.placeIds.length})</Text>
           </View>
@@ -482,11 +613,11 @@ export function PlanDetailScreen({ navigation, route }: Props) {
           >
             <Share2 size={19} color={colors.textPrimary} />
           </Pressable>
-          {isOwner && (
+          {(isOwner || canSuggest) && (
             <Pressable
-              onPress={() => navigation.navigate('CreatePlan', { plan })}
+              onPress={isOwner ? () => navigation.navigate('CreatePlan', { plan }) : suggestChanges}
               accessibilityRole="button"
-              accessibilityLabel="Editar plan"
+              accessibilityLabel={isOwner ? 'Editar plan' : 'Sugerir cambios'}
               style={({ pressed }) => [styles.circleButton, pressed && styles.pressed]}
             >
               <Pencil size={18} color={colors.textPrimary} />

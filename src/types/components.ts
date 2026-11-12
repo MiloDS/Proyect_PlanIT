@@ -9,7 +9,14 @@ import type {
 import type { LucideIcon } from 'lucide-react-native';
 
 import type { Place } from './places';
-import type { Itinerary, Plan, RouteLeg, TransportMode } from './plans';
+import type {
+  Itinerary,
+  Plan,
+  PlanChangeRow,
+  PlanSuggestion,
+  RouteLeg,
+  TransportMode,
+} from './plans';
 import type { Weather } from './weather';
 
 export type ButtonProps = {
@@ -252,4 +259,18 @@ export type JoinPlanModalProps = {
   onClose: () => void;
   /** Se une al plan; lanza un error con el mensaje para mostrar si no se pudo */
   onJoin: (code: string) => Promise<void>;
+};
+
+export type SuggestionAction = 'accept' | 'reject' | 'withdraw';
+
+export type PlanSuggestionCardProps = {
+  suggestion: PlanSuggestion;
+  /** "Antes → después" frente al plan actual; vacío si el plan ya tiene esos cambios */
+  rows: PlanChangeRow[];
+  isMine: boolean;
+  /** Quien creó el plan responde las sugerencias pendientes */
+  canAnswer: boolean;
+  /** Acción en curso en esta tarjeta, para mostrar la carga en su botón */
+  busyAction: SuggestionAction | null;
+  onAction: (action: SuggestionAction) => void;
 };
