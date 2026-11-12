@@ -1,22 +1,31 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
-import { CalendarDays } from 'lucide-react-native';
+import { CalendarDays, Lightbulb } from 'lucide-react-native';
 
 import { PlanCardProps } from '../types/components';
 import { FavoriteButton } from './FavoriteButton';
 import { MemberAvatar } from './MemberAvatar';
+import { useAuth } from '../services/AuthContext';
 import { useImageFallback } from '../services/useImageFallback';
 import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { formatShortDate, formatTime } from '../utils/date';
 
 const MAX_AVATARS = 4;
 
+function getSuggestionsLabel(count: number): string {
+  return count === 1 ? '1 sugerencia' : `${count} sugerencias`;
+}
+
 function CardContent({
   plan,
   isFavorite,
   onToggleFavorite,
+  suggestionCount,
   styles,
-}: Omit<PlanCardProps, 'coverUrl' | 'onPress'> & { styles: ReturnType<typeof makeStyles> }) {
+}: Omit<PlanCardProps, 'coverUrl' | 'onPress'> & {
+  suggestionCount: number;
+  styles: ReturnType<typeof makeStyles>;
+}) {
   const startsAt = new Date(plan.startsAt);
   const placesLabel = plan.placeIds.length === 1 ? '1 lugar' : `${plan.placeIds.length} lugares`;
   const extraMembers = plan.members.length - MAX_AVATARS;
@@ -49,6 +58,12 @@ function CardContent({
           />
         ))}
         {extraMembers > 0 && <Text style={styles.extraMembers}>+{extraMembers}</Text>}
+        {suggestionCount > 0 && (
+          <View style={styles.suggestionsBadge}>
+            <Lightbulb size={12} color={styles.suggestionsText.color} />
+            <Text style={styles.suggestionsText}>{getSuggestionsLabel(suggestionCount)}</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -59,6 +74,11 @@ export function PlanCard({ coverUrl, onPress, ...props }: PlanCardProps) {
   const cover = useImageFallback(coverUrl);
   const { colors: themeColors, isDark } = useTheme();
   const styles = makeStyles(themeColors, isDark);
+  const { user } = useAuth();
+  // Solo quien organiza responde las sugerencias: el aviso es para esa persona
+  const suggestionCount = props.plan.ownerId === user?.id ? props.plan.pendingSuggestions : 0;
+  const suggestionsHint =
+    suggestionCount > 0 ? `, ${getSuggestionsLabel(suggestionCount)} por responder` : '';
 
   // Al ser un botón, el lector de pantalla trata la tarjeta como un solo elemento: el
   // favorito queda disponible como acción de la tarjeta
@@ -68,7 +88,7 @@ export function PlanCard({ coverUrl, onPress, ...props }: PlanCardProps) {
       disabled={!onPress}
       accessible={!!onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${props.plan.title}, ${formatShortDate(startsAt)}, ${formatTime(startsAt)}`}
+      accessibilityLabel={`${props.plan.title}, ${formatShortDate(startsAt)}, ${formatTime(startsAt)}${suggestionsHint}`}
       accessibilityHint="Abre el detalle del plan"
       accessibilityActions={[
         {
@@ -91,12 +111,12 @@ export function PlanCard({ coverUrl, onPress, ...props }: PlanCardProps) {
             transition={150}
             onError={cover.onError}
           />
-          <CardContent {...props} styles={styles} />
+          <CardContent {...props} suggestionCount={suggestionCount} styles={styles} />
         </View>
       ) : (
         <View style={[styles.background, styles.placeholder]}>
           <CalendarDays size={64} color={themeColors.primary} style={styles.placeholderIcon} />
-          <CardContent {...props} styles={styles} />
+          <CardContent {...props} suggestionCount={suggestionCount} styles={styles} />
         </View>
       )}
     </Pressable>
@@ -176,6 +196,21 @@ function makeStyles(colors: ThemeColors, isDark: boolean) {
       fontSize: 12,
       fontWeight: '700',
       color: colors.textBody,
+    },
+    suggestionsBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginLeft: 'auto',
+      paddingHorizontal: 9,
+      paddingVertical: 4,
+      borderRadius: 12,
+      backgroundColor: colors.primary,
+    },
+    suggestionsText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.white,
     },
   });
 }

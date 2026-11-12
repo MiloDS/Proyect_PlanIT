@@ -14,10 +14,11 @@ export type AppStackParamList = {
   PlaceDetail: { place: Place };
   Recommendations: { preferences: RecommendationPreferences };
   /**
-   * Con `plan`, la pantalla edita ese plan en lugar de crear uno nuevo. Con `place`, el plan
-   * nuevo empieza con ese lugar (desde su ficha, "Agregar a un plan").
+   * Con `plan`, la pantalla edita ese plan en lugar de crear uno nuevo; con `suggest`, un
+   * invitado propone los cambios en vez de guardarlos. Con `place`, el plan nuevo empieza con
+   * ese lugar (desde su ficha, "Agregar a un plan").
    */
-  CreatePlan: { plan?: Plan; place?: Place } | undefined;
+  CreatePlan: { plan?: Plan; place?: Place; suggest?: boolean } | undefined;
   PlanDetail: { plan: Plan };
   EditProfile: undefined;
   Notifications: undefined;

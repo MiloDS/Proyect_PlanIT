@@ -9,6 +9,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,6 +31,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { PlacesService } from '../services/placesService';
 import { PlansService } from '../services/plansService';
+import { PlanSuggestionsService } from '../services/planSuggestionsService';
 import { useDevicePosition } from '../services/useDevicePosition';
 import { useRouteLegs } from '../services/useRouteLegs';
 import { colors } from '../styles/colors';
@@ -47,7 +49,12 @@ import {
   TRANSPORT_MODES,
 } from '../utils/itinerary';
 import { messages } from '../utils/messages';
-import { MAX_PLAN_NOTES_LENGTH, validatePlan } from '../utils/validation';
+import { getPlanChanges, hasChanges } from '../utils/planSuggestions';
+import {
+  MAX_PLAN_NOTES_LENGTH,
+  MAX_SUGGESTION_MESSAGE_LENGTH,
+  validatePlan,
+} from '../utils/validation';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'CreatePlan'>;
 
@@ -111,6 +118,8 @@ function PickerField({
 
 export function CreatePlanScreen({ navigation, route }: Props) {
   const editingPlan = route.params?.plan;
+  // Un invitado usa el mismo formulario para proponer cambios: no se guardan en el plan
+  const suggesting = !!editingPlan && !!route.params?.suggest;
   // Lugar elegido desde su ficha con "Agregar a un plan" → "Nuevo plan"
   const initialPlace = route.params?.place;
   const insets = useSafeAreaInsets();
@@ -133,6 +142,9 @@ export function CreatePlanScreen({ navigation, route }: Props) {
     editingPlan?.budgetPerPerson != null ? formatPesos(editingPlan.budgetPerPerson) : ''
   );
   const [notes, setNotes] = useState(editingPlan?.notes ?? '');
+  const [message, setMessage] = useState('');
+  // Lugares del plan que Google todavía tiene, tal como cargaron
+  const [originalPlaceIds, setOriginalPlaceIds] = useState<string[]>([]);
   const [placesStatus, setPlacesStatus] = useState<'loading' | 'ready' | 'error'>(
     editingPlan ? 'loading' : 'ready'
   );
@@ -157,6 +169,7 @@ export function CreatePlanScreen({ navigation, route }: Props) {
     PlacesService.lookup(editingPlan.placeIds)
       .then((found) => {
         if (cancelled) return;
+        setOriginalPlaceIds(found.map((place) => place.id));
         // Se respetan los lugares que el usuario alcanzó a agregar mientras cargaba
         setPlaces((current) => [
           ...found,
@@ -251,7 +264,6 @@ export function CreatePlanScreen({ navigation, route }: Props) {
     setSaveError('');
     if (Object.keys(formErrors).length > 0) return;
 
-    setSaving(true);
     const plan: NewPlan = {
       title,
       startsAt,
@@ -261,7 +273,25 @@ export function CreatePlanScreen({ navigation, route }: Props) {
       budgetPerPerson,
       notes,
     };
+    const changes = editingPlan ? getPlanChanges(editingPlan, plan, originalPlaceIds) : {};
+    if (suggesting && !hasChanges(changes)) {
+      setSaveError(messages.suggestions.noChanges);
+      return;
+    }
+
+    setSaving(true);
     try {
+      if (suggesting && editingPlan) {
+        await PlanSuggestionsService.create(editingPlan.id, changes, message);
+        const owner = editingPlan.members.find((member) => member.role === 'owner');
+        Alert.alert(
+          messages.suggestions.sentTitle,
+          messages.suggestions.sent(owner?.fullName?.trim() || 'Quien organiza')
+        );
+        // El detalle del plan muestra la sugerencia al volver
+        navigation.goBack();
+        return;
+      }
       if (editingPlan) {
         await PlansService.update(editingPlan.id, plan);
         // El detalle del plan se recarga al volver a mostrarse
@@ -284,8 +314,14 @@ export function CreatePlanScreen({ navigation, route }: Props) {
       <StatusBar style={isDark ? 'light' : 'dark'} />
 
       <ScreenHeader
-        title={editingPlan ? 'Editar plan' : 'Crear plan'}
-        subtitle={editingPlan ? 'Cambia lo que necesites' : 'Arma el recorrido de tu plan'}
+        title={suggesting ? 'Sugerir cambios' : editingPlan ? 'Editar plan' : 'Crear plan'}
+        subtitle={
+          suggesting
+            ? 'Quien organiza decide si los aplica'
+            : editingPlan
+              ? 'Cambia lo que necesites'
+              : 'Arma el recorrido de tu plan'
+        }
         onBack={() => navigation.goBack()}
       />
 
@@ -418,6 +454,17 @@ export function CreatePlanScreen({ navigation, route }: Props) {
               multiline
               error={errors.notes}
             />
+            {suggesting && (
+              <InputField
+                label="Mensaje para quien organiza (opcional)"
+                placeholder="¿Qué tal el domingo? El sábado cierran temprano."
+                value={message}
+                onChangeText={setMessage}
+                autoCapitalize="sentences"
+                maxLength={MAX_SUGGESTION_MESSAGE_LENGTH}
+                multiline
+              />
+            )}
           </View>
         </ScrollView>
 
@@ -432,7 +479,7 @@ export function CreatePlanScreen({ navigation, route }: Props) {
             onPress={handleSave}
           >
             <Text style={globalStyles.primaryButtonText}>
-              {editingPlan ? 'Guardar cambios' : 'Crear plan'}
+              {suggesting ? 'Enviar sugerencia' : editingPlan ? 'Guardar cambios' : 'Crear plan'}
             </Text>
           </Button>
         </View>
