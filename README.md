@@ -71,7 +71,7 @@ PlanIt/
 ├── .env.example            # Environment variables template
 ├── app.json                # App configuration
 ├── app.config.ts           # Adds the Google Maps key when building
-└── eas.json                # EAS Build profiles (preview = APK)
+└── eas.json                # EAS Build profiles (preview = APK, simulator = iOS Simulator)
 ```
 
 ### Code organization
@@ -157,7 +157,7 @@ Plans are created, edited and shared through database functions (`create_plan`, 
 ### Security
 
 - Google sign-in uses **PKCE** with a SHA-256 challenge (`src/utils/webCrypto.ts` provides the crypto functions missing in Hermes).
-- The session is stored **encrypted** with AES-256-GCM, with the key kept in the Android Keystore (`src/utils/secureSessionStorage.ts`).
+- The session is stored **encrypted** with AES-256-GCM, with the key kept in the Android Keystore or the iOS Keychain (`src/utils/secureSessionStorage.ts`).
 - The Places and Routes key stays in Supabase, and every database access goes through RLS.
 - Android backups are disabled, and the APK only requests the permissions it uses.
 
@@ -179,6 +179,16 @@ The APK is built in the cloud with [EAS Build](https://docs.expo.dev/build/intro
 
 The APK only includes ARM architectures (physical devices, not x86 emulators). R8 code shrinking is disabled (`enableMinifyInReleaseBuilds: false`) because it made the app crash on launch.
 
+### iOS
+
+The app is configured for iPhone: bundle identifier `co.edu.pascualbravo.planit`, portrait only, no iPad layout. On iOS the Search map is Apple Maps, so it needs no Maps key.
+
+- **Expo Go:** run `npx expo start` and scan the QR code with the iPhone camera. No Apple account needed.
+- **iOS Simulator (macOS):** `eas build --platform ios --profile simulator` builds for the Simulator without an Apple Developer account.
+- **iPhone and App Store:** the `preview` (registered iPhones) and `production` (TestFlight and App Store) profiles require an Apple Developer Program membership. EAS asks for the account on the first build and creates the certificates.
+
+Before publishing on the App Store, a second sign-in option such as Sign in with Apple must be added, because Apple requires one in apps that offer Google sign-in (App Review Guideline 4.8).
+
 ### Code quality
 
 | Command             | Description                                                    |
@@ -197,7 +207,7 @@ GitHub Actions runs all four on every pull request and on every push to `develop
 
 ### Project status
 
-The main features are complete: authentication, places, favorites, shared plans with the organizer, reminders, dark mode and the Android APK. Future work: notifications when someone is invited to a plan (push notifications) and more languages.
+The main features are complete: authentication, places, favorites, shared plans with the organizer, reminders, dark mode and the Android APK. The iOS configuration is ready but has not been tested on an iPhone yet. Future work: notifications when someone is invited to a plan (push notifications) and more languages.
 
 ### Authors
 
@@ -275,7 +285,7 @@ PlanIt/
 ├── .env.example            # Plantilla de variables de entorno
 ├── app.json                # Configuración de la app
 ├── app.config.ts           # Agrega la key de Google Maps al compilar
-└── eas.json                # Perfiles de EAS Build (preview = APK)
+└── eas.json                # Perfiles de EAS Build (preview = APK, simulator = simulador de iOS)
 ```
 
 ### Organización del código
@@ -361,7 +371,7 @@ Los planes se crean, editan y comparten con funciones de la base de datos (`crea
 ### Seguridad
 
 - El inicio de sesión con Google usa **PKCE** con un desafío SHA-256 (`src/utils/webCrypto.ts` aporta las funciones criptográficas que no trae Hermes).
-- La sesión se guarda **cifrada** con AES-256-GCM, con la clave en el Keystore de Android (`src/utils/secureSessionStorage.ts`).
+- La sesión se guarda **cifrada** con AES-256-GCM, con la clave en el Keystore de Android o el Keychain de iOS (`src/utils/secureSessionStorage.ts`).
 - La key de Places y Routes permanece en Supabase, y todo acceso a la base de datos pasa por RLS.
 - Las copias de seguridad de Android están desactivadas, y el APK solo pide los permisos que usa.
 
@@ -383,6 +393,16 @@ El APK se compila en la nube con [EAS Build](https://docs.expo.dev/build/introdu
 
 El APK solo incluye las arquitecturas ARM (teléfonos físicos, no emuladores x86). La reducción de código con R8 está desactivada (`enableMinifyInReleaseBuilds: false`) porque hacía que la app se cerrara al abrirse.
 
+### iOS
+
+La app está configurada para iPhone: bundle identifier `co.edu.pascualbravo.planit`, solo vertical, sin diseño para iPad. En iOS el mapa de Buscar es Apple Maps, así que no necesita key de Maps.
+
+- **Expo Go:** ejecutar `npx expo start` y escanear el QR con la cámara del iPhone. No hace falta cuenta de Apple.
+- **Simulador de iOS (macOS):** `eas build --platform ios --profile simulator` compila para el simulador sin cuenta de Apple Developer.
+- **iPhone y App Store:** los perfiles `preview` (iPhones registrados) y `production` (TestFlight y App Store) requieren una membresía del Apple Developer Program. EAS pide la cuenta en la primera compilación y crea los certificados.
+
+Antes de publicar en la App Store hay que agregar una segunda opción de inicio de sesión, como Iniciar sesión con Apple, porque Apple la exige en las apps que ofrecen inicio de sesión con Google (App Review Guideline 4.8).
+
 ### Calidad del código
 
 | Comando             | Descripción                                                             |
@@ -401,7 +421,7 @@ GitHub Actions ejecuta los cuatro en cada pull request y en cada push a `develop
 
 ### Estado del proyecto
 
-Las funciones principales están completas: autenticación, lugares, favoritos, planes compartidos con el organizador, recordatorios, modo oscuro y el APK para Android. Trabajo futuro: notificaciones cuando alguien es invitado a un plan (notificaciones push) y más idiomas.
+Las funciones principales están completas: autenticación, lugares, favoritos, planes compartidos con el organizador, recordatorios, modo oscuro y el APK para Android. La configuración para iOS está lista, pero aún no se ha probado en un iPhone. Trabajo futuro: notificaciones cuando alguien es invitado a un plan (notificaciones push) y más idiomas.
 
 ### Autores
 
