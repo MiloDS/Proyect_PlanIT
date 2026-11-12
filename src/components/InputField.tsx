@@ -21,7 +21,7 @@ export function InputField({
   error,
 }: CustomInputFieldProps) {
   const [hidePassword, setHidePassword] = useState(secureTextEntry ?? false);
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const styles = makeStyles(colors);
   const isPassword = secureTextEntry;
   const PasswordIcon = hidePassword ? EyeOff : Eye;
@@ -33,6 +33,8 @@ export function InputField({
         <TextInput
           placeholder={placeholder}
           placeholderTextColor={colors.textMuted}
+          // Solo iOS: el teclado sigue el tema de la app y no el del sistema
+          keyboardAppearance={isDark ? 'dark' : 'light'}
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={isPassword ? hidePassword : false}

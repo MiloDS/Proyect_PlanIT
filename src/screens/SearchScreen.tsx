@@ -8,6 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Keyboard,
+  Platform,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -165,6 +166,9 @@ export function SearchScreen({ navigation }: Props) {
           showsUserLocation
           showsMyLocationButton={false}
           toolbarEnabled={false}
+          // En iOS el mapa (Apple Maps) sigue el tema de la app, que puede ser distinto al
+          // del sistema. En Android queda como estaba.
+          userInterfaceStyle={Platform.OS === 'ios' ? (isDark ? 'dark' : 'light') : undefined}
           mapPadding={{ top: headerHeight, right: 0, bottom: selected ? 130 : 0, left: 0 }}
           onRegionChangeComplete={setVisibleRegion}
           onPress={(event) => {
@@ -199,6 +203,7 @@ export function SearchScreen({ navigation }: Props) {
             onChangeText={setQuery}
             placeholder="Buscar lugares"
             placeholderTextColor={colors.textMuted}
+            keyboardAppearance={isDark ? 'dark' : 'light'}
             style={styles.searchInput}
             returnKeyType="search"
             onSubmitEditing={() => startSearch({ query: query.trim() })}

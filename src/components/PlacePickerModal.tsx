@@ -50,7 +50,7 @@ const TEXT_SEARCH_RADIUS_METERS = 15000;
 // El contenido solo se monta con el modal abierto: cada vez empieza de cero
 function PlacePickerContent({ selectedIds, onToggle, onClose }: PlacePickerModalProps) {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const styles = makeStyles(colors);
   const favorites = useFavorites();
   const [query, setQuery] = useState('');
@@ -135,6 +135,7 @@ function PlacePickerContent({ selectedIds, onToggle, onClose }: PlacePickerModal
           onChangeText={setQuery}
           placeholder="Buscar un lugar"
           placeholderTextColor={colors.textMuted}
+          keyboardAppearance={isDark ? 'dark' : 'light'}
           style={styles.searchInput}
           returnKeyType="search"
           onSubmitEditing={() => changeRequest({ query: query.trim() })}
