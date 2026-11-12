@@ -1,9 +1,19 @@
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { MapPin } from 'lucide-react-native';
 import { PlaceCardProps } from '../types/components';
-import { colors } from '../styles/colors';
+import { PlaceImage } from './PlaceImage';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
-export function PlaceCard({ imageUrl, name, category, distanceKm, onPress }: PlaceCardProps) {
+export function PlaceCard({
+  imageUrl,
+  placeType,
+  name,
+  category,
+  distanceKm,
+  onPress,
+}: PlaceCardProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const distanceText = `${distanceKm.toFixed(1)} km`;
 
   return (
@@ -13,13 +23,7 @@ export function PlaceCard({ imageUrl, name, category, distanceKm, onPress }: Pla
       accessibilityRole="button"
       accessibilityLabel={`${name}, ${category}, a ${distanceText}`}
     >
-      {imageUrl ? (
-        <Image source={{ uri: imageUrl }} style={styles.image} />
-      ) : (
-        <View style={[styles.image, styles.imagePlaceholder]}>
-          <MapPin size={24} color={colors.textMuted} />
-        </View>
-      )}
+      <PlaceImage uri={imageUrl} placeType={placeType} style={styles.image} />
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>
           {name}
@@ -36,7 +40,8 @@ export function PlaceCard({ imageUrl, name, category, distanceKm, onPress }: Pla
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   card: {
     width: 140,
     marginRight: 12,
@@ -49,11 +54,6 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 12,
     marginBottom: 6,
-  },
-  imagePlaceholder: {
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   info: {
     paddingHorizontal: 2,
@@ -80,3 +80,4 @@ const styles = StyleSheet.create({
     marginLeft: 3,
   },
 });
+}

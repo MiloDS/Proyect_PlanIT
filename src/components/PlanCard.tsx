@@ -1,10 +1,13 @@
-import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import { CalendarDays } from 'lucide-react-native';
 
 import { PlanCardProps } from '../types/components';
 import { FavoriteButton } from './FavoriteButton';
 import { MemberAvatar } from './MemberAvatar';
+import { useImageFallback } from '../services/useImageFallback';
 import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { formatShortDate, formatTime } from '../utils/date';
 
 const MAX_AVATARS = 4;
@@ -13,7 +16,8 @@ function CardContent({
   plan,
   isFavorite,
   onToggleFavorite,
-}: Omit<PlanCardProps, 'coverUrl' | 'onPress'>) {
+  styles,
+}: Omit<PlanCardProps, 'coverUrl' | 'onPress'> & { styles: ReturnType<typeof makeStyles> }) {
   const startsAt = new Date(plan.startsAt);
   const placesLabel = plan.placeIds.length === 1 ? '1 lugar' : `${plan.placeIds.length} lugares`;
   const extraMembers = plan.members.length - MAX_AVATARS;
@@ -53,6 +57,9 @@ function CardContent({
 
 export function PlanCard({ coverUrl, onPress, ...props }: PlanCardProps) {
   const startsAt = new Date(props.plan.startsAt);
+  const cover = useImageFallback(coverUrl);
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors, isDark);
 
   // Al ser un botón, el lector de pantalla trata la tarjeta como un solo elemento: el
   // favorito queda disponible como acción de la tarjeta
@@ -75,30 +82,35 @@ export function PlanCard({ coverUrl, onPress, ...props }: PlanCardProps) {
       }}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
-      {coverUrl ? (
-        <ImageBackground
-          source={{ uri: coverUrl }}
-          style={styles.background}
-          imageStyle={styles.image}
-        >
-          <CardContent {...props} />
-        </ImageBackground>
+      {cover.showImage && coverUrl ? (
+        <View style={styles.background}>
+          <Image
+            source={{ uri: coverUrl }}
+            style={styles.coverImage}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
+            onError={cover.onError}
+          />
+          <CardContent {...props} styles={styles} />
+        </View>
       ) : (
         <View style={[styles.background, styles.placeholder]}>
-          <CalendarDays size={64} color={colors.primary} style={styles.placeholderIcon} />
-          <CardContent {...props} />
+          <CalendarDays size={64} color={themeColors.primary} style={styles.placeholderIcon} />
+          <CardContent {...props} styles={styles} />
         </View>
       )}
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors, isDark: boolean) {
+  return StyleSheet.create({
   card: {
     height: 150,
     borderRadius: 18,
     overflow: 'hidden',
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
@@ -111,8 +123,13 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
-  image: {
-    borderRadius: 18,
+  // La tarjeta recorta las esquinas (overflow hidden)
+  coverImage: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
   },
   placeholder: {
     backgroundColor: colors.primaryLight,
@@ -126,7 +143,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.55)',
+    backgroundColor: isDark ? 'rgba(15, 23, 42, 0.72)' : 'rgba(255, 255, 255, 0.65)',
   },
   titleRow: {
     flexDirection: 'row',
@@ -152,7 +169,7 @@ const styles = StyleSheet.create({
   },
   avatar: {
     borderWidth: 2,
-    borderColor: colors.white,
+    borderColor: colors.card,
     marginRight: -8,
   },
   extraMembers: {
@@ -162,3 +179,4 @@ const styles = StyleSheet.create({
     color: colors.textBody,
   },
 });
+}

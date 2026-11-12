@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   Pressable,
   Share,
   ActivityIndicator,
@@ -41,6 +40,7 @@ import { SheetOption } from '../types/components';
 import { Button } from '../components/Button';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { OptionsSheet } from '../components/OptionsSheet';
+import { PlaceImage } from '../components/PlaceImage';
 import { useAuth } from '../services/AuthContext';
 import { useFavorites } from '../services/FavoritesContext';
 import { useDevicePosition } from '../services/useDevicePosition';
@@ -48,11 +48,11 @@ import { PRICE_LEVEL_LABELS, PlacesService, getTodayHours } from '../services/pl
 import { PlansService } from '../services/plansService';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { formatShortDate, formatTime, isUpcoming } from '../utils/date';
 import { distanceKm } from '../utils/geo';
 import { getDefaultStayMinutes } from '../utils/itinerary';
 import { messages } from '../utils/messages';
-import { getPlaceCategoryStyle } from '../utils/placeCategories';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PlaceDetail'>;
 
@@ -82,6 +82,8 @@ function getOpeningStatus(details: PlaceDetails | null): string {
 type InfoCardProps = { Icon: LucideIcon; title: string; value: string };
 
 function InfoCard({ Icon, title, value }: InfoCardProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.infoCard} accessible accessibilityLabel={`${title}: ${value}`}>
       <Icon size={20} color={colors.textPrimary} />
@@ -96,6 +98,8 @@ function InfoCard({ Icon, title, value }: InfoCardProps) {
 export function PlaceDetailScreen({ navigation, route }: Props) {
   const { place } = route.params;
   const insets = useSafeAreaInsets();
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
   const position = useDevicePosition();
   const { user } = useAuth();
   const { isFavoritePlace, togglePlace } = useFavorites();
@@ -125,7 +129,6 @@ export function PlaceDetailScreen({ navigation, route }: Props) {
   const isFavorite = isFavoritePlace(place.id);
   const photoUrl = details?.photoUrl ?? place.photoUrl;
   const todayHours = details ? getTodayHours(details.weekdayHours) : null;
-  const { Icon: CategoryIcon, color: categoryColor } = getPlaceCategoryStyle(current.type);
 
   const retry = () => {
     setError('');
@@ -199,17 +202,16 @@ export function PlaceDetailScreen({ navigation, route }: Props) {
   ];
 
   return (
-    <View style={globalStyles.screen}>
+    <View style={[globalStyles.screen, { backgroundColor: themeColors.background }]}>
       <StatusBar style="light" />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {photoUrl ? (
-          <Image source={{ uri: photoUrl }} style={styles.headerImage} />
-        ) : (
-          <View style={[styles.headerImage, styles.headerPlaceholder]}>
-            <CategoryIcon size={56} color={categoryColor} />
-          </View>
-        )}
+        <PlaceImage
+          uri={photoUrl}
+          placeType={current.type}
+          style={styles.headerImage}
+          iconSize={56}
+        />
 
         <View style={styles.sheet}>
           <Text style={styles.name}>{current.name}</Text>
@@ -362,7 +364,8 @@ export function PlaceDetailScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   scrollContent: {
     paddingBottom: 24,
   },
@@ -370,14 +373,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: HEADER_IMAGE_HEIGHT,
   },
-  headerPlaceholder: {
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   sheet: {
     marginTop: -24,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
@@ -521,7 +519,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 3,
@@ -536,7 +534,7 @@ const styles = StyleSheet.create({
   bottomAction: {
     paddingHorizontal: 24,
     paddingTop: 12,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
@@ -546,3 +544,4 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
 });
+}

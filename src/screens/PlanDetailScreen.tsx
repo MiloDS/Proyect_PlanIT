@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   Pressable,
   Share,
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -47,9 +47,11 @@ import { PlanReminders } from '../services/planReminders';
 import { PlansService } from '../services/plansService';
 import { useDevicePosition } from '../services/useDevicePosition';
 import { usePlacesById } from '../services/usePlacesById';
+import { useImageFallback } from '../services/useImageFallback';
 import { useRouteLegs } from '../services/useRouteLegs';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { formatPesos } from '../utils/currency';
 import { formatDuration, formatLongDate, formatTime, isUpcoming } from '../utils/date';
 import { distanceKm } from '../utils/geo';
@@ -67,6 +69,8 @@ function getMemberName(member: PlanMember): string {
 }
 
 function InfoRow({ Icon, text }: { Icon: LucideIcon; text: string }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.infoRow}>
       <Icon size={17} color={colors.textSecondary} />
@@ -82,6 +86,8 @@ type MemberRowProps = {
 };
 
 function MemberRow({ member, isMe, onRemove }: MemberRowProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const name = getMemberName(member);
   const role = member.role === 'owner' ? 'Organiza el plan' : 'Invitado';
 
@@ -115,6 +121,8 @@ function MemberRow({ member, isMe, onRemove }: MemberRowProps) {
 export function PlanDetailScreen({ navigation, route }: Props) {
   const planId = route.params.plan.id;
   const insets = useSafeAreaInsets();
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
   const { user } = useAuth();
   const position = useDevicePosition();
   const favorites = useFavorites();
@@ -126,6 +134,9 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   // El itinerario usa los lugares que Google todavía tiene, en el orden del plan
   const foundPlaceIds = places.places.map((place) => place.id);
   const routeLegs = useRouteLegs(foundPlaceIds, plan.transportMode);
+  // Portada: la foto del primer lugar o, si no tiene o no carga, el ícono del plan
+  const coverUrl = places.places[0]?.photoUrl ?? null;
+  const cover = useImageFallback(coverUrl);
 
   // La versión más reciente del plan; null si se eliminó o el usuario ya no es miembro
   const refresh = useCallback(
@@ -177,7 +188,6 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   const startsAt = new Date(plan.startsAt);
   const isOwner = plan.ownerId === user?.id;
   const owner = plan.members.find((member) => member.role === 'owner');
-  const coverUrl = places.places[0]?.photoUrl ?? null;
   const missingPlaces = places.loading ? 0 : plan.placeIds.length - places.places.length;
 
   const itinerary = buildItinerary(startsAt, foundPlaceIds, plan.stayMinutes, routeLegs.legs);
@@ -336,12 +346,19 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   };
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style={coverUrl ? 'light' : 'dark'} />
+    <View style={[globalStyles.screen, { backgroundColor: themeColors.background }]}>
+      <StatusBar style={cover.showImage ? 'light' : (isDark ? 'light' : 'dark')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {coverUrl ? (
-          <Image source={{ uri: coverUrl }} style={styles.headerImage} />
+        {cover.showImage && coverUrl ? (
+          <Image
+            source={{ uri: coverUrl }}
+            style={styles.headerImage}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
+            onError={cover.onError}
+          />
         ) : (
           <View style={[styles.headerImage, styles.headerPlaceholder]}>
             <CalendarDays size={56} color={colors.primary} />
@@ -487,7 +504,8 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   scrollContent: {
     paddingBottom: 32,
   },
@@ -502,7 +520,7 @@ const styles = StyleSheet.create({
   },
   sheet: {
     marginTop: -24,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
@@ -660,7 +678,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 3,
@@ -673,3 +691,4 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
 });
+}

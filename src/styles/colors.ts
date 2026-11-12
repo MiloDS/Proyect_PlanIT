@@ -1,3 +1,11 @@
+/**
+ * Paleta de colores del tema claro (light).
+ * Para el modo oscuro usa el hook `useTheme()` de ThemeContext.
+ *
+ * Esta constante estática se conserva para:
+ *  - Código fuera de componentes React (estilos fijos, constantes de categoría, etc.)
+ *  - Compatibilidad con librerías que esperan valores estáticos (p.ej. marcadores de mapa)
+ */
 export const colors = {
   primary: '#27ae60',
   primaryDark: '#1E8449',
@@ -6,6 +14,9 @@ export const colors = {
   white: '#FFFFFF',
   black: '#000000',
   overlay: 'rgba(0, 0, 0, 0.55)',
+
+  background: '#FFFFFF',
+  card: '#FFFFFF',
 
   textPrimary: '#1E293B',
   textBody: '#334155',

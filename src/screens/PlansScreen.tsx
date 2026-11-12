@@ -28,6 +28,7 @@ import { usePlans } from '../services/usePlans';
 import { usePullToRefresh } from '../services/usePullToRefresh';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { isUpcoming } from '../utils/date';
 import { messages } from '../utils/messages';
 
@@ -45,6 +46,8 @@ const TABS: { value: Tab; label: string }[] = [
 
 export function PlansScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
   const plans = usePlans();
   const { isFavoritePlan, togglePlan } = useFavorites();
   const [activeTab, setActiveTab] = useState<Tab>('upcoming');
@@ -74,8 +77,8 @@ export function PlansScreen({ navigation }: Props) {
   const createPlan = () => navigation.navigate('CreatePlan');
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: themeColors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16 }]}
         showsVerticalScrollIndicator={false}
@@ -83,8 +86,8 @@ export function PlansScreen({ navigation }: Props) {
           <RefreshControl
             refreshing={pullToRefresh.refreshing}
             onRefresh={pullToRefresh.onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
+            colors={[themeColors.primary]}
+            tintColor={themeColors.primary}
             progressViewOffset={insets.top}
           />
         }
@@ -98,7 +101,7 @@ export function PlansScreen({ navigation }: Props) {
             hitSlop={8}
             style={({ pressed }) => [styles.joinButton, pressed && styles.pressed]}
           >
-            <ScanLine size={17} color={colors.primary} />
+            <ScanLine size={17} color={themeColors.primary} />
             <Text style={styles.joinText}>Unirme</Text>
           </Pressable>
         </View>
@@ -173,7 +176,8 @@ export function PlansScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingBottom: 96,
@@ -239,3 +243,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+}

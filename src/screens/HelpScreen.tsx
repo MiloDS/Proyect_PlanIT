@@ -8,6 +8,7 @@ import { AppStackParamList } from '../types/navigation';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Help'>;
 
@@ -79,7 +80,17 @@ const QUESTIONS = [
   },
 ];
 
-function Question({ question, answer }: { question: string; answer: string }) {
+function Question({
+  question,
+  answer,
+  styles,
+  chevronColor,
+}: {
+  question: string;
+  answer: string;
+  styles: ReturnType<typeof makeStyles>;
+  chevronColor: string;
+}) {
   const [expanded, setExpanded] = useState(false);
   const Chevron = expanded ? ChevronUp : ChevronDown;
 
@@ -92,7 +103,7 @@ function Question({ question, answer }: { question: string; answer: string }) {
         style={({ pressed }) => [styles.questionRow, pressed && styles.pressed]}
       >
         <Text style={styles.question}>{question}</Text>
-        <Chevron size={18} color={colors.textSecondary} />
+        <Chevron size={18} color={chevronColor} />
       </Pressable>
       {expanded && <Text style={styles.answer}>{answer}</Text>}
     </View>
@@ -100,9 +111,12 @@ function Question({ question, answer }: { question: string; answer: string }) {
 }
 
 export function HelpScreen({ navigation }: Props) {
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
+
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: themeColors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScreenHeader
         title="Ayuda y soporte"
         subtitle="Preguntas frecuentes"
@@ -112,7 +126,12 @@ export function HelpScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.list}>
           {QUESTIONS.map((item) => (
-            <Question key={item.question} {...item} />
+            <Question
+              key={item.question}
+              {...item}
+              styles={styles}
+              chevronColor={themeColors.textSecondary}
+            />
           ))}
         </View>
 
@@ -127,7 +146,8 @@ export function HelpScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   content: {
     paddingHorizontal: 24,
     paddingTop: 18,
@@ -140,6 +160,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   item: {
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -182,3 +203,4 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
 });
+}

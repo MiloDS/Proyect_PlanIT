@@ -2,10 +2,13 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { EmptyStateProps } from '../types/components';
 import { Button } from './Button';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 // Mensaje para listas vacías o con error, con una acción opcional (reintentar, crear…)
 export function EmptyState({ icon, title, message, actionLabel, onAction }: EmptyStateProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+
   return (
     <View style={styles.container} accessibilityLiveRegion="polite">
       <View style={styles.iconCircle}>{icon}</View>
@@ -20,7 +23,8 @@ export function EmptyState({ icon, title, message, actionLabel, onAction }: Empt
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   container: {
     alignItems: 'center',
     paddingVertical: 40,
@@ -61,3 +65,4 @@ const styles = StyleSheet.create({
     color: colors.primaryDark,
   },
 });
+}

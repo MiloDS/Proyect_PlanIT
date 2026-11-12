@@ -12,6 +12,7 @@ import { CustomSlider } from '../components/CustomSlider';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { ACTIVITY_PLACE_TYPES, BUDGET_PRICE_LEVELS } from '../services/placesService';
 import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { COMPANY_OPTIONS } from '../utils/recommendations';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'SurpriseMe'>;
@@ -23,6 +24,8 @@ const MAX_DISTANCE_KM = 50;
 
 export function SurpriseMeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
   const [selectedActivities, setSelectedActivities] = useState<string[]>(['Aire libre']);
   const [selectedBudget, setSelectedBudget] = useState('Bajo');
   const [maxDistance, setMaxDistance] = useState(5);
@@ -50,7 +53,7 @@ export function SurpriseMeScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
 
       <ScreenHeader
         title="Sorpréndeme"
@@ -147,10 +150,11 @@ export function SurpriseMeScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
   },
 
   /* Formulario */
@@ -242,7 +246,7 @@ const styles = StyleSheet.create({
   bottomAction: {
     paddingHorizontal: 20,
     paddingTop: 14,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     elevation: 6,
@@ -268,3 +272,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+}

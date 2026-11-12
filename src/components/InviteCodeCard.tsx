@@ -15,6 +15,7 @@ import { InviteCodeCardProps } from '../types/components';
 import { Button } from './Button';
 import { QrCode } from './QrCode';
 import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { formatInviteCode, getInviteQrValue } from '../utils/inviteCode';
 import { messages } from '../utils/messages';
 
@@ -25,11 +26,15 @@ function CardAction({
   label,
   onPress,
   busy = false,
+  styles,
+  primaryColor,
 }: {
   Icon: LucideIcon;
   label: string;
   onPress: () => void;
   busy?: boolean;
+  styles: ReturnType<typeof makeStyles>;
+  primaryColor: string;
 }) {
   return (
     <Pressable
@@ -40,9 +45,9 @@ function CardAction({
       style={({ pressed }) => [styles.action, pressed && styles.pressed]}
     >
       {busy ? (
-        <ActivityIndicator size="small" color={colors.primary} />
+        <ActivityIndicator size="small" color={primaryColor} />
       ) : (
-        <Icon size={17} color={colors.primary} />
+        <Icon size={17} color={primaryColor} />
       )}
       <Text style={styles.actionText}>{label}</Text>
     </Pressable>
@@ -54,6 +59,8 @@ function CardAction({
  * Cualquiera del plan lo puede compartir; solo el dueño lo cambia.
  */
 export function InviteCodeCard({ code, planTitle, onRegenerate }: InviteCodeCardProps) {
+  const { colors: themeColors } = useTheme();
+  const styles = makeStyles(themeColors);
   const [qrOpen, setQrOpen] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const formatted = formatInviteCode(code);
@@ -94,14 +101,28 @@ export function InviteCodeCard({ code, planTitle, onRegenerate }: InviteCodeCard
       </Text>
 
       <View style={styles.actions}>
-        <CardAction Icon={Share2} label="Compartir" onPress={share} />
-        <CardAction Icon={QrCodeIcon} label="Ver QR" onPress={() => setQrOpen(true)} />
+        <CardAction
+          Icon={Share2}
+          label="Compartir"
+          onPress={share}
+          styles={styles}
+          primaryColor={themeColors.primary}
+        />
+        <CardAction
+          Icon={QrCodeIcon}
+          label="Ver QR"
+          onPress={() => setQrOpen(true)}
+          styles={styles}
+          primaryColor={themeColors.primary}
+        />
         {!!onRegenerate && (
           <CardAction
             Icon={RefreshCw}
             label="Cambiar"
             onPress={confirmRegenerate}
             busy={regenerating}
+            styles={styles}
+            primaryColor={themeColors.primary}
           />
         )}
       </View>
@@ -144,7 +165,8 @@ export function InviteCodeCard({ code, planTitle, onRegenerate }: InviteCodeCard
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   card: {
     marginTop: 14,
     padding: 16,
@@ -182,7 +204,7 @@ const styles = StyleSheet.create({
     minHeight: 40,
     paddingHorizontal: 14,
     borderRadius: 20,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
   },
   actionText: {
     fontSize: 13,
@@ -205,7 +227,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
     borderRadius: 24,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
   },
   qrTitle: {
     fontSize: 18,
@@ -248,3 +270,4 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
 });
+}

@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react-native';
 
 import { CustomInputFieldProps } from '../types/components';
 import { Button } from './Button';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 export function InputField({
   label,
@@ -21,6 +21,8 @@ export function InputField({
   error,
 }: CustomInputFieldProps) {
   const [hidePassword, setHidePassword] = useState(secureTextEntry ?? false);
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const isPassword = secureTextEntry;
   const PasswordIcon = hidePassword ? EyeOff : Eye;
 
@@ -58,7 +60,8 @@ export function InputField({
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   container: { marginBottom: 16 },
   label: {
     fontSize: 13,
@@ -101,3 +104,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+}

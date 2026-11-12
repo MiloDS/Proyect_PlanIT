@@ -2,25 +2,27 @@ import { StyleSheet, Text, View } from 'react-native';
 import { CircleAlert, CircleCheck } from 'lucide-react-native';
 
 import { BannerProps } from '../types/components';
-import { colors } from '../styles/colors';
-
-const VARIANTS = {
-  error: {
-    Icon: CircleAlert,
-    text: colors.danger,
-    background: colors.dangerSurface,
-    border: colors.dangerBorder,
-  },
-  success: {
-    Icon: CircleCheck,
-    text: colors.success,
-    background: colors.successSurface,
-    border: colors.successBorder,
-  },
-};
+import { useTheme } from '../services/ThemeContext';
 
 export function Banner({ type, message }: BannerProps) {
-  const { Icon, text, background, border } = VARIANTS[type];
+  const { colors } = useTheme();
+
+  const variants = {
+    error: {
+      Icon: CircleAlert,
+      text: colors.danger,
+      background: colors.dangerSurface,
+      border: colors.dangerBorder,
+    },
+    success: {
+      Icon: CircleCheck,
+      text: colors.success,
+      background: colors.successSurface,
+      border: colors.successBorder,
+    },
+  };
+
+  const { Icon, text, background, border } = variants[type];
 
   return (
     <View

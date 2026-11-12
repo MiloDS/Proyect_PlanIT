@@ -25,8 +25,8 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../services/AuthContext';
 import { PhotoService, PhotoSource } from '../services/photoService';
 import { useProfile } from '../services/ProfileContext';
-import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { messages } from '../utils/messages';
 import { getDisplayAvatar, getDisplayName } from '../utils/user';
 import { validateName } from '../utils/validation';
@@ -37,6 +37,8 @@ const AVATAR_SIZE = 96;
 
 export function EditProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors);
   const { user } = useAuth();
   const { profile, updateFullName, updateAvatar, removeAvatar } = useProfile();
   const currentName = getDisplayName(user, profile);
@@ -119,8 +121,8 @@ export function EditProfileScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: colors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScreenHeader
         title="Información personal"
         subtitle="Así te ven en tus planes"
@@ -218,7 +220,8 @@ export function EditProfileScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   flex: {
     flex: 1,
   },
@@ -254,7 +257,7 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: colors.white,
+    borderColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.primaryDark,
@@ -298,7 +301,7 @@ const styles = StyleSheet.create({
   bottomAction: {
     paddingHorizontal: 24,
     paddingTop: 12,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
@@ -306,3 +309,4 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
 });
+}

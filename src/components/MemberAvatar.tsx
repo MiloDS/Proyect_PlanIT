@@ -1,6 +1,8 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 
 import { MemberAvatarProps } from '../types/components';
+import { useImageFallback } from '../services/useImageFallback';
 import { colors } from '../styles/colors';
 
 function getInitials(name: string | null): string {
@@ -11,16 +13,24 @@ function getInitials(name: string | null): string {
     .join('');
 }
 
-// Foto de la persona o, si no tiene, sus iniciales sobre el color de la marca
+// Foto de la persona o, si no tiene o no carga, sus iniciales sobre el color de la marca
 export function MemberAvatar({ name, avatarUrl, size = 32, style }: MemberAvatarProps) {
+  const { showImage, onError } = useImageFallback(avatarUrl);
+
   return (
     <View
       style={[styles.container, { width: size, height: size, borderRadius: size / 2 }, style]}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
-      {avatarUrl ? (
-        <Image source={{ uri: avatarUrl }} style={styles.image} />
+      {showImage && avatarUrl ? (
+        <Image
+          source={{ uri: avatarUrl }}
+          style={styles.image}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          onError={onError}
+        />
       ) : (
         <Text style={[styles.initials, { fontSize: Math.round(size * 0.36) }]}>
           {getInitials(name) || '?'}

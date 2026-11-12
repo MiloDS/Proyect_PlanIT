@@ -2,9 +2,12 @@ import { Text, StyleSheet } from 'react-native';
 
 import { SocialButtonProps } from '../types/components';
 import { Button } from './Button';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 export function SocialButton({ icon, label, onPress, loading }: SocialButtonProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+
   return (
     <Button style={styles.button} onPress={onPress} loading={loading} accessibilityLabel={label}>
       {icon}
@@ -13,11 +16,13 @@ export function SocialButton({ icon, label, onPress, loading }: SocialButtonProp
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     borderRadius: 10,
@@ -31,3 +36,4 @@ const styles = StyleSheet.create({
     color: colors.textBody,
   },
 });
+}

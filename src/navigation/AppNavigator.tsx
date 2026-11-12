@@ -1,13 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import { DefaultTheme, DarkTheme, NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as SplashScreen from 'expo-splash-screen';
 
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { HomeScreen } from '../screens/HomeScreen';
-import { IntroScreen } from '../screens/IntroScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { RegisterScreen } from '../screens/RegisterScreen';
 import { ForgotPasswordScreen } from '../screens/ForgotPasswordScreen';
@@ -27,8 +26,9 @@ import { BottomNavBar } from '../components/BottomNavBar';
 import { useAuth } from '../services/AuthContext';
 import { FavoritesProvider } from '../services/FavoritesContext';
 import { ProfileProvider } from '../services/ProfileContext';
+import { useTheme } from '../services/ThemeContext';
 import { useOpenPlanFromNotification, usePlanReminderSync } from '../services/usePlanReminders';
-import { hasSeenOnboarding } from '../utils/storage';
+import { IntroScreen } from '../screens/IntroScreen';
 import { colors } from '../styles/colors';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -60,29 +60,57 @@ export function AppNavigator() {
   // Mientras alguien crea una contraseña nueva ya hay sesión, pero sigue en las pantallas
   // de acceso; entra a la app cuando la guarda
   const session = isRecoveringPassword ? null : authSession;
-  const [seenOnboarding, setSeenOnboarding] = useState<boolean | null>(null);
+  const { isDark, colors: themeColors } = useTheme();
   const [navigationReady, setNavigationReady] = useState(false);
   const userId = session?.user.id ?? null;
 
+  const navigationTheme = {
+    ...(isDark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+      primary: themeColors.primary,
+      background: themeColors.background,
+      card: themeColors.card,
+      text: themeColors.textPrimary,
+      border: themeColors.border,
+    },
+  };
+
+  /**
+   * La intro (carrusel) se muestra SIEMPRE al abrir la app sin sesión activa.
+   * - `true`  → ya se mostró en esta ejecución (el usuario avanzó a Login o se logueó)
+   * - `false` → la intro aún no se ha visto en este arranque; mostrarla
+   *
+   * Se mantiene en memoria (useState inicial = false) para que, al cerrar sesión,
+   * el flag vuelva a `false` y la próxima vez que la app se abra sin sesión
+   * el sistema operativo la reinicia desde cero mostrando la intro de nuevo.
+   * Mientras la sesión está activa, la intro nunca se muestra.
+   */
+  const [introShownThisLaunch, setIntroShownThisLaunch] = useState(false);
+
+  // Callback que la IntroScreen llama al terminar el carrusel
+  const handleIntroComplete = useCallback(() => setIntroShownThisLaunch(true), []);
+
+  // Cuando el usuario tiene sesión activa marcamos que ya se pasó por la intro
+  // (aunque no la haya visto) para que el flujo sin sesión empiece en Login
+  const prevSessionRef = useRef<string | null>(null);
   useEffect(() => {
-    hasSeenOnboarding().then(setSeenOnboarding);
-  }, []);
+    if (session && prevSessionRef.current !== session.user.id) {
+      setIntroShownThisLaunch(true);
+    }
+    prevSessionRef.current = session?.user.id ?? null;
+  }, [session]);
 
   usePlanReminderSync(isLoading ? undefined : userId);
   useOpenPlanFromNotification(navigationRef, isLoading ? undefined : userId, navigationReady);
 
-  const appReady = !isLoading && seenOnboarding !== null;
+  const appReady = !isLoading;
 
   // La pantalla de carga nativa (App.tsx) sigue visible hasta saber qué mostrar: Intro,
   // Login o la app. Este efecto corre cuando esa pantalla ya está dibujada.
   useEffect(() => {
     if (appReady) SplashScreen.hide();
   }, [appReady]);
-
-  // Quien ya inició sesión pasó por el onboarding: al cerrar sesión debe ver Login, no Intro
-  if (session && seenOnboarding === false) {
-    setSeenOnboarding(true);
-  }
 
   if (!appReady) {
     // Queda detrás de la pantalla de carga; con sus mismos colores por si se ve un instante
@@ -105,7 +133,11 @@ export function AppNavigator() {
   return (
     <ProfileProvider userId={userId}>
       <FavoritesProvider userId={userId}>
-        <NavigationContainer ref={navigationRef} onReady={() => setNavigationReady(true)}>
+        <NavigationContainer
+          ref={navigationRef}
+          theme={navigationTheme}
+          onReady={() => setNavigationReady(true)}
+        >
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             {session ? (
               <>
@@ -121,7 +153,15 @@ export function AppNavigator() {
               </>
             ) : (
               <>
-                {!seenOnboarding && <Stack.Screen name="Intro" component={IntroScreen} />}
+                {/* La intro se muestra siempre al abrir la app sin sesión,
+                    hasta que el usuario la complete (introShownThisLaunch = true) */}
+                {!introShownThisLaunch && (
+                  <Stack.Screen
+                    name="Intro"
+                    component={IntroScreen}
+                    initialParams={{ onComplete: handleIntroComplete }}
+                  />
+                )}
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Register" component={RegisterScreen} />
                 <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />

@@ -4,7 +4,8 @@ import { Place, RecommendationPreferences } from './places';
 import { Plan } from './plans';
 
 export type AppStackParamList = {
-  Intro: undefined;
+  /** onComplete: callback que el Navigator pasa para saber que el usuario terminó la intro */
+  Intro: { onComplete: () => void };
   Login: { registeredEmail?: string } | undefined;
   Register: undefined;
   /** `email`: el que la persona ya había escrito en Login */

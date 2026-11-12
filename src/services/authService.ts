@@ -1,4 +1,6 @@
 import { AuthError, isAuthRetryableFetchError } from '@supabase/supabase-js';
+import { isRunningInExpoGo } from 'expo';
+import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 
@@ -19,7 +21,21 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   same_password: messages.auth.samePassword,
   // Sin un SMTP propio, Supabase solo envía correos al equipo del proyecto
   email_address_not_authorized: messages.auth.emailNotAuthorized,
+  // El código de Google ya se usó, venció o se perdió el verificador PKCE
+  flow_state_not_found: messages.auth.googleExpired,
+  flow_state_expired: messages.auth.googleExpired,
+  bad_code_verifier: messages.auth.googleExpired,
+  pkce_code_verifier_not_found: messages.auth.googleExpired,
 };
+
+// Ruta de la app a la que Supabase devuelve después de Google
+const OAUTH_CALLBACK_PATH = 'auth/callback';
+// Si canjear el código tarda más, el botón deja de cargar y muestra un error
+const OAUTH_EXCHANGE_TIMEOUT_MS = 20000;
+
+// El mismo regreso de Google puede llegar dos veces (al navegador y al listener de
+// AuthProvider), y cada código solo se puede canjear una vez
+const oauthExchanges = new Map<string, Promise<void>>();
 
 export class AuthServiceError extends Error {
   code: string;
@@ -29,6 +45,22 @@ export class AuthServiceError extends Error {
     this.name = 'AuthServiceError';
     this.code = code;
   }
+}
+
+/**
+ * Enlace al que Supabase devuelve el navegador después de Google. Expo Go solo abre enlaces
+ * exp://, pero hay versiones que se presentan como una app instalada y entonces createURL
+ * arma planit://auth/callback: Supabase lo acepta, ninguna app lo abre y Chrome se queda en
+ * la página de Google. En Expo Go se arma con la dirección del servidor de desarrollo.
+ */
+function getOAuthRedirectUrl(): string {
+  const url = Linking.createURL(OAUTH_CALLBACK_PATH);
+  const devServer = Constants.expoConfig?.hostUri;
+
+  if (isRunningInExpoGo() && devServer && !/^exps?:\/\//.test(url)) {
+    return `exp://${devServer}/--/${OAUTH_CALLBACK_PATH}`;
+  }
+  return url;
 }
 
 function toAuthServiceError(error: AuthError): AuthServiceError {
@@ -42,7 +74,7 @@ function toAuthServiceError(error: AuthError): AuthServiceError {
 
 /**
  * Lee los parámetros que Supabase agrega a la URL de retorno del OAuth,
- * tanto en la query (?error=...) como en el fragmento (#access_token=...).
+ * tanto en la query (?code=...&error=...) como en el fragmento (#error=...).
  */
 function getRedirectParams(url: string): Record<string, string> {
   const params: Record<string, string> = {};
@@ -55,6 +87,15 @@ function getRedirectParams(url: string): Record<string, string> {
   }
 
   return params;
+}
+
+/** Rechaza con `error` si la promesa no termina a tiempo (la petición sigue en curso) */
+function withTimeout<T>(promise: Promise<T>, ms: number, error: Error): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(error), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 export class AuthService {
@@ -94,10 +135,13 @@ export class AuthService {
 
   /**
    * Login o registro con Google: abre el navegador y guarda la sesión al volver a la app.
-   * Devuelve false si el usuario cierra el navegador sin terminar.
+   * Usa PKCE: Google devuelve un código de un solo uso que solo esta instalación puede
+   * canjear, porque el verificador quedó guardado en el teléfono. Devuelve false si el
+   * usuario cierra el navegador sin terminar.
    */
   static async loginWithGoogle(): Promise<boolean> {
-    const redirectTo = Linking.createURL('auth/callback');
+    const redirectTo = getOAuthRedirectUrl();
+    if (__DEV__) console.log(`Google: el navegador volverá a ${redirectTo}`);
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -111,28 +155,57 @@ export class AuthService {
     const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo, {
       createTask: false,
     });
-    if (result.type !== 'success') return false;
 
-    const params = getRedirectParams(result.url);
+    if (result.type === 'success') {
+      await AuthService.completeOAuthRedirect(result.url);
+      return true;
+    }
+
+    // En Android la app puede volver al frente un instante antes de que llegue el enlace de
+    // regreso: si llega después, lo termina el listener de AuthProvider
+    if (__DEV__) console.log(`Google: el navegador terminó sin regresar a la app (${result.type})`);
+    return false;
+  }
+
+  /** Dice si un enlace que abrió la app es el regreso del inicio de sesión con Google */
+  static isOAuthRedirect(url: string): boolean {
+    if (!url.includes(OAUTH_CALLBACK_PATH)) return false;
+    const params = getRedirectParams(url);
+    return !!params.code || !!params.error;
+  }
+
+  /**
+   * Canjea el código que Google (vía Supabase) devuelve en el enlace de regreso por una
+   * sesión. Si el mismo enlace llega otra vez, devuelve el canje que ya está en curso.
+   */
+  static completeOAuthRedirect(url: string): Promise<void> {
+    const params = getRedirectParams(url);
 
     if (params.error) {
-      throw new AuthServiceError(
-        params.error_description || messages.auth.googleFailed,
-        params.error
+      return Promise.reject(
+        new AuthServiceError(params.error_description || messages.auth.googleFailed, params.error)
       );
     }
 
-    if (!params.access_token || !params.refresh_token) {
-      throw new AuthServiceError(messages.auth.googleNoSession, 'missing_session');
+    const code = params.code;
+    if (!code) {
+      return Promise.reject(new AuthServiceError(messages.auth.googleNoSession, 'missing_session'));
     }
 
-    const { error: sessionError } = await supabase.auth.setSession({
-      access_token: params.access_token,
-      refresh_token: params.refresh_token,
+    const pending = oauthExchanges.get(code);
+    if (pending) return pending;
+
+    // Supabase usa el verificador PKCE que guardó al abrir Google en este teléfono
+    const exchange = withTimeout(
+      supabase.auth.exchangeCodeForSession(code),
+      OAUTH_EXCHANGE_TIMEOUT_MS,
+      new AuthServiceError(messages.auth.googleTimeout, 'timeout')
+    ).then(({ error }) => {
+      if (error) throw toAuthServiceError(error);
     });
 
-    if (sessionError) throw toAuthServiceError(sessionError);
-    return true;
+    oauthExchanges.set(code, exchange);
+    return exchange;
   }
 
   /**

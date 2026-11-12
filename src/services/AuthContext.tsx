@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import * as Linking from 'expo-linking';
 import { Session, User } from '@supabase/supabase-js';
 
+import { AuthService } from './authService';
 import { supabase } from '../utils/supabase';
 
 type AuthContextValue = {
@@ -38,6 +40,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Regreso del inicio de sesión con Google. Normalmente lo recibe loginWithGoogle, pero
+  // si Android trae la app al frente antes que el enlace, o si la app se reinició mientras
+  // el navegador estaba abierto (Expo Go la recarga), la sesión se termina aquí
+  useEffect(() => {
+    const handleUrl = async (url: string | null) => {
+      if (!url || !AuthService.isOAuthRedirect(url)) return;
+      // Un enlace viejo (por ejemplo, al recargar la app) no debe tocar una sesión iniciada
+      const { data } = await supabase.auth.getSession();
+      if (data.session) return;
+      try {
+        await AuthService.completeOAuthRedirect(url);
+      } catch (err: any) {
+        console.warn('Google: no se pudo terminar el inicio de sesión', err?.message);
+      }
+    };
+
+    Linking.getInitialURL().then(handleUrl);
+    const subscription = Linking.addEventListener('url', ({ url }) => handleUrl(url));
+    return () => subscription.remove();
   }, []);
 
   return (

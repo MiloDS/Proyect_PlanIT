@@ -15,11 +15,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppStackParamList } from '../types/navigation';
-import { setOnboardingSeen } from '../utils/storage';
 import { colors } from '../styles/colors';
 import { Button } from '../components/Button';
 import { PromptLink } from '../components/PromptLink';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Intro'>;
 
@@ -28,25 +28,33 @@ const slides = [
     key: '1',
     title: 'Descubre nuevos lugares',
     text: 'Encuentra lugares, actividades y experiencias cerca de ti.',
-    image: require('../../assets/slide1.png'),
+    image: require('../../assets/slide1.jpg'),
   },
   {
     key: '2',
     title: 'Según el clima',
     text: 'Recomendaciones adaptadas al clima de tu zona.',
-    image: require('../../assets/slide2.png'),
+    image: require('../../assets/slide2.jpg'),
   },
   {
     key: '3',
     title: 'Guarda tus favoritos',
     text: 'Repite las buenas experiencias.',
-    image: require('../../assets/slide3.png'),
+    image: require('../../assets/slide3.jpg'),
   },
 ];
 
 type SlideItem = (typeof slides)[number];
 
-function Slide({ item, width }: { item: SlideItem; width: number }) {
+function Slide({
+  item,
+  width,
+  styles,
+}: {
+  item: SlideItem;
+  width: number;
+  styles: ReturnType<typeof makeStyles>;
+}) {
   return (
     <View style={{ width }}>
       <View style={styles.background}>
@@ -61,8 +69,10 @@ function Slide({ item, width }: { item: SlideItem; width: number }) {
   );
 }
 
-export function IntroScreen({ navigation }: Props) {
+export function IntroScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors);
   // Se recalcula si cambia el tamaño de la ventana (rotación, tablets, web)
   const { width } = useWindowDimensions();
   const flatListRef = useRef<FlatList>(null);
@@ -73,8 +83,9 @@ export function IntroScreen({ navigation }: Props) {
     setActiveIndex(index);
   };
 
-  const finishOnboarding = async (destination: 'Login' | 'Register') => {
-    await setOnboardingSeen();
+  const finishOnboarding = (destination: 'Login' | 'Register') => {
+    // Notifica al Navigator que el carrusel se completó
+    route.params.onComplete();
     // Register queda encima de Login para que "volver" lleve al inicio de sesión
     if (destination === 'Register') {
       navigation.reset({ index: 1, routes: [{ name: 'Login' }, { name: 'Register' }] });
@@ -86,8 +97,8 @@ export function IntroScreen({ navigation }: Props) {
   const isLast = activeIndex === slides.length - 1;
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: colors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <FlatList
         ref={flatListRef}
         data={slides}
@@ -102,7 +113,7 @@ export function IntroScreen({ navigation }: Props) {
           offset: width * index,
           index,
         })}
-        renderItem={({ item }) => <Slide item={item} width={width} />}
+        renderItem={({ item }) => <Slide item={item} width={width} styles={styles} />}
       />
 
       {/* Indicadores de puntos y botones estáticos fuera del FlatList */}
@@ -145,9 +156,10 @@ export function IntroScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
   background: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
   },
   title: {
     fontSize: 24,
@@ -164,7 +176,7 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
     marginTop: -30,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -179,7 +191,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: 24,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
   },
   dotsRow: {
     flexDirection: 'row',
@@ -210,3 +222,4 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 });
+}
