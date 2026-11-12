@@ -471,6 +471,9 @@ export function CreatePlanScreen({ navigation, route }: Props) {
                   mode={iosPickerMode}
                   display="spinner"
                   locale="es-CO"
+                  // Sin esto sigue el tema del sistema: con el modo oscuro solo en la app,
+                  // las letras quedarían oscuras sobre la hoja oscura
+                  themeVariant={isDark ? 'dark' : 'light'}
                   minimumDate={iosPickerMode === 'date' ? startOfDay(new Date()) : undefined}
                   onValueChange={(_event, picked) => changeStartsAt(picked, iosPickerMode)}
                 />
