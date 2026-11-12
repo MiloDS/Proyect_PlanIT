@@ -492,119 +492,119 @@ export function CreatePlanScreen({ navigation, route }: Props) {
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: 24,
-    paddingTop: 22,
-    paddingBottom: 24,
-  },
-  label: {
-    fontSize: 13,
-    color: colors.textBody,
-    marginBottom: 6,
-  },
-  sectionLabel: {
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  pickerField: {
-    flex: 1,
-  },
-  pickerInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 52,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 12,
-    backgroundColor: colors.surface,
-  },
-  pickerValue: {
-    fontSize: 15,
-    color: colors.textPrimary,
-  },
-  inputError: {
-    borderColor: colors.danger,
-  },
-  errorText: {
-    color: colors.danger,
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
-  },
-  hint: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: colors.textSecondary,
-    marginBottom: 4,
-  },
-  placesLoading: {
-    marginVertical: 12,
-  },
-  placesError: {
-    alignItems: 'flex-start',
-    gap: 6,
-    marginBottom: 10,
-  },
-  placesErrorText: {
-    fontSize: 13,
-    color: colors.danger,
-  },
-  addPlace: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: 12,
-    minHeight: 50,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: colors.primary,
-  },
-  addPlaceError: {
-    borderColor: colors.danger,
-  },
-  addPlaceText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  extras: {
-    marginTop: 24,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  bottomAction: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    backgroundColor: colors.card,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  saveButton: {
-    borderRadius: 16,
-  },
-  iosOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: colors.overlay,
-  },
-  iosSheet: {
-    backgroundColor: colors.card,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-  },
-});
+    flex: {
+      flex: 1,
+    },
+    content: {
+      paddingHorizontal: 24,
+      paddingTop: 22,
+      paddingBottom: 24,
+    },
+    label: {
+      fontSize: 13,
+      color: colors.textBody,
+      marginBottom: 6,
+    },
+    sectionLabel: {
+      marginTop: 20,
+      marginBottom: 10,
+    },
+    dateRow: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    pickerField: {
+      flex: 1,
+    },
+    pickerInput: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      minHeight: 52,
+      paddingHorizontal: 14,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 12,
+      backgroundColor: colors.surface,
+    },
+    pickerValue: {
+      fontSize: 15,
+      color: colors.textPrimary,
+    },
+    inputError: {
+      borderColor: colors.danger,
+    },
+    errorText: {
+      color: colors.danger,
+      fontSize: 12,
+      marginTop: 4,
+      marginLeft: 4,
+    },
+    hint: {
+      fontSize: 13,
+      lineHeight: 19,
+      color: colors.textSecondary,
+      marginBottom: 4,
+    },
+    placesLoading: {
+      marginVertical: 12,
+    },
+    placesError: {
+      alignItems: 'flex-start',
+      gap: 6,
+      marginBottom: 10,
+    },
+    placesErrorText: {
+      fontSize: 13,
+      color: colors.danger,
+    },
+    addPlace: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      marginTop: 12,
+      minHeight: 50,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      borderStyle: 'dashed',
+      borderColor: colors.primary,
+    },
+    addPlaceError: {
+      borderColor: colors.danger,
+    },
+    addPlaceText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    extras: {
+      marginTop: 24,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    bottomAction: {
+      paddingHorizontal: 24,
+      paddingTop: 12,
+      backgroundColor: colors.card,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    saveButton: {
+      borderRadius: 16,
+    },
+    iosOverlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: colors.overlay,
+    },
+    iosSheet: {
+      backgroundColor: colors.card,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingHorizontal: 20,
+      paddingTop: 12,
+    },
+  });
 }

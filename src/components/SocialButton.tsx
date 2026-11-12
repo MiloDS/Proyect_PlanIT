@@ -18,22 +18,22 @@ export function SocialButton({ icon, label, onPress, loading }: SocialButtonProp
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 10,
-    paddingVertical: 12,
-    marginBottom: 12,
-  },
-  text: {
-    marginLeft: 10,
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textBody,
-  },
-});
+    button: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 10,
+      paddingVertical: 12,
+      marginBottom: 12,
+    },
+    text: {
+      marginLeft: 10,
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textBody,
+    },
+  });
 }

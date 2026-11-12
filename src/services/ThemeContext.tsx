@@ -164,7 +164,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <ThemeContext.Provider
-      value={{ isDark: resolvedIsDark, toggleTheme, colors: resolvedIsDark ? darkColors : lightColors }}
+      value={{
+        isDark: resolvedIsDark,
+        toggleTheme,
+        colors: resolvedIsDark ? darkColors : lightColors,
+      }}
     >
       {children}
     </ThemeContext.Provider>
@@ -180,4 +184,3 @@ export function useTheme(): ThemeContextValue {
   }
   return context;
 }
-

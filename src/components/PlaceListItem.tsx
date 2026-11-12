@@ -58,67 +58,67 @@ export function PlaceListItem({
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    gap: 12,
-    padding: 10,
-    borderRadius: 16,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    elevation: 2,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-  },
-  pressed: {
-    opacity: 0.75,
-  },
-  image: {
-    width: 84,
-    height: 84,
-    borderRadius: 12,
-  },
-  info: {
-    flex: 1,
-    paddingVertical: 2,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-  },
-  name: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  category: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 'auto',
-  },
-  distance: {
-    fontSize: 12,
-    color: colors.textBody,
-  },
-  rating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textBody,
-  },
-});
+    card: {
+      flexDirection: 'row',
+      gap: 12,
+      padding: 10,
+      borderRadius: 16,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+      elevation: 2,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.06,
+      shadowRadius: 4,
+    },
+    pressed: {
+      opacity: 0.75,
+    },
+    image: {
+      width: 84,
+      height: 84,
+      borderRadius: 12,
+    },
+    info: {
+      flex: 1,
+      paddingVertical: 2,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 8,
+    },
+    name: {
+      flex: 1,
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    category: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    bottomRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 'auto',
+    },
+    distance: {
+      fontSize: 12,
+      color: colors.textBody,
+    },
+    rating: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    ratingText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.textBody,
+    },
+  });
 }

@@ -171,105 +171,105 @@ export function HomeScreen({ navigation }: Props) {
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 24,
-    marginBottom: 20,
-  },
-  locationText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginHorizontal: 4,
-  },
-  greeting: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  subGreeting: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginTop: 2,
-    marginBottom: 20,
-  },
-  surpriseCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 24,
-  },
-  surpriseHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  surpriseAvatar: {
-    marginRight: 12,
-  },
-  surpriseText: {
-    flex: 1,
-  },
-  surpriseTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  surpriseDescription: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  surpriseButton: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    minHeight: 44,
-  },
-  surpriseButtonText: {
-    color: colors.white,
-    fontWeight: '700',
-    fontSize: 14,
-    marginRight: 6,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  sectionLink: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  placesRow: {
-    paddingRight: 24,
-  },
-  placesStatus: {
-    paddingVertical: 24,
-    alignItems: 'center',
-    gap: 8,
-  },
-  placesMessage: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  attribution: {
-    fontSize: 10,
-    color: colors.textMuted,
-    marginTop: 8,
-  },
-});
+    scrollContent: {
+      paddingHorizontal: 24,
+      paddingTop: 16,
+      paddingBottom: 24,
+    },
+    locationRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      minHeight: 24,
+      marginBottom: 20,
+    },
+    locationText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textPrimary,
+      marginHorizontal: 4,
+    },
+    greeting: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    subGreeting: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginTop: 2,
+      marginBottom: 20,
+    },
+    surpriseCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 24,
+    },
+    surpriseHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 14,
+    },
+    surpriseAvatar: {
+      marginRight: 12,
+    },
+    surpriseText: {
+      flex: 1,
+    },
+    surpriseTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    surpriseDescription: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    surpriseButton: {
+      flexDirection: 'row',
+      paddingVertical: 12,
+      minHeight: 44,
+    },
+    surpriseButtonText: {
+      color: colors.white,
+      fontWeight: '700',
+      fontSize: 14,
+      marginRight: 6,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    sectionLink: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+    placesRow: {
+      paddingRight: 24,
+    },
+    placesStatus: {
+      paddingVertical: 24,
+      alignItems: 'center',
+      gap: 8,
+    },
+    placesMessage: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    attribution: {
+      fontSize: 10,
+      color: colors.textMuted,
+      marginTop: 8,
+    },
+  });
 }

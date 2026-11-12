@@ -158,68 +158,68 @@ export function IntroScreen({ navigation, route }: Props) {
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  background: {
-    backgroundColor: colors.background,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: colors.textPrimary,
-    paddingTop: 40,
-    paddingHorizontal: 24,
-    marginBottom: 40,
-    marginTop: 140,
-  },
-  image: {
-    height: 340,
-    resizeMode: 'cover',
-  },
-  card: {
-    backgroundColor: colors.background,
-    marginTop: -30,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 24,
-    paddingHorizontal: 24,
-  },
-  text: {
-    fontSize: 15,
-    textAlign: 'center',
-    color: colors.textSecondary,
-    lineHeight: 22,
-  },
-  footer: {
-    paddingHorizontal: 24,
-    backgroundColor: colors.background,
-  },
-  dotsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  dot: {
-    backgroundColor: colors.inactive,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
-  },
-  activeDot: {
-    backgroundColor: colors.primary,
-    width: 22,
-    borderRadius: 5,
-  },
-  actionContainer: {
-    minHeight: 85,
-    justifyContent: 'center',
-  },
-  actionSpacer: {
-    height: 85,
-  },
-  loginPrompt: {
-    marginTop: 12,
-  },
-});
+    background: {
+      backgroundColor: colors.background,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      color: colors.textPrimary,
+      paddingTop: 40,
+      paddingHorizontal: 24,
+      marginBottom: 40,
+      marginTop: 140,
+    },
+    image: {
+      height: 340,
+      resizeMode: 'cover',
+    },
+    card: {
+      backgroundColor: colors.background,
+      marginTop: -30,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingTop: 24,
+      paddingHorizontal: 24,
+    },
+    text: {
+      fontSize: 15,
+      textAlign: 'center',
+      color: colors.textSecondary,
+      lineHeight: 22,
+    },
+    footer: {
+      paddingHorizontal: 24,
+      backgroundColor: colors.background,
+    },
+    dotsRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    dot: {
+      backgroundColor: colors.inactive,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      marginHorizontal: 4,
+    },
+    activeDot: {
+      backgroundColor: colors.primary,
+      width: 22,
+      borderRadius: 5,
+    },
+    actionContainer: {
+      minHeight: 85,
+      justifyContent: 'center',
+    },
+    actionSpacer: {
+      height: 85,
+    },
+    loginPrompt: {
+      marginTop: 12,
+    },
+  });
 }

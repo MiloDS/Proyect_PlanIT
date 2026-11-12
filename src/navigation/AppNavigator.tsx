@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { DefaultTheme, DarkTheme, NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import {
+  DefaultTheme,
+  DarkTheme,
+  NavigationContainer,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as SplashScreen from 'expo-splash-screen';

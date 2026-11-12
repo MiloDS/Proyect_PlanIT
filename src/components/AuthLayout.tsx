@@ -37,33 +37,33 @@ export function AuthLayout({ title, subtitle, children }: AuthLayoutProps) {
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  keyboardView: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  container: {
-    flexGrow: 1,
-    paddingHorizontal: 25,
-    backgroundColor: colors.background,
-  },
-  logo: {
-    width: 72,
-    height: 72,
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: colors.textPrimary,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 6,
-    marginBottom: 30,
-  },
-});
+    keyboardView: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    container: {
+      flexGrow: 1,
+      paddingHorizontal: 25,
+      backgroundColor: colors.background,
+    },
+    logo: {
+      width: 72,
+      height: 72,
+      alignSelf: 'center',
+      marginBottom: 20,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      color: colors.textPrimary,
+    },
+    subtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginTop: 6,
+      marginBottom: 30,
+    },
+  });
 }

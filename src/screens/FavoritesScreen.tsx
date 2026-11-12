@@ -239,36 +239,36 @@ export function FavoritesScreen({ navigation }: Props) {
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 18,
-  },
-  tabs: {
-    marginBottom: 20,
-  },
-  loading: {
-    marginVertical: 32,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 10,
-    marginTop: 4,
-  },
-  list: {
-    gap: 12,
-    marginBottom: 18,
-  },
-  attribution: {
-    fontSize: 10,
-    color: colors.textMuted,
-  },
-});
+    scrollContent: {
+      paddingHorizontal: 24,
+      paddingBottom: 32,
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginBottom: 18,
+    },
+    tabs: {
+      marginBottom: 20,
+    },
+    loading: {
+      marginVertical: 32,
+    },
+    sectionTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginBottom: 10,
+      marginTop: 4,
+    },
+    list: {
+      gap: 12,
+      marginBottom: 18,
+    },
+    attribution: {
+      fontSize: 10,
+      color: colors.textMuted,
+    },
+  });
 }

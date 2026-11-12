@@ -64,7 +64,11 @@ function MenuItem({
   // Fila de solo lectura (sin botón ni switch)
   if (!onPress && !hasSwitchControl) {
     return (
-      <View style={themedStyles.menuItem} accessible accessibilityLabel={`${title}: ${value ?? ''}`}>
+      <View
+        style={themedStyles.menuItem}
+        accessible
+        accessibilityLabel={`${title}: ${value ?? ''}`}
+      >
         <View style={themedStyles.menuLeft}>
           <View style={themedStyles.menuIcon}>{icon}</View>
           <Text style={themedStyles.menuTitle}>{title}</Text>
@@ -156,7 +160,10 @@ export function ProfileScreen({ navigation }: Props) {
           onPress={editProfile}
           accessibilityRole="button"
           accessibilityLabel="Cambiar foto de perfil"
-          style={({ pressed }) => [themedStyles.avatarButton, pressed && themedStyles.editButtonPressed]}
+          style={({ pressed }) => [
+            themedStyles.avatarButton,
+            pressed && themedStyles.editButtonPressed,
+          ]}
         >
           <View style={themedStyles.avatarContainer}>
             <MemberAvatar name={displayName} avatarUrl={avatarUrl} size={92} />
@@ -172,7 +179,10 @@ export function ProfileScreen({ navigation }: Props) {
             onPress={editProfile}
             accessibilityRole="button"
             accessibilityLabel="Editar perfil"
-            style={({ pressed }) => [themedStyles.editButton, pressed && themedStyles.editButtonPressed]}
+            style={({ pressed }) => [
+              themedStyles.editButton,
+              pressed && themedStyles.editButtonPressed,
+            ]}
           >
             <Pencil size={17} color={colors.white} />
           </Pressable>
@@ -231,7 +241,9 @@ export function ProfileScreen({ navigation }: Props) {
 
 // ─── Estilos dinámicos ────────────────────────────────────────────────────────
 
-function makeStyles(colors: ReturnType<typeof import('../services/ThemeContext').useTheme>['colors']) {
+function makeStyles(
+  colors: ReturnType<typeof import('../services/ThemeContext').useTheme>['colors']
+) {
   return StyleSheet.create({
     container: {
       flex: 1,

@@ -142,14 +142,14 @@ export function LoginScreen({ navigation, route }: Props) {
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
-  },
-  forgotPasswordText: {
-    color: colors.primary,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-});
+    forgotPassword: {
+      alignSelf: 'flex-end',
+      marginBottom: 24,
+    },
+    forgotPasswordText: {
+      color: colors.primary,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+  });
 }
