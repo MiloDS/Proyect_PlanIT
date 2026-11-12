@@ -1,5 +1,14 @@
 import { ReactNode } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Alert, Switch } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Alert,
+  Switch,
+  DevSettings,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -12,6 +21,7 @@ import {
   ChevronRight,
   Pencil,
   Moon,
+  RotateCcw,
 } from 'lucide-react-native';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -25,6 +35,7 @@ import { useProfile } from '../services/ProfileContext';
 import { useTheme } from '../services/ThemeContext';
 import { getDisplayAvatar, getDisplayName } from '../utils/user';
 import { messages } from '../utils/messages';
+import { resetOnboarding } from '../utils/storage';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Profile'>,
@@ -118,6 +129,18 @@ function MenuItem({
       </View>
     </Pressable>
   );
+}
+
+// Solo en desarrollo: la Intro aparece únicamente sin sesión y sin la marca de onboarding,
+// así que se borran ambas y se recarga la app
+async function replayOnboarding() {
+  try {
+    await resetOnboarding();
+    await AuthService.logout();
+    DevSettings.reload();
+  } catch (err: any) {
+    Alert.alert(messages.common.errorTitle, err.message || messages.auth.onboardingResetFailed);
+  }
 }
 
 // ─── Pantalla de Perfil ───────────────────────────────────────────────────────
@@ -226,6 +249,14 @@ export function ProfileScreen({ navigation }: Props) {
             title="Ayuda y soporte"
             onPress={() => navigation.navigate('Help')}
           />
+
+          {__DEV__ && (
+            <MenuItem
+              icon={<RotateCcw size={21} color={colors.textBody} />}
+              title="Ver la Intro de nuevo (desarrollo)"
+              onPress={replayOnboarding}
+            />
+          )}
 
           <MenuItem
             icon={<LogOut size={21} color={colors.danger} />}

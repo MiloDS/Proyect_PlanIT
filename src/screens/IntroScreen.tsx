@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppStackParamList } from '../types/navigation';
+import { setOnboardingSeen } from '../utils/storage';
 import { Button } from '../components/Button';
 import { PromptLink } from '../components/PromptLink';
 import { globalStyles } from '../styles/globalStyles';
@@ -68,7 +69,7 @@ function Slide({
   );
 }
 
-export function IntroScreen({ navigation, route }: Props) {
+export function IntroScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   const styles = makeStyles(colors);
@@ -82,9 +83,9 @@ export function IntroScreen({ navigation, route }: Props) {
     setActiveIndex(index);
   };
 
-  const finishOnboarding = (destination: 'Login' | 'Register') => {
-    // Notifica al Navigator que el carrusel se completó
-    route.params.onComplete();
+  const finishOnboarding = async (destination: 'Login' | 'Register') => {
+    // La próxima vez la app abre directo en Login
+    await setOnboardingSeen();
     // Register queda encima de Login para que "volver" lleve al inicio de sesión
     if (destination === 'Register') {
       navigation.reset({ index: 1, routes: [{ name: 'Login' }, { name: 'Register' }] });
