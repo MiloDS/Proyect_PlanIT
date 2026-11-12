@@ -21,12 +21,14 @@ type PlanRow = {
     role: 'owner' | 'member';
     profiles: { full_name: string | null; avatar_url: string | null } | null;
   }[];
+  plan_suggestions: { status: string }[];
 };
 
 const PLAN_COLUMNS = `
   id, title, starts_at, owner_id, invite_code, transport_mode, budget_per_person, notes,
   plan_places (place_id, sort_order, stay_minutes),
-  plan_members (user_id, role, profiles (full_name, avatar_url))
+  plan_members (user_id, role, profiles (full_name, avatar_url)),
+  plan_suggestions (status)
 `;
 
 // Errores que lanzan a propósito las funciones de la base de datos (ver migraciones)
@@ -76,6 +78,9 @@ function toPlan(row: PlanRow): Plan {
         fullName: member.profiles?.full_name ?? null,
         avatarUrl: member.profiles?.avatar_url ?? null,
       })),
+    pendingSuggestions: (row.plan_suggestions ?? []).filter(
+      (suggestion) => suggestion.status === 'pending'
+    ).length,
   };
 }
 

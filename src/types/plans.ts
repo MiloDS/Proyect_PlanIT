@@ -26,6 +26,48 @@ export type Plan = {
   /** Código para unirse al plan (sin guion); lo ven y comparten todos sus miembros */
   inviteCode: string;
   members: PlanMember[];
+  /** Sugerencias de cambios que esperan la respuesta de quien organiza */
+  pendingSuggestions: number;
+};
+
+/**
+ * Cambios que propone un invitado: solo trae lo que cambió. `undefined` = no lo tocó; en el
+ * presupuesto y las notas, `null` = proponer quitarlos.
+ */
+export type PlanChanges = {
+  title?: string;
+  /** Fecha y hora en formato ISO */
+  startsAt?: string;
+  transportMode?: TransportMode;
+  budgetPerPerson?: number | null;
+  notes?: string | null;
+  /** Recorrido completo propuesto, en orden, con los minutos en cada lugar */
+  places?: { placeIds: string[]; stayMinutes: Record<string, number> };
+};
+
+export type PlanSuggestionStatus = 'pending' | 'accepted' | 'rejected';
+
+export type PlanSuggestion = {
+  id: string;
+  planId: string;
+  authorId: string;
+  authorName: string | null;
+  authorAvatarUrl: string | null;
+  /** Mensaje opcional para quien organiza */
+  message: string | null;
+  changes: PlanChanges;
+  status: PlanSuggestionStatus;
+  /** Fechas en formato ISO */
+  createdAt: string;
+  resolvedAt: string | null;
+};
+
+/** Una línea del "antes → después" de una sugerencia, comparada con el plan actual */
+export type PlanChangeRow = {
+  label: string;
+  /** Vacío cuando no aplica, por ejemplo al agregar un lugar */
+  before: string;
+  after: string;
 };
 
 /** Resultado de unirse a un plan con su código */

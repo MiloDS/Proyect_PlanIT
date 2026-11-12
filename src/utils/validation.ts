@@ -17,6 +17,8 @@ export const MAX_PLAN_TITLE_LENGTH = 100;
 // Igual que las restricciones de plans (migración del organizador)
 export const MAX_PLAN_NOTES_LENGTH = 500;
 export const MAX_BUDGET_PER_PERSON = 10_000_000;
+/** Mensaje de una sugerencia de cambios (la base de datos acepta hasta 300) */
+export const MAX_SUGGESTION_MESSAGE_LENGTH = 300;
 // Supabase deja configurar el largo del código del correo entre 6 y 10 dígitos
 export const RESET_CODE_MIN_LENGTH = 6;
 export const RESET_CODE_MAX_LENGTH = 10;
