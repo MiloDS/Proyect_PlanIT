@@ -2,6 +2,7 @@
   "expo": {
     "name": "PlanIt",
     "slug": "planit",
+    "owner": "mukkanos-team",
     "scheme": "planit",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -80,6 +81,11 @@
           }
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "cf01bf8c-cea3-41e4-94ef-b2b9536bc1bf"
+      }
+    }
   }
 }

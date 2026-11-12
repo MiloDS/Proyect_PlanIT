@@ -198,13 +198,11 @@ The APK is built in the cloud with [EAS Build](https://docs.expo.dev/build/intro
    ```
    GOOGLE_MAPS_ANDROID_API_KEY=your-maps-key
    ```
-2. **EAS account and project.** Install the CLI, sign in with your Expo account and link the project:
+2. **EAS account.** The project is already linked to EAS under the `mukkanos-team` account (`owner` and `extra.eas.projectId` in `app.json`; the ID is not a secret), so you only need to be a member of that team. Install the CLI and sign in with your Expo account:
    ```bash
    npm install --global eas-cli
    eas login
-   eas init
    ```
-   Because the project uses `app.config.ts`, `eas init` cannot write the project ID by itself: copy the block it prints (`extra.eas.projectId`) into `app.json`, inside `"expo"`, and commit it (it is not a secret).
 3. **Variables in EAS.** Upload the three variables of `.env` to the `preview` environment (the `EXPO_PUBLIC_` ones as plain text, since they end up inside the app anyway; the Maps key as sensitive):
    ```bash
    eas env:push preview --path .env
@@ -455,13 +453,11 @@ El APK se compila en la nube con [EAS Build](https://docs.expo.dev/build/introdu
    ```
    GOOGLE_MAPS_ANDROID_API_KEY=tu-key-de-maps
    ```
-2. **Cuenta y proyecto de EAS.** Instala la CLI, entra con tu cuenta de Expo y vincula el proyecto:
+2. **Cuenta de EAS.** El proyecto ya está vinculado a EAS en la cuenta `mukkanos-team` (`owner` y `extra.eas.projectId` en `app.json`; el ID no es secreto), así que solo necesitas ser miembro de ese equipo. Instala la CLI y entra con tu cuenta de Expo:
    ```bash
    npm install --global eas-cli
    eas login
-   eas init
    ```
-   Como el proyecto usa `app.config.ts`, `eas init` no puede escribir solo el ID del proyecto: copia el bloque que muestra (`extra.eas.projectId`) en `app.json`, dentro de `"expo"`, y súbelo al repositorio (no es secreto).
 3. **Variables en EAS.** Sube las tres variables del `.env` al entorno `preview` (las `EXPO_PUBLIC_` como texto visible, porque igual quedan dentro de la app; la key de Maps como sensible):
    ```bash
    eas env:push preview --path .env
