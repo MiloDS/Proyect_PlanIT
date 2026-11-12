@@ -6,7 +6,6 @@ import { PlanCardProps } from '../types/components';
 import { FavoriteButton } from './FavoriteButton';
 import { MemberAvatar } from './MemberAvatar';
 import { useImageFallback } from '../services/useImageFallback';
-import { colors } from '../styles/colors';
 import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { formatShortDate, formatTime } from '../utils/date';
 

@@ -19,7 +19,6 @@ import { PlaceCard } from '../components/PlaceCard';
 import { Button } from '../components/Button';
 import { MemberAvatar } from '../components/MemberAvatar';
 import { WeatherCard } from '../components/WeatherCard';
-import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { useAuth } from '../services/AuthContext';
 import { useProfile } from '../services/ProfileContext';

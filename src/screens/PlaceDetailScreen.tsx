@@ -98,7 +98,7 @@ function InfoCard({ Icon, title, value }: InfoCardProps) {
 export function PlaceDetailScreen({ navigation, route }: Props) {
   const { place } = route.params;
   const insets = useSafeAreaInsets();
-  const { colors: themeColors, isDark } = useTheme();
+  const { colors: themeColors } = useTheme();
   const styles = makeStyles(themeColors);
   const position = useDevicePosition();
   const { user } = useAuth();

@@ -6,7 +6,6 @@ import { ChevronDown, ChevronUp } from 'lucide-react-native';
 
 import { AppStackParamList } from '../types/navigation';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { useTheme, ThemeColors } from '../services/ThemeContext';
 

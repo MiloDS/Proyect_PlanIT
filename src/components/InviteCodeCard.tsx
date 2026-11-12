@@ -14,7 +14,6 @@ import { LucideIcon, QrCode as QrCodeIcon, RefreshCw, Share2 } from 'lucide-reac
 import { InviteCodeCardProps } from '../types/components';
 import { Button } from './Button';
 import { QrCode } from './QrCode';
-import { colors } from '../styles/colors';
 import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { formatInviteCode, getInviteQrValue } from '../utils/inviteCode';
 import { messages } from '../utils/messages';

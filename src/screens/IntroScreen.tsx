@@ -15,7 +15,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppStackParamList } from '../types/navigation';
-import { colors } from '../styles/colors';
 import { Button } from '../components/Button';
 import { PromptLink } from '../components/PromptLink';
 import { globalStyles } from '../styles/globalStyles';
