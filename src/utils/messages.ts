@@ -49,6 +49,8 @@ export const messages = {
     googleFailed: 'No se pudo iniciar sesión con Google.',
     googleNoSession: 'Google no devolvió una sesión válida.',
     googleUnavailable: 'No se pudo continuar con Google',
+    googleTimeout: 'Google tardó demasiado en responder. Revisa tu conexión e inténtalo de nuevo.',
+    googleExpired: 'El inicio de sesión con Google venció. Inténtalo de nuevo.',
     resetCodeSent: (email: string) =>
       `Si ${email} tiene una cuenta en PlanIt, te llegará un código en unos minutos. Revisa también la carpeta de spam.`,
     resetCodeResent: 'Te enviamos un código nuevo.',

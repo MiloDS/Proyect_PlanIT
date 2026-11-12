@@ -1,9 +1,11 @@
-import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import { CalendarDays } from 'lucide-react-native';
 
 import { PlanCardProps } from '../types/components';
 import { FavoriteButton } from './FavoriteButton';
 import { MemberAvatar } from './MemberAvatar';
+import { useImageFallback } from '../services/useImageFallback';
 import { colors } from '../styles/colors';
 import { formatShortDate, formatTime } from '../utils/date';
 
@@ -53,6 +55,7 @@ function CardContent({
 
 export function PlanCard({ coverUrl, onPress, ...props }: PlanCardProps) {
   const startsAt = new Date(props.plan.startsAt);
+  const cover = useImageFallback(coverUrl);
 
   // Al ser un botón, el lector de pantalla trata la tarjeta como un solo elemento: el
   // favorito queda disponible como acción de la tarjeta
@@ -75,14 +78,18 @@ export function PlanCard({ coverUrl, onPress, ...props }: PlanCardProps) {
       }}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
-      {coverUrl ? (
-        <ImageBackground
-          source={{ uri: coverUrl }}
-          style={styles.background}
-          imageStyle={styles.image}
-        >
+      {cover.showImage && coverUrl ? (
+        <View style={styles.background}>
+          <Image
+            source={{ uri: coverUrl }}
+            style={styles.coverImage}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
+            onError={cover.onError}
+          />
           <CardContent {...props} />
-        </ImageBackground>
+        </View>
       ) : (
         <View style={[styles.background, styles.placeholder]}>
           <CalendarDays size={64} color={colors.primary} style={styles.placeholderIcon} />
@@ -111,8 +118,13 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
-  image: {
-    borderRadius: 18,
+  // La tarjeta recorta las esquinas (overflow hidden)
+  coverImage: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
   },
   placeholder: {
     backgroundColor: colors.primaryLight,

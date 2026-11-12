@@ -1,9 +1,9 @@
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Star } from 'lucide-react-native';
 
 import { PlaceListItemProps } from '../types/components';
+import { PlaceImage } from './PlaceImage';
 import { colors } from '../styles/colors';
-import { getPlaceCategoryStyle } from '../utils/placeCategories';
 
 // Fila de lugar de Recomendaciones, Favoritos y Crear plan
 export function PlaceListItem({
@@ -13,7 +13,6 @@ export function PlaceListItem({
   action,
   showRating = true,
 }: PlaceListItemProps) {
-  const { Icon, color } = getPlaceCategoryStyle(place.type);
   const distanceText = distanceKm === null ? null : `${distanceKm.toFixed(1)} km`;
 
   return (
@@ -26,13 +25,7 @@ export function PlaceListItem({
         .join(', ')}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
     >
-      {place.photoUrl ? (
-        <Image source={{ uri: place.photoUrl }} style={styles.image} />
-      ) : (
-        <View style={[styles.image, styles.imagePlaceholder]}>
-          <Icon size={24} color={color} />
-        </View>
-      )}
+      <PlaceImage uri={place.photoUrl} placeType={place.type} style={styles.image} />
 
       <View style={styles.info}>
         <View style={styles.titleRow}>
@@ -83,11 +76,6 @@ const styles = StyleSheet.create({
     width: 84,
     height: 84,
     borderRadius: 12,
-  },
-  imagePlaceholder: {
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   info: {
     flex: 1,

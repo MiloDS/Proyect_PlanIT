@@ -14,7 +14,7 @@ Mobile app to discover activities and places based on location, weather, and per
 - **TypeScript**
 - **React Navigation** (`native-stack` + `bottom-tabs`) for screen navigation
 - **Supabase** (`@supabase/supabase-js`) for authentication (email/password and Google) and the database
-- **AsyncStorage** (`@react-native-async-storage/async-storage`) to persist onboarding state and the Supabase session
+- **AsyncStorage** (`@react-native-async-storage/async-storage`) to persist onboarding state, plus **expo-secure-store** and **expo-crypto** to keep the Supabase session encrypted (see "Security" below)
 - **react-native-safe-area-context** for safe area handling (notch, navigation bar)
 - **lucide-react-native** for icons
 - **react-native-maps** for the Search map and **@react-native-community/datetimepicker** for plan dates (both included in Expo Go)
@@ -23,6 +23,8 @@ Mobile app to discover activities and places based on location, weather, and per
 - **expo-image-picker**, **expo-image-manipulator** and **expo-file-system** for the profile photo (camera or gallery, cropped square and reduced to 512 px before uploading it to Supabase Storage)
 - **expo-splash-screen** for the launch screen, which stays until the app knows whether there is a session. The logo (white pin with a check on the brand green, also in `assets/logo.png` for the sign-in screens) is provisional
 - **expo-camera** to scan the QR of a plan, and **qrcode** with **react-native-svg** to draw it (only the core of `qrcode` that builds the QR matrix)
+- **expo-image** for place, plan and profile photos: it keeps them in memory and on disk, so going back to a screen does not download them again, and fades them in
+- **React Compiler** (`experiments.reactCompiler` in `app.json`), which memoizes components automatically so they only re-render when their data changes
 
 ### Project structure
 
@@ -85,6 +87,13 @@ Following the course guide, each layer has one job:
 
 Logging in or out switches the group automatically; screens don't need to call `navigation.reset`. The one exception is password recovery: once the emailed code is verified Supabase already has a session, but `AuthContext.isRecoveringPassword` keeps the sign-in screens until the new password is saved. Leaving `ForgotPasswordScreen` before that signs the recovery session out.
 
+### Security
+
+- **Google sign-in uses PKCE** (`flowType: 'pkce'`, the flow recommended for mobile apps in RFC 8252). Google, through Supabase, returns a one-time code instead of the tokens, and only the installation that opened the browser can exchange it, because the verifier stays on the phone. Hermes has no WebCrypto, so `utils/webCrypto.ts` adds `getRandomValues` and `subtle.digest` from expo-crypto: the verifier comes from secure random numbers and the challenge is its SHA-256 hash (`s256`). `AuthService.completeOAuthRedirect` exchanges it; if Android brings the app back before the return link arrives, or Expo Go reloads the app while the browser is open, `AuthProvider` catches the link and finishes the sign-in. The exchange gives up after 20 seconds so the button never keeps loading.
+- **In Expo Go the browser returns through `exp://<dev server>/--/auth/callback`.** Expo Go only opens `exp://` links, but some versions report themselves as an installed app and `Linking.createURL` then builds `planit://auth/callback`, which nothing on the phone opens, so Chrome stayed on the Google page. `AuthService` builds the `exp://` link itself when it runs in Expo Go; the APK keeps `planit://auth/callback`. In development the Expo terminal shows the line `Google: el navegador volverá a ...`.
+- **The session is stored encrypted** (`utils/secureSessionStorage.ts`, the pattern from Supabase's Expo guide): an AES-256-GCM key lives in the Android Keystore through expo-secure-store, and only the encrypted text goes to AsyncStorage. Sessions saved before this change keep working and are encrypted on the next token refresh.
+- **Android backups are off** (`android.allowBackup: false`), so the app data cannot be copied out through a backup.
+
 The Intro is shown only once per install. To see it again during development, use **Profile → "Ver la Intro de nuevo (desarrollo)"**: it clears the onboarding flag, signs out and reloads the app. The option only exists in development builds (`__DEV__`).
 
 ### Installation
@@ -126,7 +135,7 @@ Places come from the Google Places API, so the database only stores their `place
 
 The app creates plans with the `create_plan` function, which saves the plan and its places in a single transaction: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids, p_stay_minutes, p_transport_mode, p_budget_per_person, p_notes })` (`p_stay_minutes` follows the order of `p_place_ids`; the last four parameters are optional). It edits them with `update_plan` (`{ p_plan_id, ...the same parameters }`), which works the same way and only lets the owner through. `add_plan_place` (`{ p_plan_id, p_place_id, p_stay_minutes }`) adds a place at the end of a plan from the place detail screen and returns `false` if it was already there. Each plan has an 8-character `invite_code` (without 0, O, 1, I or L so it can be read out loud); `join_plan_by_code` (`{ p_code }`) adds whoever sends it as a guest and returns `{ plan_id, already_member }`, and `regenerate_plan_invite_code` (`{ p_plan_id }`) gives the plan a new code (owner only), so the old one stops working. The QR holds `PLANIT:XXXX-XXXX`, which the app's scanner reads and a phone camera shows as plain text. To invite someone to a plan by email, call `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. The person needs a PlanIt account with that email; they are added right away and see the plan in their plans list (there are no notifications yet).
 
-Profile photos live in the public `avatars` Storage bucket, in a folder named after each user's id: anyone can see a photo through its URL (saved in `profiles.avatar_url`), but each person can only upload, list and delete files in their own folder. Every new photo gets a new file name so phones don't keep showing the old one from their cache, and the app deletes the previous files afterwards. Removing the photo shows the person's initials instead.
+Profile photos live in the public `avatars` Storage bucket, in a folder named after each user's id: anyone can see a photo through its URL (saved in `profiles.avatar_url`), but each person can only upload, list and delete files in their own folder. Every new photo gets a new file name so phones don't keep showing the old one from their cache, and the app deletes the previous files afterwards. Removing the photo shows the person's initials instead, and so does a photo that fails to load.
 
 ### Google Places
 
@@ -139,7 +148,7 @@ Home, Search, place details, Surprise me, favorites and plans use the Google Pla
    - CLI: `npx supabase login`, `npx supabase link --project-ref <project-ref>` and `npx supabase functions deploy places`.
    - Or in Supabase → **Edge Functions → Deploy a new function → Via Editor**, name it `places` and paste the contents of `index.ts`.
 
-Each Home load makes 1 Nearby Search plus up to 10 photo requests; each Search or Surprise me query makes 1 Nearby or Text Search plus up to 20 photos; opening a place makes 1 Place Details request; each travel time between two places of a plan makes 1 Compute Routes request (basic tier, without live traffic), and the app keeps the ones already calculated in memory, so reordering or reopening a plan only asks for the new ones. While the app is open, places already shown are kept in memory so favorites and plan covers don't request them again (Google's terms don't allow storing Places data on the device or in the database). If the user denies location access, the app searches around the center of Medellín.
+Each Home load makes 1 Nearby Search plus up to 10 photo requests; each Search or Surprise me query makes 1 Nearby or Text Search plus up to 20 photos; opening a place makes 1 Place Details request; each travel time between two places of a plan makes 1 Compute Routes request (basic tier, without live traffic), and the app keeps the ones already calculated in memory, so reordering or reopening a plan only asks for the new ones. While the app is open, places already shown are kept in memory so favorites and plan covers don't request them again (Google's terms don't allow storing Places data on the device or in the database). If the user denies location access, the app searches around the center of Medellín. When a place has no photo, or its photo fails to load (an expired link, no connection), the app shows the icon of its category instead of an empty box.
 
 The map works in Expo Go without extra setup. For a development or store build, Android needs a Google Maps key: enable **Maps SDK for Android** in Google Cloud, create a key restricted to that API and the app's package, and add the `react-native-maps` plugin to `app.json` with `androidGoogleMapsApiKey`.
 
@@ -229,7 +238,7 @@ Aplicación móvil para descubrir actividades y lugares según ubicación, clima
 - **TypeScript**
 - **React Navigation** (`native-stack` + `bottom-tabs`) para la navegación entre pantallas
 - **Supabase** (`@supabase/supabase-js`) para la autenticación (correo/contraseña y Google) y la base de datos
-- **AsyncStorage** (`@react-native-async-storage/async-storage`) para persistir el estado de onboarding y la sesión de Supabase
+- **AsyncStorage** (`@react-native-async-storage/async-storage`) para persistir el estado de onboarding, y **expo-secure-store** con **expo-crypto** para guardar cifrada la sesión de Supabase (ver "Seguridad" más abajo)
 - **react-native-safe-area-context** para manejo de áreas seguras (notch, barra de navegación)
 - **lucide-react-native** para iconografía
 - **react-native-maps** para el mapa de Buscar y **@react-native-community/datetimepicker** para la fecha de los planes (ambas vienen en Expo Go)
@@ -238,6 +247,8 @@ Aplicación móvil para descubrir actividades y lugares según ubicación, clima
 - **expo-image-picker**, **expo-image-manipulator** y **expo-file-system** para la foto de perfil (cámara o galería, recortada en cuadrado y reducida a 512 px antes de subirla a Supabase Storage)
 - **expo-splash-screen** para la pantalla de carga, que se queda hasta que la app sabe si hay sesión. El logo (pin blanco con un visto sobre el verde de la app, también en `assets/logo.png` para las pantallas de acceso) es provisional
 - **expo-camera** para escanear el QR de un plan, y **qrcode** con **react-native-svg** para dibujarlo (solo el núcleo de `qrcode` que arma la matriz del QR)
+- **expo-image** para las fotos de lugares, planes y perfiles: las guarda en memoria y en disco, así al volver a una pantalla no se descargan otra vez, y aparecen con un fundido
+- **React Compiler** (`experiments.reactCompiler` en `app.json`), que memoriza los componentes automáticamente para que solo se vuelvan a dibujar cuando cambian sus datos
 
 ### Estructura del proyecto
 
@@ -300,6 +311,13 @@ Siguiendo la guía del curso, cada capa tiene una sola responsabilidad:
 
 Al iniciar o cerrar sesión el grupo cambia solo; las pantallas no necesitan llamar a `navigation.reset`. La única excepción es la recuperación de contraseña: al verificar el código del correo Supabase ya tiene sesión, pero `AuthContext.isRecoveringPassword` mantiene las pantallas de acceso hasta que se guarda la contraseña nueva. Si la persona sale de `ForgotPasswordScreen` antes, se cierra esa sesión de recuperación.
 
+### Seguridad
+
+- **El inicio de sesión con Google usa PKCE** (`flowType: 'pkce'`, el flujo recomendado para apps móviles en el RFC 8252). Google, a través de Supabase, devuelve un código de un solo uso en vez de los tokens, y solo la instalación que abrió el navegador lo puede canjear, porque el verificador se queda en el teléfono. Hermes no trae WebCrypto, así que `utils/webCrypto.ts` agrega `getRandomValues` y `subtle.digest` de expo-crypto: el verificador sale de números aleatorios seguros y el desafío es su hash SHA-256 (`s256`). Lo canjea `AuthService.completeOAuthRedirect`; si Android trae la app al frente antes de que llegue el enlace de regreso, o si Expo Go recarga la app mientras el navegador está abierto, `AuthProvider` recibe el enlace y termina el inicio de sesión. El canje se rinde a los 20 segundos para que el botón nunca se quede cargando.
+- **En Expo Go el navegador regresa por `exp://<servidor de desarrollo>/--/auth/callback`.** Expo Go solo abre enlaces `exp://`, pero algunas versiones se presentan como una app instalada y entonces `Linking.createURL` arma `planit://auth/callback`, que nada en el teléfono abre, y Chrome se quedaba en la página de Google. `AuthService` arma el enlace `exp://` cuando corre en Expo Go; el APK sigue usando `planit://auth/callback`. En desarrollo, la terminal de Expo muestra la línea `Google: el navegador volverá a ...`.
+- **La sesión se guarda cifrada** (`utils/secureSessionStorage.ts`, el patrón de la guía de Supabase para Expo): una clave AES-256-GCM vive en el Keystore de Android a través de expo-secure-store, y en AsyncStorage solo va el texto cifrado. Las sesiones guardadas antes de este cambio siguen funcionando y se cifran en la siguiente renovación del token.
+- **Las copias de seguridad de Android están desactivadas** (`android.allowBackup: false`), así los datos de la app no se pueden sacar con un respaldo.
+
 La Intro se muestra una sola vez por instalación. Para verla de nuevo mientras desarrollas, usa **Perfil → "Ver la Intro de nuevo (desarrollo)"**: borra la marca del onboarding, cierra sesión y recarga la app. La opción solo existe en desarrollo (`__DEV__`).
 
 ### Instalación
@@ -341,7 +359,7 @@ Los lugares vienen de la API de Google Places, así que la base de datos solo gu
 
 La app crea los planes con la función `create_plan`, que guarda el plan y sus lugares en una sola transacción: `supabase.rpc('create_plan', { p_title, p_starts_at, p_place_ids, p_stay_minutes, p_transport_mode, p_budget_per_person, p_notes })` (`p_stay_minutes` va en el orden de `p_place_ids`; los cuatro últimos parámetros son opcionales). Los edita con `update_plan` (`{ p_plan_id, ...los mismos parámetros }`), que funciona igual y solo deja pasar al dueño. `add_plan_place` (`{ p_plan_id, p_place_id, p_stay_minutes }`) agrega un lugar al final de un plan desde la ficha del lugar y devuelve `false` si ya estaba. Cada plan tiene un `invite_code` de 8 caracteres (sin 0, O, 1, I ni L para poder dictarlo); `join_plan_by_code` (`{ p_code }`) agrega como invitado a quien lo envía y devuelve `{ plan_id, already_member }`, y `regenerate_plan_invite_code` (`{ p_plan_id }`) le da al plan un código nuevo (solo el dueño), así el anterior deja de servir. El QR guarda `PLANIT:XXXX-XXXX`, que lee el escáner de la app y que la cámara del teléfono muestra como texto. Para invitar a alguien a un plan por correo se usa `add_plan_member_by_email`: `supabase.rpc('add_plan_member_by_email', { p_plan_id, p_email })`. La persona necesita una cuenta de PlanIt con ese correo; queda agregada de inmediato y ve el plan en su lista de planes (todavía no hay notificaciones).
 
-Las fotos de perfil están en el bucket público `avatars` de Storage, en una carpeta con el id de cada usuario: cualquiera puede ver una foto con su URL (guardada en `profiles.avatar_url`), pero cada persona solo puede subir, listar y borrar archivos en su propia carpeta. Cada foto nueva tiene un nombre nuevo para que los teléfonos no sigan mostrando la anterior desde su caché, y la app borra los archivos anteriores después. Si la persona quita su foto, se muestran sus iniciales.
+Las fotos de perfil están en el bucket público `avatars` de Storage, en una carpeta con el id de cada usuario: cualquiera puede ver una foto con su URL (guardada en `profiles.avatar_url`), pero cada persona solo puede subir, listar y borrar archivos en su propia carpeta. Cada foto nueva tiene un nombre nuevo para que los teléfonos no sigan mostrando la anterior desde su caché, y la app borra los archivos anteriores después. Si la persona quita su foto, o si la foto no carga, se muestran sus iniciales.
 
 ### Google Places
 
@@ -354,7 +372,7 @@ Inicio, Buscar, el detalle de lugar, Sorpréndeme, favoritos y planes usan Googl
    - CLI: `npx supabase login`, `npx supabase link --project-ref <project-ref>` y `npx supabase functions deploy places`.
    - O en Supabase → **Edge Functions → Deploy a new function → Via Editor**, con el nombre `places`, pegando el contenido de `index.ts`.
 
-Cada carga de Inicio hace 1 búsqueda Nearby Search y hasta 10 pedidos de fotos; cada búsqueda en Buscar o en Sorpréndeme hace 1 Nearby o Text Search y hasta 20 fotos; abrir un lugar hace 1 Place Details; cada traslado entre dos lugares de un plan hace 1 Compute Routes (tarifa básica, sin tráfico en tiempo real), y la app guarda en memoria los que ya calculó, así que al reordenar o volver a abrir un plan solo pide los nuevos. Mientras la app está abierta, los lugares ya mostrados quedan en memoria para que favoritos y portadas de planes no los vuelvan a pedir (las condiciones de Google no permiten guardar datos de Places en el teléfono ni en la base de datos). Si el usuario no da permiso de ubicación, la app busca alrededor del centro de Medellín.
+Cada carga de Inicio hace 1 búsqueda Nearby Search y hasta 10 pedidos de fotos; cada búsqueda en Buscar o en Sorpréndeme hace 1 Nearby o Text Search y hasta 20 fotos; abrir un lugar hace 1 Place Details; cada traslado entre dos lugares de un plan hace 1 Compute Routes (tarifa básica, sin tráfico en tiempo real), y la app guarda en memoria los que ya calculó, así que al reordenar o volver a abrir un plan solo pide los nuevos. Mientras la app está abierta, los lugares ya mostrados quedan en memoria para que favoritos y portadas de planes no los vuelvan a pedir (las condiciones de Google no permiten guardar datos de Places en el teléfono ni en la base de datos). Si el usuario no da permiso de ubicación, la app busca alrededor del centro de Medellín. Si un lugar no tiene foto, o su foto no carga (enlace vencido, sin conexión), la app muestra el ícono de su categoría en vez de un recuadro vacío.
 
 El mapa funciona en Expo Go sin configuración extra. Para un development build o la tienda, Android necesita una key de Google Maps: activa **Maps SDK for Android** en Google Cloud, crea una key restringida a esa API y al paquete de la app, y agrega el plugin `react-native-maps` en `app.json` con `androidGoogleMapsApiKey`.
 

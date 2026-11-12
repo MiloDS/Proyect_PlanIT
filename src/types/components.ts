@@ -1,5 +1,11 @@
 import type { ReactNode } from 'react';
-import type { KeyboardTypeOptions, StyleProp, TextInputProps, ViewStyle } from 'react-native';
+import type {
+  ImageStyle,
+  KeyboardTypeOptions,
+  StyleProp,
+  TextInputProps,
+  ViewStyle,
+} from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
 
 import type { Place } from './places';
@@ -68,10 +74,20 @@ export type PromptLinkProps = {
 
 export type PlaceCardProps = {
   imageUrl: string | null;
+  /** Tipo principal de Google; da el ícono si la foto falta o no carga */
+  placeType: string | null;
   name: string;
   category: string;
   distanceKm: number;
   onPress?: () => void;
+};
+
+export type PlaceImageProps = {
+  uri: string | null;
+  /** Tipo principal de Google (por ejemplo "park"); da el ícono de reemplazo */
+  placeType: string | null;
+  style: StyleProp<ImageStyle>;
+  iconSize?: number;
 };
 
 export type CustomSliderProps = {

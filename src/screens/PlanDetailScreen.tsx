@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   Pressable,
   Share,
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -47,6 +47,7 @@ import { PlanReminders } from '../services/planReminders';
 import { PlansService } from '../services/plansService';
 import { useDevicePosition } from '../services/useDevicePosition';
 import { usePlacesById } from '../services/usePlacesById';
+import { useImageFallback } from '../services/useImageFallback';
 import { useRouteLegs } from '../services/useRouteLegs';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
@@ -126,6 +127,9 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   // El itinerario usa los lugares que Google todavía tiene, en el orden del plan
   const foundPlaceIds = places.places.map((place) => place.id);
   const routeLegs = useRouteLegs(foundPlaceIds, plan.transportMode);
+  // Portada: la foto del primer lugar o, si no tiene o no carga, el ícono del plan
+  const coverUrl = places.places[0]?.photoUrl ?? null;
+  const cover = useImageFallback(coverUrl);
 
   // La versión más reciente del plan; null si se eliminó o el usuario ya no es miembro
   const refresh = useCallback(
@@ -177,7 +181,6 @@ export function PlanDetailScreen({ navigation, route }: Props) {
   const startsAt = new Date(plan.startsAt);
   const isOwner = plan.ownerId === user?.id;
   const owner = plan.members.find((member) => member.role === 'owner');
-  const coverUrl = places.places[0]?.photoUrl ?? null;
   const missingPlaces = places.loading ? 0 : plan.placeIds.length - places.places.length;
 
   const itinerary = buildItinerary(startsAt, foundPlaceIds, plan.stayMinutes, routeLegs.legs);
@@ -337,11 +340,18 @@ export function PlanDetailScreen({ navigation, route }: Props) {
 
   return (
     <View style={globalStyles.screen}>
-      <StatusBar style={coverUrl ? 'light' : 'dark'} />
+      <StatusBar style={cover.showImage ? 'light' : 'dark'} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {coverUrl ? (
-          <Image source={{ uri: coverUrl }} style={styles.headerImage} />
+        {cover.showImage && coverUrl ? (
+          <Image
+            source={{ uri: coverUrl }}
+            style={styles.headerImage}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
+            onError={cover.onError}
+          />
         ) : (
           <View style={[styles.headerImage, styles.headerPlaceholder]}>
             <CalendarDays size={56} color={colors.primary} />

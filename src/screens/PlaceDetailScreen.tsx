@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   Pressable,
   Share,
   ActivityIndicator,
@@ -41,6 +40,7 @@ import { SheetOption } from '../types/components';
 import { Button } from '../components/Button';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { OptionsSheet } from '../components/OptionsSheet';
+import { PlaceImage } from '../components/PlaceImage';
 import { useAuth } from '../services/AuthContext';
 import { useFavorites } from '../services/FavoritesContext';
 import { useDevicePosition } from '../services/useDevicePosition';
@@ -52,7 +52,6 @@ import { formatShortDate, formatTime, isUpcoming } from '../utils/date';
 import { distanceKm } from '../utils/geo';
 import { getDefaultStayMinutes } from '../utils/itinerary';
 import { messages } from '../utils/messages';
-import { getPlaceCategoryStyle } from '../utils/placeCategories';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'PlaceDetail'>;
 
@@ -125,7 +124,6 @@ export function PlaceDetailScreen({ navigation, route }: Props) {
   const isFavorite = isFavoritePlace(place.id);
   const photoUrl = details?.photoUrl ?? place.photoUrl;
   const todayHours = details ? getTodayHours(details.weekdayHours) : null;
-  const { Icon: CategoryIcon, color: categoryColor } = getPlaceCategoryStyle(current.type);
 
   const retry = () => {
     setError('');
@@ -203,13 +201,12 @@ export function PlaceDetailScreen({ navigation, route }: Props) {
       <StatusBar style="light" />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {photoUrl ? (
-          <Image source={{ uri: photoUrl }} style={styles.headerImage} />
-        ) : (
-          <View style={[styles.headerImage, styles.headerPlaceholder]}>
-            <CategoryIcon size={56} color={categoryColor} />
-          </View>
-        )}
+        <PlaceImage
+          uri={photoUrl}
+          placeType={current.type}
+          style={styles.headerImage}
+          iconSize={56}
+        />
 
         <View style={styles.sheet}>
           <Text style={styles.name}>{current.name}</Text>
@@ -369,11 +366,6 @@ const styles = StyleSheet.create({
   headerImage: {
     width: '100%',
     height: HEADER_IMAGE_HEIGHT,
-  },
-  headerPlaceholder: {
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   sheet: {
     marginTop: -24,
