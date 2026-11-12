@@ -1,12 +1,47 @@
-# PlanIt
+<a id="readme-top"></a>
 
-**[English](#english) | [Español](#español)**
+<div align="center">
+  <img src="assets/logo.png" alt="PlanIt logo" width="104" height="104" />
+
+  <h1>PlanIt</h1>
+
+  <p>
+    <b>Plan your outings around your location, the weather and who you go with.</b><br />
+    <i>Planea tus salidas según tu ubicación, el clima y con quién vas.</i>
+  </p>
+
+  <p>
+    <img alt="Expo SDK 58" src="https://img.shields.io/badge/Expo-SDK%2058-000020?logo=expo&logoColor=white" />
+    <img alt="React Native 0.88" src="https://img.shields.io/badge/React%20Native-0.88-61DAFB?logo=react&logoColor=black" />
+    <img alt="TypeScript strict" src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white" />
+    <img alt="Supabase" src="https://img.shields.io/badge/Supabase-Auth%20%C2%B7%20Postgres%20%C2%B7%20Storage-3FCF8E?logo=supabase&logoColor=white" />
+    <img alt="Android APK" src="https://img.shields.io/badge/Android-APK-3DDC84?logo=android&logoColor=white" />
+    <a href="https://github.com/MiloDS/Proyect_PlanIT/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/MiloDS/Proyect_PlanIT/actions/workflows/ci.yml/badge.svg?branch=develop" /></a>
+  </p>
+
+  <p>
+    <a href="#english"><b>English</b></a> · <a href="#español"><b>Español</b></a>
+  </p>
+</div>
 
 ---
 
 ## English
 
 Mobile app to discover activities and places based on location, weather, and personal preferences. University project built with React Native and Expo.
+
+**Quick links:** [Features](#features) · [Installation](#installation) · [Building the APK](#building-the-apk) · [Authors](#authors)
+
+### Features
+
+- 📍 **Places around you**: a map with nearby places, category filters and text search (Google Places), with photos, rating, hours and price for each place.
+- 🌦️ **Weather-aware ideas**: Home shows the real weather, and _Sorpréndeme_ orders places by rating, weather and who you go with.
+- 🗓️ **Plan organizer**: visiting order, time at each place, travel times with Google Routes, estimated end time, budget per person and notes.
+- 👥 **Plans with friends**: join with a code or by scanning its QR, or get invited by email.
+- ⭐ **Favorites**: save places and plans to come back to them.
+- 🔔 **Reminders**: a notification before each plan, even with the app closed.
+- 🌙 **Dark mode**: follows the phone, or what you choose in Profile.
+- 🔐 **Secure sign-in**: email or Google, with the session encrypted on the phone.
 
 ### Tech stack
 
@@ -56,6 +91,16 @@ Following the course guide, each layer has one job:
 - **Services** (`src/services`) talk to Supabase, Google Places (through the Edge Function) and Open-Meteo.
 - **Rules** (`src/utils/validation.ts`) check form data before it is sent: name, email, password, and a plan's title, date and places. Each function returns the error to show, or an empty string. The database checks the important rules again (RLS and constraints). The Surprise me ranking rules live in `src/utils/recommendations.ts`.
 - **Messages** (`src/utils/messages.ts`) holds every success, warning and error message the app shows, so the wording stays consistent and changes in one place.
+
+```mermaid
+flowchart TD
+  UI["Screens and components<br/>src/screens · src/components"] --> SV["Services, contexts and hooks<br/>src/services"]
+  UI --> RU["Rules and messages<br/>src/utils"]
+  SV --> SB[("Supabase<br/>Auth · Postgres with RLS · Storage")]
+  SV --> EF["Edge Function places"]
+  EF --> GG["Google Places and Routes"]
+  SV --> OM["Open-Meteo"]
+```
 
 ### Implemented screens
 
@@ -252,16 +297,52 @@ refactor(intro): split slide into background and overlapping card layers
 Actively in development. Authentication (including password recovery), places (Google Places), favorites and plans work with Supabase, and Home shows the real weather (Open-Meteo), which Surprise me also uses, together with the company, to order its recommendations. Plans work as an organizer (visiting order, time at each place, travel times with Google Routes, estimated end time, budget and notes), can be shared with a code, its QR or by inviting friends by email, edited and deleted from their detail screen, and remind you before they start. Ideas for later: notify people when they are invited to a plan (push notifications, which need a development build) and more languages.
 
 ### Authors
-Juan Esteban
-Juan Pablo Orozco
-Alexander Vargas Mejía
-Institución Universitaria Pascual Bravo, Software Development Technology
+
+<table>
+  <tr>
+    <td align="center" width="170">
+      <a href="https://github.com/juanez-garcia"><img src="https://github.com/juanez-garcia.png?size=160" width="80" height="80" alt="" /></a><br />
+      <b>Juan Esteban García</b><br />
+      <a href="https://github.com/juanez-garcia"><sub>juanez-garcia</sub></a>
+    </td>
+    <td align="center" width="170">
+      <a href="https://github.com/jp-prog-26"><img src="https://github.com/jp-prog-26.png?size=160" width="80" height="80" alt="" /></a><br />
+      <b>Juan Pablo Orozco</b><br />
+      <a href="https://github.com/jp-prog-26"><sub>jp-prog-26</sub></a>
+    </td>
+    <td align="center" width="170">
+      <a href="https://github.com/MiloDS"><img src="https://github.com/MiloDS.png?size=160" width="80" height="80" alt="" /></a><br />
+      <b>Alexander Vargas Mejía</b><br />
+      <a href="https://github.com/MiloDS"><sub>MiloDS</sub></a>
+    </td>
+  </tr>
+</table>
+
+<p>
+  <a href="https://www.pascualbravo.edu.co"><b>Institución Universitaria Pascual Bravo</b></a><br />
+  Software Development Technology program (<i>Tecnología en Desarrollo de Software</i>)<br />
+  Course: Mobile Device Programming (<i>Programación de Dispositivos Móviles</i>)<br />
+  Medellín, Colombia
+</p>
 
 ---
 
 ## Español
 
 Aplicación móvil para descubrir actividades y lugares según ubicación, clima y preferencias personales. Proyecto universitario desarrollado en React Native con Expo.
+
+**Accesos rápidos:** [Funcionalidades](#funcionalidades) · [Instalación](#instalación) · [Generar el APK](#generar-el-apk) · [Autores](#autores)
+
+### Funcionalidades
+
+- 📍 **Lugares a tu alrededor**: un mapa con lugares cercanos, filtros por categoría y búsqueda por texto (Google Places), con fotos, calificación, horario y precio de cada lugar.
+- 🌦️ **Ideas según el clima**: Inicio muestra el clima real, y _Sorpréndeme_ ordena los lugares por calificación, clima y con quién vas.
+- 🗓️ **Organizador de planes**: orden de visita, tiempo en cada lugar, traslados con Google Routes, hora de fin aproximada, presupuesto por persona y notas.
+- 👥 **Planes con amigos**: únete con un código o escaneando su QR, o recibe una invitación por correo.
+- ⭐ **Favoritos**: guarda lugares y planes para volver a ellos.
+- 🔔 **Recordatorios**: una notificación antes de cada plan, aunque la app esté cerrada.
+- 🌙 **Modo oscuro**: sigue el tema del teléfono, o el que elijas en Perfil.
+- 🔐 **Inicio de sesión seguro**: con correo o Google, y la sesión cifrada en el teléfono.
 
 ### Tecnologías
 
@@ -311,6 +392,16 @@ Siguiendo la guía del curso, cada capa tiene una sola responsabilidad:
 - **Servicios** (`src/services`) hablan con Supabase, Google Places (a través de la Edge Function) y Open-Meteo.
 - **Reglas** (`src/utils/validation.ts`) revisan los datos de los formularios antes de enviarlos: nombre, correo, contraseña, y el nombre, la fecha y los lugares de un plan. Cada función devuelve el error que se debe mostrar, o un texto vacío. La base de datos vuelve a revisar las reglas importantes (RLS y restricciones). Las reglas para ordenar Sorpréndeme están en `src/utils/recommendations.ts`.
 - **Mensajes** (`src/utils/messages.ts`) reúne todos los mensajes de éxito, advertencia y error de la app, para que el tono sea el mismo y se cambien en un solo lugar.
+
+```mermaid
+flowchart TD
+  UI["Pantallas y componentes<br/>src/screens · src/components"] --> SV["Servicios, contextos y hooks<br/>src/services"]
+  UI --> RU["Reglas y mensajes<br/>src/utils"]
+  SV --> SB[("Supabase<br/>Auth · Postgres con RLS · Storage")]
+  SV --> EF["Edge Function places"]
+  EF --> GG["Google Places y Routes"]
+  SV --> OM["Open-Meteo"]
+```
 
 ### Pantallas implementadas
 
@@ -507,7 +598,37 @@ refactor(intro): split slide into background and overlapping card layers
 En desarrollo activo. La autenticación (con recuperación de contraseña), los lugares (Google Places), los favoritos y los planes funcionan con Supabase, e Inicio muestra el clima real (Open-Meteo), que Sorpréndeme también usa, junto con la compañía, para ordenar sus recomendaciones. Los planes funcionan como un organizador (orden de visita, tiempo en cada lugar, traslados con Google Routes, hora de fin aproximada, presupuesto y notas), se comparten con un código, su QR o invitando amigos por correo, se editan y eliminan desde su detalle, y avisan antes de empezar. Ideas para después: avisar a las personas cuando las invitan a un plan (notificaciones push, que necesitan un development build) y más idiomas.
 
 ### Autores
-Juan Esteban
-Juan Pablo Orozco
-Alexander Vargas Mejía
-Institución Universitaria Pascual Bravo, Tecnología en Desarrollo de Software
+
+<table>
+  <tr>
+    <td align="center" width="170">
+      <a href="https://github.com/juanez-garcia"><img src="https://github.com/juanez-garcia.png?size=160" width="80" height="80" alt="" /></a><br />
+      <b>Juan Esteban García</b><br />
+      <a href="https://github.com/juanez-garcia"><sub>juanez-garcia</sub></a>
+    </td>
+    <td align="center" width="170">
+      <a href="https://github.com/jp-prog-26"><img src="https://github.com/jp-prog-26.png?size=160" width="80" height="80" alt="" /></a><br />
+      <b>Juan Pablo Orozco</b><br />
+      <a href="https://github.com/jp-prog-26"><sub>jp-prog-26</sub></a>
+    </td>
+    <td align="center" width="170">
+      <a href="https://github.com/MiloDS"><img src="https://github.com/MiloDS.png?size=160" width="80" height="80" alt="" /></a><br />
+      <b>Alexander Vargas Mejía</b><br />
+      <a href="https://github.com/MiloDS"><sub>MiloDS</sub></a>
+    </td>
+  </tr>
+</table>
+
+<p>
+  <a href="https://www.pascualbravo.edu.co"><b>Institución Universitaria Pascual Bravo</b></a><br />
+  Tecnología en Desarrollo de Software<br />
+  Curso: Programación de Dispositivos Móviles<br />
+  Medellín, Colombia
+</p>
+
+---
+
+<p align="center">
+  <img src="assets/logo.png" alt="" width="36" height="36" /><br />
+  <sub>PlanIt · <a href="#readme-top">Back to top</a> · <a href="#readme-top">Volver arriba</a></sub>
+</p>
