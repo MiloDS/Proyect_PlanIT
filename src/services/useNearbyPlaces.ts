@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { DevicePosition, Place } from '../types/places';
 import { LocationService } from './locationService';
@@ -14,7 +14,8 @@ type NearbyPlacesState = {
 
 /**
  * Posición del usuario y lugares cercanos para "Cerca de ti".
- * `reload` vuelve a pedir ambos (por ejemplo, tras un error).
+ * `reload` vuelve a pedir ambos mostrando que carga (por ejemplo, tras un error);
+ * `refresh` lo hace sin quitar los lugares de la pantalla (deslizar para actualizar).
  */
 export function useNearbyPlaces() {
   const [state, setState] = useState<NearbyPlacesState>({
@@ -24,41 +25,41 @@ export function useNearbyPlaces() {
     places: [],
     error: '',
   });
-  const [reloadKey, setReloadKey] = useState(0);
+  // Solo la consulta más reciente cambia la pantalla, por si se actualiza mientras
+  // la anterior todavía no termina
+  const latestRequest = useRef(0);
 
-  useEffect(() => {
-    let cancelled = false;
+  const load = useCallback(async () => {
+    const request = ++latestRequest.current;
+    const isLatest = () => request === latestRequest.current;
 
-    async function load() {
-      const position = await LocationService.getCurrentPosition();
-      if (cancelled) return;
-      setState((current) => ({ ...current, position }));
+    const position = await LocationService.getCurrentPosition();
+    if (!isLatest()) return;
+    setState((current) => ({ ...current, position }));
 
-      // El nombre de la ciudad se resuelve en paralelo: no retrasa la búsqueda de lugares
-      LocationService.getLocationLabel(position).then((locationLabel) => {
-        if (!cancelled) setState((current) => ({ ...current, locationLabel }));
-      });
+    // El nombre de la ciudad se resuelve en paralelo: no retrasa la búsqueda de lugares
+    LocationService.getLocationLabel(position).then((locationLabel) => {
+      if (isLatest()) setState((current) => ({ ...current, locationLabel }));
+    });
 
-      try {
-        const places = await PlacesService.getNearbyPlaces(position.coordinates);
-        if (!cancelled) setState((current) => ({ ...current, status: 'ready', places, error: '' }));
-      } catch (err: any) {
-        if (!cancelled) {
-          setState((current) => ({ ...current, status: 'error', places: [], error: err.message }));
-        }
+    try {
+      const places = await PlacesService.getNearbyPlaces(position.coordinates);
+      if (isLatest()) setState((current) => ({ ...current, status: 'ready', places, error: '' }));
+    } catch (err: any) {
+      if (isLatest()) {
+        setState((current) => ({ ...current, status: 'error', places: [], error: err.message }));
       }
     }
+  }, []);
 
+  useEffect(() => {
     load();
-    return () => {
-      cancelled = true;
-    };
-  }, [reloadKey]);
+  }, [load]);
 
   const reload = () => {
     setState((current) => ({ ...current, status: 'loading', error: '' }));
-    setReloadKey((key) => key + 1);
+    load();
   };
 
-  return { ...state, reload };
+  return { ...state, reload, refresh: load };
 }

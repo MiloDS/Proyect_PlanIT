@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 
 import { AuthService } from './authService';
+import { messages } from '../utils/messages';
 
 /**
  * Login con Google para las pantallas de autenticación.
@@ -29,7 +30,7 @@ export function useGoogleSignIn() {
       await AuthService.loginWithGoogle();
       return null;
     } catch (err: any) {
-      return err.message || 'No se pudo continuar con Google';
+      return err.message || messages.auth.googleUnavailable;
     } finally {
       setLoading(false);
     }

@@ -4,12 +4,12 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
-  Image,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MapPin, ChevronDown, Bell, Cloud, Sparkles } from 'lucide-react-native';
+import { MapPin, Sparkles } from 'lucide-react-native';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -17,13 +17,17 @@ import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { PlaceCard } from '../components/PlaceCard';
 import { Button } from '../components/Button';
+import { MemberAvatar } from '../components/MemberAvatar';
+import { WeatherCard } from '../components/WeatherCard';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { useAuth } from '../services/AuthContext';
-import { PlacesService } from '../services/placesService';
+import { useProfile } from '../services/ProfileContext';
 import { useNearbyPlaces } from '../services/useNearbyPlaces';
+import { usePullToRefresh } from '../services/usePullToRefresh';
+import { useWeather } from '../services/useWeather';
 import { distanceKm } from '../utils/geo';
-import { getFirstName } from '../utils/user';
+import { getDisplayAvatar, getDisplayName, getFirstName } from '../utils/user';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Home'>,
@@ -33,9 +37,17 @@ type Props = CompositeScreenProps<
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const { profile } = useProfile();
   const nearby = useNearbyPlaces();
   const locationLabel = nearby.locationLabel || 'Buscando ubicación…';
   const origin = nearby.position?.coordinates;
+  const weather = useWeather(origin);
+  const displayName = getDisplayName(user, profile);
+  // Si la posición cambió, el clima se vuelve a pedir solo al llegar las coordenadas nuevas
+  const pullToRefresh = usePullToRefresh(() => {
+    weather.refresh();
+    return nearby.refresh();
+  });
 
   return (
     <View style={globalStyles.screen}>
@@ -43,39 +55,36 @@ export function HomeScreen({ navigation }: Props) {
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={pullToRefresh.refreshing}
+            onRefresh={pullToRefresh.onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+            progressViewOffset={insets.top}
+          />
+        }
       >
-        <View style={styles.topBar}>
-          <Pressable
-            style={styles.locationRow}
-            accessibilityRole="button"
-            accessibilityLabel={`Ubicación: ${locationLabel}`}
-          >
-            <MapPin size={16} color={colors.textPrimary} />
-            <Text style={styles.locationText}>{locationLabel}</Text>
-            <ChevronDown size={16} color={colors.textPrimary} />
-          </Pressable>
-
-          <Pressable accessibilityRole="button" accessibilityLabel="Notificaciones" hitSlop={8}>
-            <Bell size={22} color={colors.textPrimary} />
-          </Pressable>
+        <View
+          style={styles.locationRow}
+          accessible
+          accessibilityLabel={`Ubicación: ${locationLabel}`}
+        >
+          <MapPin size={16} color={colors.textPrimary} />
+          <Text style={styles.locationText}>{locationLabel}</Text>
         </View>
 
-        <Text style={styles.greeting}>¡Hola, {getFirstName(user)}! 👋</Text>
+        <Text style={styles.greeting}>¡Hola, {getFirstName(displayName)}! 👋</Text>
         <Text style={styles.subGreeting}>¿Qué plan tienes hoy?</Text>
 
-        <View style={styles.weatherCard}>
-          <View>
-            <Text style={styles.weatherTemp}>24°C</Text>
-            <Text style={styles.weatherDescription}>Parcialmente nublado</Text>
-            <Text style={styles.weatherMinMax}>Máx. 27° Mín. 18°</Text>
-          </View>
-          <Cloud size={40} color={colors.white} />
-        </View>
+        <WeatherCard status={weather.status} weather={weather.weather} onRetry={weather.retry} />
 
         <View style={styles.surpriseCard}>
           <View style={styles.surpriseHeader}>
-            <Image
-              source={{ uri: 'https://i.imgur.com/abrpNLZ.jpeg' }}
+            <MemberAvatar
+              name={displayName}
+              avatarUrl={getDisplayAvatar(user, profile) ?? null}
+              size={42}
               style={styles.surpriseAvatar}
             />
             <View style={styles.surpriseText}>
@@ -98,7 +107,11 @@ export function HomeScreen({ navigation }: Props) {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Cerca de ti</Text>
-          <Pressable>
+          <Pressable
+            onPress={() => navigation.navigate('Search')}
+            accessibilityRole="button"
+            hitSlop={8}
+          >
             <Text style={styles.sectionLink}>Ver todo</Text>
           </Pressable>
         </View>
@@ -136,7 +149,7 @@ export function HomeScreen({ navigation }: Props) {
                   category={place.category}
                   imageUrl={place.photoUrl}
                   distanceKm={distanceKm(origin, place.location)}
-                  onPress={() => PlacesService.openInMaps(place)}
+                  onPress={() => navigation.navigate('PlaceDetail', { place })}
                 />
               ))}
             </ScrollView>
@@ -158,15 +171,11 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 24,
   },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
   locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 24,
+    marginBottom: 20,
   },
   locationText: {
     fontSize: 14,
@@ -185,30 +194,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 20,
   },
-  weatherCard: {
-    backgroundColor: colors.weather,
-    borderRadius: 16,
-    padding: 18,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  weatherTemp: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.white,
-  },
-  weatherDescription: {
-    fontSize: 13,
-    color: colors.white,
-    marginTop: 2,
-  },
-  weatherMinMax: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.85)',
-    marginTop: 4,
-  },
   surpriseCard: {
     backgroundColor: colors.surface,
     borderRadius: 16,
@@ -221,9 +206,6 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   surpriseAvatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
     marginRight: 12,
   },
   surpriseText: {
