@@ -1,6 +1,11 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { DefaultTheme, DarkTheme, NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import {
+  DefaultTheme,
+  DarkTheme,
+  NavigationContainer,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as SplashScreen from 'expo-splash-screen';
@@ -29,6 +34,7 @@ import { ProfileProvider } from '../services/ProfileContext';
 import { useTheme } from '../services/ThemeContext';
 import { useOpenPlanFromNotification, usePlanReminderSync } from '../services/usePlanReminders';
 import { IntroScreen } from '../screens/IntroScreen';
+import { hasSeenOnboarding } from '../utils/storage';
 import { colors } from '../styles/colors';
 
 const Stack = createNativeStackNavigator<AppStackParamList>();
@@ -76,41 +82,31 @@ export function AppNavigator() {
     },
   };
 
-  /**
-   * La intro (carrusel) se muestra SIEMPRE al abrir la app sin sesión activa.
-   * - `true`  → ya se mostró en esta ejecución (el usuario avanzó a Login o se logueó)
-   * - `false` → la intro aún no se ha visto en este arranque; mostrarla
-   *
-   * Se mantiene en memoria (useState inicial = false) para que, al cerrar sesión,
-   * el flag vuelva a `false` y la próxima vez que la app se abra sin sesión
-   * el sistema operativo la reinicia desde cero mostrando la intro de nuevo.
-   * Mientras la sesión está activa, la intro nunca se muestra.
-   */
-  const [introShownThisLaunch, setIntroShownThisLaunch] = useState(false);
+  // La Intro sale solo la primera vez: IntroScreen guarda la marca en el teléfono al terminar
+  const [seenOnboarding, setSeenOnboarding] = useState<boolean | null>(null);
 
-  // Callback que la IntroScreen llama al terminar el carrusel
-  const handleIntroComplete = useCallback(() => setIntroShownThisLaunch(true), []);
-
-  // Cuando el usuario tiene sesión activa marcamos que ya se pasó por la intro
-  // (aunque no la haya visto) para que el flujo sin sesión empiece en Login
-  const prevSessionRef = useRef<string | null>(null);
   useEffect(() => {
-    if (session && prevSessionRef.current !== session.user.id) {
-      setIntroShownThisLaunch(true);
-    }
-    prevSessionRef.current = session?.user.id ?? null;
-  }, [session]);
+    hasSeenOnboarding()
+      .then(setSeenOnboarding)
+      // Si el almacenamiento falla, se muestra la Intro en vez de dejar la pantalla de carga
+      .catch(() => setSeenOnboarding(false));
+  }, []);
 
   usePlanReminderSync(isLoading ? undefined : userId);
   useOpenPlanFromNotification(navigationRef, isLoading ? undefined : userId, navigationReady);
 
-  const appReady = !isLoading;
+  const appReady = !isLoading && seenOnboarding !== null;
 
   // La pantalla de carga nativa (App.tsx) sigue visible hasta saber qué mostrar: Intro,
   // Login o la app. Este efecto corre cuando esa pantalla ya está dibujada.
   useEffect(() => {
     if (appReady) SplashScreen.hide();
   }, [appReady]);
+
+  // Quien ya inició sesión pasó por el onboarding: al cerrar sesión debe ver Login, no Intro
+  if (session && seenOnboarding === false) {
+    setSeenOnboarding(true);
+  }
 
   if (!appReady) {
     // Queda detrás de la pantalla de carga; con sus mismos colores por si se ve un instante
@@ -153,15 +149,7 @@ export function AppNavigator() {
               </>
             ) : (
               <>
-                {/* La intro se muestra siempre al abrir la app sin sesión,
-                    hasta que el usuario la complete (introShownThisLaunch = true) */}
-                {!introShownThisLaunch && (
-                  <Stack.Screen
-                    name="Intro"
-                    component={IntroScreen}
-                    initialParams={{ onComplete: handleIntroComplete }}
-                  />
-                )}
+                {!seenOnboarding && <Stack.Screen name="Intro" component={IntroScreen} />}
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Register" component={RegisterScreen} />
                 <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />

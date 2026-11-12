@@ -1,5 +1,14 @@
 import { ReactNode } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Alert, Switch } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Alert,
+  Switch,
+  DevSettings,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -12,6 +21,7 @@ import {
   ChevronRight,
   Pencil,
   Moon,
+  RotateCcw,
 } from 'lucide-react-native';
 import { CompositeScreenProps } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -25,6 +35,7 @@ import { useProfile } from '../services/ProfileContext';
 import { useTheme } from '../services/ThemeContext';
 import { getDisplayAvatar, getDisplayName } from '../utils/user';
 import { messages } from '../utils/messages';
+import { resetOnboarding } from '../utils/storage';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, 'Profile'>,
@@ -64,7 +75,11 @@ function MenuItem({
   // Fila de solo lectura (sin botón ni switch)
   if (!onPress && !hasSwitchControl) {
     return (
-      <View style={themedStyles.menuItem} accessible accessibilityLabel={`${title}: ${value ?? ''}`}>
+      <View
+        style={themedStyles.menuItem}
+        accessible
+        accessibilityLabel={`${title}: ${value ?? ''}`}
+      >
         <View style={themedStyles.menuLeft}>
           <View style={themedStyles.menuIcon}>{icon}</View>
           <Text style={themedStyles.menuTitle}>{title}</Text>
@@ -116,6 +131,18 @@ function MenuItem({
   );
 }
 
+// Solo en desarrollo: la Intro aparece únicamente sin sesión y sin la marca de onboarding,
+// así que se borran ambas y se recarga la app
+async function replayOnboarding() {
+  try {
+    await resetOnboarding();
+    await AuthService.logout();
+    DevSettings.reload();
+  } catch (err: any) {
+    Alert.alert(messages.common.errorTitle, err.message || messages.auth.onboardingResetFailed);
+  }
+}
+
 // ─── Pantalla de Perfil ───────────────────────────────────────────────────────
 
 export function ProfileScreen({ navigation }: Props) {
@@ -156,7 +183,10 @@ export function ProfileScreen({ navigation }: Props) {
           onPress={editProfile}
           accessibilityRole="button"
           accessibilityLabel="Cambiar foto de perfil"
-          style={({ pressed }) => [themedStyles.avatarButton, pressed && themedStyles.editButtonPressed]}
+          style={({ pressed }) => [
+            themedStyles.avatarButton,
+            pressed && themedStyles.editButtonPressed,
+          ]}
         >
           <View style={themedStyles.avatarContainer}>
             <MemberAvatar name={displayName} avatarUrl={avatarUrl} size={92} />
@@ -172,7 +202,10 @@ export function ProfileScreen({ navigation }: Props) {
             onPress={editProfile}
             accessibilityRole="button"
             accessibilityLabel="Editar perfil"
-            style={({ pressed }) => [themedStyles.editButton, pressed && themedStyles.editButtonPressed]}
+            style={({ pressed }) => [
+              themedStyles.editButton,
+              pressed && themedStyles.editButtonPressed,
+            ]}
           >
             <Pencil size={17} color={colors.white} />
           </Pressable>
@@ -217,6 +250,14 @@ export function ProfileScreen({ navigation }: Props) {
             onPress={() => navigation.navigate('Help')}
           />
 
+          {__DEV__ && (
+            <MenuItem
+              icon={<RotateCcw size={21} color={colors.textBody} />}
+              title="Ver la Intro de nuevo (desarrollo)"
+              onPress={replayOnboarding}
+            />
+          )}
+
           <MenuItem
             icon={<LogOut size={21} color={colors.danger} />}
             title="Cerrar sesión"
@@ -231,7 +272,9 @@ export function ProfileScreen({ navigation }: Props) {
 
 // ─── Estilos dinámicos ────────────────────────────────────────────────────────
 
-function makeStyles(colors: ReturnType<typeof import('../services/ThemeContext').useTheme>['colors']) {
+function makeStyles(
+  colors: ReturnType<typeof import('../services/ThemeContext').useTheme>['colors']
+) {
   return StyleSheet.create({
     container: {
       flex: 1,

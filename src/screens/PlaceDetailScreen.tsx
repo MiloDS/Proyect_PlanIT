@@ -98,7 +98,7 @@ function InfoCard({ Icon, title, value }: InfoCardProps) {
 export function PlaceDetailScreen({ navigation, route }: Props) {
   const { place } = route.params;
   const insets = useSafeAreaInsets();
-  const { colors: themeColors, isDark } = useTheme();
+  const { colors: themeColors } = useTheme();
   const styles = makeStyles(themeColors);
   const position = useDevicePosition();
   const { user } = useAuth();
@@ -366,182 +366,182 @@ export function PlaceDetailScreen({ navigation, route }: Props) {
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  scrollContent: {
-    paddingBottom: 24,
-  },
-  headerImage: {
-    width: '100%',
-    height: HEADER_IMAGE_HEIGHT,
-  },
-  sheet: {
-    marginTop: -24,
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingTop: 22,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  category: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  metaStrong: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  metaText: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 18,
-  },
-  infoCard: {
-    flex: 1,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 6,
-  },
-  infoTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginTop: 6,
-  },
-  infoValue: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    marginTop: 2,
-    textAlign: 'center',
-  },
-  loading: {
-    marginTop: 20,
-  },
-  errorBox: {
-    marginTop: 16,
-    alignItems: 'center',
-    gap: 6,
-  },
-  errorText: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginTop: 22,
-    marginBottom: 6,
-  },
-  body: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: colors.textBody,
-  },
-  amenities: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  amenity: {
-    width: 76,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 12,
-    paddingVertical: 10,
-    gap: 4,
-  },
-  amenityLabel: {
-    fontSize: 10,
-    color: colors.textBody,
-    textAlign: 'center',
-  },
-  hoursLine: {
-    fontSize: 13,
-    color: colors.textBody,
-    lineHeight: 20,
-    textTransform: 'capitalize',
-  },
-  mapsLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 22,
-    alignSelf: 'flex-start',
-  },
-  link: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  attribution: {
-    fontSize: 10,
-    color: colors.textMuted,
-    marginTop: 8,
-  },
-  topActions: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  topActionsRight: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  circleButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 3,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  bottomAction: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    backgroundColor: colors.card,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  addToPlanButton: {
-    flexDirection: 'row',
-    gap: 8,
-    borderRadius: 16,
-  },
-});
+    scrollContent: {
+      paddingBottom: 24,
+    },
+    headerImage: {
+      width: '100%',
+      height: HEADER_IMAGE_HEIGHT,
+    },
+    sheet: {
+      marginTop: -24,
+      backgroundColor: colors.background,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingHorizontal: 24,
+      paddingTop: 22,
+    },
+    name: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    category: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    metaRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: 12,
+    },
+    metaItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    metaStrong: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    metaText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      gap: 10,
+      marginTop: 18,
+    },
+    infoCard: {
+      flex: 1,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 14,
+      paddingVertical: 12,
+      paddingHorizontal: 6,
+    },
+    infoTitle: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginTop: 6,
+    },
+    infoValue: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      marginTop: 2,
+      textAlign: 'center',
+    },
+    loading: {
+      marginTop: 20,
+    },
+    errorBox: {
+      marginTop: 16,
+      alignItems: 'center',
+      gap: 6,
+    },
+    errorText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    sectionTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginTop: 22,
+      marginBottom: 6,
+    },
+    body: {
+      fontSize: 13,
+      lineHeight: 19,
+      color: colors.textBody,
+    },
+    amenities: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 10,
+    },
+    amenity: {
+      width: 76,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 12,
+      paddingVertical: 10,
+      gap: 4,
+    },
+    amenityLabel: {
+      fontSize: 10,
+      color: colors.textBody,
+      textAlign: 'center',
+    },
+    hoursLine: {
+      fontSize: 13,
+      color: colors.textBody,
+      lineHeight: 20,
+      textTransform: 'capitalize',
+    },
+    mapsLink: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginTop: 22,
+      alignSelf: 'flex-start',
+    },
+    link: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+    attribution: {
+      fontSize: 10,
+      color: colors.textMuted,
+      marginTop: 8,
+    },
+    topActions: {
+      position: 'absolute',
+      left: 16,
+      right: 16,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    topActionsRight: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    circleButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.card,
+      alignItems: 'center',
+      justifyContent: 'center',
+      elevation: 3,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 3,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    bottomAction: {
+      paddingHorizontal: 24,
+      paddingTop: 12,
+      backgroundColor: colors.card,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    addToPlanButton: {
+      flexDirection: 'row',
+      gap: 8,
+      borderRadius: 16,
+    },
+  });
 }

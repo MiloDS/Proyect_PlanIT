@@ -6,7 +6,6 @@ import { ChevronDown, ChevronUp } from 'lucide-react-native';
 
 import { AppStackParamList } from '../types/navigation';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { useTheme, ThemeColors } from '../services/ThemeContext';
 
@@ -148,59 +147,59 @@ export function HelpScreen({ navigation }: Props) {
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  content: {
-    paddingHorizontal: 24,
-    paddingTop: 18,
-    paddingBottom: 32,
-  },
-  list: {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    overflow: 'hidden',
-  },
-  item: {
-    backgroundColor: colors.card,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  questionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    minHeight: 54,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  pressed: {
-    backgroundColor: colors.surface,
-  },
-  question: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-  answer: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: colors.textBody,
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginTop: 26,
-    marginBottom: 6,
-  },
-  about: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: colors.textSecondary,
-    marginBottom: 6,
-  },
-});
+    content: {
+      paddingHorizontal: 24,
+      paddingTop: 18,
+      paddingBottom: 32,
+    },
+    list: {
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      overflow: 'hidden',
+    },
+    item: {
+      backgroundColor: colors.card,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    questionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      minHeight: 54,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    pressed: {
+      backgroundColor: colors.surface,
+    },
+    question: {
+      flex: 1,
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    answer: {
+      fontSize: 13,
+      lineHeight: 19,
+      color: colors.textBody,
+      paddingHorizontal: 16,
+      paddingBottom: 14,
+    },
+    sectionTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginTop: 26,
+      marginBottom: 6,
+    },
+    about: {
+      fontSize: 13,
+      lineHeight: 19,
+      color: colors.textSecondary,
+      marginBottom: 6,
+    },
+  });
 }

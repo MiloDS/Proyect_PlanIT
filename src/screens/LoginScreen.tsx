@@ -12,7 +12,6 @@ import { InputField } from '../components/InputField';
 import { PromptLink } from '../components/PromptLink';
 import { SocialButton } from '../components/SocialButton';
 import { useGoogleSignIn } from '../services/useGoogleSignIn';
-import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { validateEmail, validatePassword } from '../utils/validation';
@@ -142,14 +141,14 @@ export function LoginScreen({ navigation, route }: Props) {
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
-  },
-  forgotPasswordText: {
-    color: colors.primary,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-});
+    forgotPassword: {
+      alignSelf: 'flex-end',
+      marginBottom: 24,
+    },
+    forgotPasswordText: {
+      color: colors.primary,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+  });
 }

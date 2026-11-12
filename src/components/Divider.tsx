@@ -18,20 +18,20 @@ export function Divider({ label }: DividerProps) {
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.borderStrong,
-  },
-  label: {
-    marginHorizontal: 10,
-    color: colors.textMuted,
-    fontSize: 13,
-  },
-});
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 20,
+    },
+    line: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.borderStrong,
+    },
+    label: {
+      marginHorizontal: 10,
+      color: colors.textMuted,
+      fontSize: 13,
+    },
+  });
 }

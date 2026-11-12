@@ -347,7 +347,7 @@ export function PlanDetailScreen({ navigation, route }: Props) {
 
   return (
     <View style={[globalStyles.screen, { backgroundColor: themeColors.background }]}>
-      <StatusBar style={cover.showImage ? 'light' : (isDark ? 'light' : 'dark')} />
+      <StatusBar style={cover.showImage ? 'light' : isDark ? 'light' : 'dark'} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {cover.showImage && coverUrl ? (
@@ -506,189 +506,189 @@ export function PlanDetailScreen({ navigation, route }: Props) {
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  scrollContent: {
-    paddingBottom: 32,
-  },
-  headerImage: {
-    width: '100%',
-    height: HEADER_IMAGE_HEIGHT,
-  },
-  headerPlaceholder: {
-    backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sheet: {
-    marginTop: -24,
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingTop: 22,
-  },
-  pastBadge: {
-    alignSelf: 'flex-start',
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    marginBottom: 8,
-    overflow: 'hidden',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  infoList: {
-    gap: 8,
-    marginTop: 12,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  infoText: {
-    fontSize: 14,
-    color: colors.textBody,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 24,
-    marginBottom: 10,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  inviteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  link: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  list: {
-    gap: 10,
-  },
-  loading: {
-    marginVertical: 16,
-  },
-  inlineMessage: {
-    alignItems: 'flex-start',
-    gap: 6,
-  },
-  mutedText: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginTop: 4,
-  },
-  missingPlaces: {
-    marginTop: 10,
-  },
-  notes: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 16,
-    padding: 14,
-    borderRadius: 14,
-    backgroundColor: colors.surface,
-  },
-  notesText: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
-    color: colors.textBody,
-  },
-  memberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  memberInfo: {
-    flex: 1,
-  },
-  memberName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-  memberRoleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 1,
-  },
-  memberRole: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-  removeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dangerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    minHeight: 50,
-    marginTop: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.dangerBorder,
-    backgroundColor: colors.dangerSurface,
-  },
-  dangerText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.danger,
-  },
-  attribution: {
-    fontSize: 10,
-    color: colors.textMuted,
-    marginTop: 16,
-  },
-  topActions: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  topActionsRight: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  circleButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 3,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
+    scrollContent: {
+      paddingBottom: 32,
+    },
+    headerImage: {
+      width: '100%',
+      height: HEADER_IMAGE_HEIGHT,
+    },
+    headerPlaceholder: {
+      backgroundColor: colors.primaryLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sheet: {
+      marginTop: -24,
+      backgroundColor: colors.background,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingHorizontal: 24,
+      paddingTop: 22,
+    },
+    pastBadge: {
+      alignSelf: 'flex-start',
+      fontSize: 11,
+      fontWeight: '700',
+      color: colors.textSecondary,
+      backgroundColor: colors.surfaceMuted,
+      borderRadius: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      marginBottom: 8,
+      overflow: 'hidden',
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    infoList: {
+      gap: 8,
+      marginTop: 12,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    infoText: {
+      fontSize: 14,
+      color: colors.textBody,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 24,
+      marginBottom: 10,
+    },
+    sectionTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    inviteButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    link: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    list: {
+      gap: 10,
+    },
+    loading: {
+      marginVertical: 16,
+    },
+    inlineMessage: {
+      alignItems: 'flex-start',
+      gap: 6,
+    },
+    mutedText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginTop: 4,
+    },
+    missingPlaces: {
+      marginTop: 10,
+    },
+    notes: {
+      flexDirection: 'row',
+      gap: 10,
+      marginTop: 16,
+      padding: 14,
+      borderRadius: 14,
+      backgroundColor: colors.surface,
+    },
+    notesText: {
+      flex: 1,
+      fontSize: 14,
+      lineHeight: 20,
+      color: colors.textBody,
+    },
+    memberRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    memberInfo: {
+      flex: 1,
+    },
+    memberName: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    memberRoleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: 1,
+    },
+    memberRole: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    removeButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    dangerButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      minHeight: 50,
+      marginTop: 32,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.dangerBorder,
+      backgroundColor: colors.dangerSurface,
+    },
+    dangerText: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.danger,
+    },
+    attribution: {
+      fontSize: 10,
+      color: colors.textMuted,
+      marginTop: 16,
+    },
+    topActions: {
+      position: 'absolute',
+      left: 20,
+      right: 20,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    topActionsRight: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    circleButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.card,
+      alignItems: 'center',
+      justifyContent: 'center',
+      elevation: 3,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 3,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+  });
 }

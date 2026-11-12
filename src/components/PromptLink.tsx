@@ -25,23 +25,23 @@ export function PromptLink({ prompt, linkLabel, onPress, style }: PromptLinkProp
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  prompt: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  link: {
-    color: colors.primary,
-    fontWeight: 'bold',
-    fontSize: 13,
-  },
-  pressed: {
-    opacity: 0.6,
-  },
-});
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 20,
+    },
+    prompt: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    link: {
+      color: colors.primary,
+      fontWeight: 'bold',
+      fontSize: 13,
+    },
+    pressed: {
+      opacity: 0.6,
+    },
+  });
 }

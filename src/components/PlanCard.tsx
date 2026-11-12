@@ -6,7 +6,6 @@ import { PlanCardProps } from '../types/components';
 import { FavoriteButton } from './FavoriteButton';
 import { MemberAvatar } from './MemberAvatar';
 import { useImageFallback } from '../services/useImageFallback';
-import { colors } from '../styles/colors';
 import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { formatShortDate, formatTime } from '../utils/date';
 
@@ -106,77 +105,77 @@ export function PlanCard({ coverUrl, onPress, ...props }: PlanCardProps) {
 
 function makeStyles(colors: ThemeColors, isDark: boolean) {
   return StyleSheet.create({
-  card: {
-    height: 150,
-    borderRadius: 18,
-    overflow: 'hidden',
-    backgroundColor: colors.card,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-  background: {
-    flex: 1,
-  },
-  // La tarjeta recorta las esquinas (overflow hidden)
-  coverImage: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-  },
-  placeholder: {
-    backgroundColor: colors.primaryLight,
-  },
-  placeholderIcon: {
-    position: 'absolute',
-    right: 20,
-    bottom: 16,
-    opacity: 0.35,
-  },
-  overlay: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: isDark ? 'rgba(15, 23, 42, 0.72)' : 'rgba(255, 255, 255, 0.65)',
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-  },
-  title: {
-    flex: 1,
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  subtitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textBody,
-    marginTop: 2,
-  },
-  avatarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 'auto',
-  },
-  avatar: {
-    borderWidth: 2,
-    borderColor: colors.card,
-    marginRight: -8,
-  },
-  extraMembers: {
-    marginLeft: 14,
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.textBody,
-  },
-});
+    card: {
+      height: 150,
+      borderRadius: 18,
+      overflow: 'hidden',
+      backgroundColor: colors.card,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.08,
+      shadowRadius: 6,
+      elevation: 3,
+    },
+    pressed: {
+      opacity: 0.85,
+    },
+    background: {
+      flex: 1,
+    },
+    // La tarjeta recorta las esquinas (overflow hidden)
+    coverImage: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    },
+    placeholder: {
+      backgroundColor: colors.primaryLight,
+    },
+    placeholderIcon: {
+      position: 'absolute',
+      right: 20,
+      bottom: 16,
+      opacity: 0.35,
+    },
+    overlay: {
+      flex: 1,
+      padding: 16,
+      backgroundColor: isDark ? 'rgba(15, 23, 42, 0.72)' : 'rgba(255, 255, 255, 0.65)',
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 10,
+    },
+    title: {
+      flex: 1,
+      fontSize: 17,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    subtitle: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.textBody,
+      marginTop: 2,
+    },
+    avatarRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 'auto',
+    },
+    avatar: {
+      borderWidth: 2,
+      borderColor: colors.card,
+      marginRight: -8,
+    },
+    extraMembers: {
+      marginLeft: 14,
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.textBody,
+    },
+  });
 }

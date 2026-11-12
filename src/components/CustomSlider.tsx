@@ -78,10 +78,7 @@ export function CustomSlider({
     >
       <View style={[styles.track, { backgroundColor: maxTrackColor }]}>
         <View
-          style={[
-            styles.filledTrack,
-            { width: thumbPosition, backgroundColor: minTrackColor },
-          ]}
+          style={[styles.filledTrack, { width: thumbPosition, backgroundColor: minTrackColor }]}
         />
         <View
           style={[

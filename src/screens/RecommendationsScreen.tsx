@@ -177,63 +177,63 @@ export function RecommendationsScreen({ navigation, route }: Props) {
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  summary: {
-    marginTop: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-    backgroundColor: colors.primaryLight,
-  },
-  summaryText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.primaryDark,
-    textAlign: 'center',
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 18,
-  },
-  loading: {
-    alignItems: 'center',
-    paddingVertical: 48,
-    gap: 12,
-  },
-  loadingText: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  notes: {
-    gap: 8,
-    padding: 12,
-    borderRadius: 14,
-    backgroundColor: colors.primaryLight,
-    marginBottom: 16,
-  },
-  note: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-  },
-  noteText: {
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 18,
-    color: colors.primaryDark,
-  },
-  noteCredit: {
-    fontSize: 10,
-    color: colors.primaryDark,
-    opacity: 0.7,
-    textAlign: 'right',
-  },
-  list: {
-    gap: 12,
-  },
-  attribution: {
-    fontSize: 10,
-    color: colors.textMuted,
-    marginTop: 12,
-  },
-});
+    summary: {
+      marginTop: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 14,
+      backgroundColor: colors.primaryLight,
+    },
+    summaryText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.primaryDark,
+      textAlign: 'center',
+    },
+    content: {
+      paddingHorizontal: 20,
+      paddingTop: 18,
+    },
+    loading: {
+      alignItems: 'center',
+      paddingVertical: 48,
+      gap: 12,
+    },
+    loadingText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    notes: {
+      gap: 8,
+      padding: 12,
+      borderRadius: 14,
+      backgroundColor: colors.primaryLight,
+      marginBottom: 16,
+    },
+    note: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 8,
+    },
+    noteText: {
+      flex: 1,
+      fontSize: 13,
+      lineHeight: 18,
+      color: colors.primaryDark,
+    },
+    noteCredit: {
+      fontSize: 10,
+      color: colors.primaryDark,
+      opacity: 0.7,
+      textAlign: 'right',
+    },
+    list: {
+      gap: 12,
+    },
+    attribution: {
+      fontSize: 10,
+      color: colors.textMuted,
+      marginTop: 12,
+    },
+  });
 }

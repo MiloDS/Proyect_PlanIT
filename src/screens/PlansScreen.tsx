@@ -178,69 +178,69 @@ export function PlansScreen({ navigation }: Props) {
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 96,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 18,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  joinButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    minHeight: 36,
-    paddingHorizontal: 14,
-    borderRadius: 18,
-    backgroundColor: colors.primaryLight,
-  },
-  joinText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.primaryDark,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  tabs: {
-    marginBottom: 20,
-  },
-  loading: {
-    marginTop: 40,
-  },
-  cardsList: {
-    gap: 16,
-  },
-  fabContainer: {
-    position: 'absolute',
-    left: 24,
-    right: 24,
-    bottom: 16,
-  },
-  fabButton: {
-    flexDirection: 'row',
-    borderRadius: 24,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  fabIcon: {
-    marginRight: 6,
-  },
-  fabText: {
-    color: colors.white,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-});
+    scrollContent: {
+      paddingHorizontal: 24,
+      paddingBottom: 96,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 18,
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    joinButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      minHeight: 36,
+      paddingHorizontal: 14,
+      borderRadius: 18,
+      backgroundColor: colors.primaryLight,
+    },
+    joinText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.primaryDark,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    tabs: {
+      marginBottom: 20,
+    },
+    loading: {
+      marginTop: 40,
+    },
+    cardsList: {
+      gap: 16,
+    },
+    fabContainer: {
+      position: 'absolute',
+      left: 24,
+      right: 24,
+      bottom: 16,
+    },
+    fabButton: {
+      flexDirection: 'row',
+      borderRadius: 24,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.18,
+      shadowRadius: 6,
+      elevation: 5,
+    },
+    fabIcon: {
+      marginRight: 6,
+    },
+    fabText: {
+      color: colors.white,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+  });
 }

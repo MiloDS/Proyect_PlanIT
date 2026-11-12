@@ -38,39 +38,39 @@ export function ScreenHeader({ title, subtitle, onBack, children }: ScreenHeader
 
 function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-  header: {
-    paddingBottom: 18,
-    paddingHorizontal: 64,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backButtonPressed: {
-    backgroundColor: colors.borderStrong,
-    transform: [{ scale: 0.95 }],
-  },
-  title: {
-    color: colors.textPrimary,
-    fontSize: 21,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  subtitle: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '500',
-    marginTop: 3,
-    textAlign: 'center',
-  },
-});
+    header: {
+      paddingBottom: 18,
+      paddingHorizontal: 64,
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    backButton: {
+      position: 'absolute',
+      left: 20,
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    backButtonPressed: {
+      backgroundColor: colors.borderStrong,
+      transform: [{ scale: 0.95 }],
+    },
+    title: {
+      color: colors.textPrimary,
+      fontSize: 21,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    subtitle: {
+      color: colors.textMuted,
+      fontSize: 12,
+      fontWeight: '500',
+      marginTop: 3,
+      textAlign: 'center',
+    },
+  });
 }
