@@ -28,19 +28,19 @@ const slides = [
     key: '1',
     title: 'Descubre nuevos lugares',
     text: 'Encuentra lugares, actividades y experiencias cerca de ti.',
-    image: require('../../assets/slide1.png'),
+    image: require('../../assets/slide1.jpg'),
   },
   {
     key: '2',
     title: 'Según el clima',
-    text: 'Recomendaciones adaptadas al clima y la temporada.',
-    image: require('../../assets/slide2.png'),
+    text: 'Recomendaciones adaptadas al clima de tu zona.',
+    image: require('../../assets/slide2.jpg'),
   },
   {
     key: '3',
     title: 'Guarda tus favoritos',
     text: 'Repite las buenas experiencias.',
-    image: require('../../assets/slide3.png'),
+    image: require('../../assets/slide3.jpg'),
   },
 ];
 

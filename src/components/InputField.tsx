@@ -15,6 +15,9 @@ export function InputField({
   keyboardType,
   autoCapitalize,
   autoCorrect,
+  autoComplete,
+  maxLength,
+  multiline,
   error,
 }: CustomInputFieldProps) {
   const [hidePassword, setHidePassword] = useState(secureTextEntry ?? false);
@@ -31,10 +34,13 @@ export function InputField({
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={isPassword ? hidePassword : false}
-          style={[styles.input, !!error && styles.inputError]}
+          style={[styles.input, multiline && styles.multiline, !!error && styles.inputError]}
+          multiline={multiline}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           autoCorrect={autoCorrect}
+          autoComplete={autoComplete}
+          maxLength={maxLength}
           accessibilityLabel={label ?? placeholder}
         />
         {isPassword && (
@@ -69,6 +75,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     color: colors.textPrimary,
     fontSize: 16,
+  },
+  multiline: {
+    minHeight: 96,
+    paddingTop: 14,
+    paddingBottom: 14,
+    textAlignVertical: 'top',
   },
   inputError: {
     borderColor: colors.danger,

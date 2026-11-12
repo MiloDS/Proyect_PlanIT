@@ -13,7 +13,13 @@ import { PromptLink } from '../components/PromptLink';
 import { SocialButton } from '../components/SocialButton';
 import { useGoogleSignIn } from '../services/useGoogleSignIn';
 import { globalStyles } from '../styles/globalStyles';
-import { isValidEmail, isEmpty } from '../utils/validation';
+import {
+  validateEmail,
+  validateName,
+  validateNewPassword,
+  validatePasswordConfirmation,
+} from '../utils/validation';
+import { messages } from '../utils/messages';
 import { AuthService } from '../services/authService';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Register'>;
@@ -33,22 +39,10 @@ export function RegisterScreen({ navigation }: Props) {
   const google = useGoogleSignIn();
 
   const handleRegister = async () => {
-    const nextNameError = isEmpty(name) ? 'El nombre es obligatorio' : '';
-    const nextEmailError = isEmpty(email)
-      ? 'El correo es obligatorio'
-      : !isValidEmail(email)
-        ? 'Ingresa un correo válido (ejemplo@dominio.com)'
-        : '';
-    const nextPasswordError = isEmpty(password)
-      ? 'La contraseña es obligatoria'
-      : password.length < 6
-        ? 'La contraseña debe tener al menos 6 caracteres'
-        : '';
-    const nextConfirmPasswordError = isEmpty(confirmPassword)
-      ? 'Confirma tu contraseña'
-      : confirmPassword !== password
-        ? 'Las contraseñas no coinciden'
-        : '';
+    const nextNameError = validateName(name);
+    const nextEmailError = validateEmail(email);
+    const nextPasswordError = validateNewPassword(password);
+    const nextConfirmPasswordError = validatePasswordConfirmation(password, confirmPassword);
 
     setNameError(nextNameError);
     setEmailError(nextEmailError);
@@ -82,7 +76,7 @@ export function RegisterScreen({ navigation }: Props) {
       if (err.code === 'user_already_exists') {
         setEmailError(err.message);
       } else {
-        setGeneralError(err.message || 'Error al crear la cuenta');
+        setGeneralError(err.message || messages.auth.registerFailed);
       }
     } finally {
       setLoading(false);

@@ -4,24 +4,74 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
-  ImageBackground,
+  ActivityIndicator,
+  RefreshControl,
   Pressable,
+  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Plus } from 'lucide-react-native';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { CalendarDays, CalendarPlus, CloudOff, Plus, ScanLine } from 'lucide-react-native';
 
+import { AppStackParamList, MainTabParamList } from '../types/navigation';
+import { Button } from '../components/Button';
+import { EmptyState } from '../components/EmptyState';
+import { JoinPlanModal } from '../components/JoinPlanModal';
+import { PlanCard } from '../components/PlanCard';
+import { SegmentedControl } from '../components/SegmentedControl';
+import { useFavorites } from '../services/FavoritesContext';
+import { PlansService } from '../services/plansService';
+import { usePlans } from '../services/usePlans';
+import { usePullToRefresh } from '../services/usePullToRefresh';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
-import { Button } from '../components/Button';
-import { UPCOMING_PLANS, PAST_PLANS } from '../utils/mockData';
+import { isUpcoming } from '../utils/date';
+import { messages } from '../utils/messages';
 
-export function PlansScreen() {
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'Plans'>,
+  NativeStackScreenProps<AppStackParamList>
+>;
+
+type Tab = 'upcoming' | 'past';
+
+const TABS: { value: Tab; label: string }[] = [
+  { value: 'upcoming', label: 'Próximos' },
+  { value: 'past', label: 'Pasados' },
+];
+
+export function PlansScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+  const plans = usePlans();
+  const { isFavoritePlan, togglePlan } = useFavorites();
+  const [activeTab, setActiveTab] = useState<Tab>('upcoming');
+  const pullToRefresh = usePullToRefresh(plans.refresh);
+  const [joinOpen, setJoinOpen] = useState(false);
 
-  const currentPlans = activeTab === 'upcoming' ? UPCOMING_PLANS : PAST_PLANS;
+  // Con el código (escrito o del QR) entra al plan y lo abre
+  const joinPlan = async (code: string) => {
+    const { planId, alreadyMember } = await PlansService.joinByCode(code);
+    const plan = await PlansService.get(planId);
+    if (!plan) throw new Error(messages.plans.joinFailed);
+    setJoinOpen(false);
+    navigation.navigate('PlanDetail', { plan });
+    Alert.alert(
+      alreadyMember ? messages.plans.alreadyJoinedTitle : messages.plans.joinedTitle,
+      alreadyMember ? messages.plans.alreadyJoined(plan.title) : messages.plans.joined(plan.title)
+    );
+  };
+
+  const now = new Date();
+  const visiblePlans = plans.plans.filter(
+    (plan) => isUpcoming(new Date(plan.startsAt), now) === (activeTab === 'upcoming')
+  );
+  // Los pasados, del más reciente al más antiguo
+  if (activeTab === 'past') visiblePlans.reverse();
+
+  const createPlan = () => navigation.navigate('CreatePlan');
 
   return (
     <View style={globalStyles.screen}>
@@ -29,70 +79,96 @@ export function PlansScreen() {
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16 }]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={pullToRefresh.refreshing}
+            onRefresh={pullToRefresh.onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+            progressViewOffset={insets.top}
+          />
+        }
       >
-        <Text style={styles.headerTitle}>Mis planes</Text>
-
-        <View style={styles.segmentContainer}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Mis planes</Text>
           <Pressable
-            style={[styles.segmentButton, activeTab === 'upcoming' && styles.segmentButtonActive]}
-            onPress={() => setActiveTab('upcoming')}
+            onPress={() => setJoinOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Unirme a un plan con un código"
+            hitSlop={8}
+            style={({ pressed }) => [styles.joinButton, pressed && styles.pressed]}
           >
-            <Text
-              style={[styles.segmentText, activeTab === 'upcoming' && styles.segmentTextActive]}
-            >
-              Próximos
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={[styles.segmentButton, activeTab === 'past' && styles.segmentButtonActive]}
-            onPress={() => setActiveTab('past')}
-          >
-            <Text style={[styles.segmentText, activeTab === 'past' && styles.segmentTextActive]}>
-              Pasados
-            </Text>
+            <ScanLine size={17} color={colors.primary} />
+            <Text style={styles.joinText}>Unirme</Text>
           </Pressable>
         </View>
 
-        <View style={styles.cardsList}>
-          {currentPlans.map((plan) => (
-            <Pressable
-              key={plan.id}
-              style={({ pressed }) => [styles.cardContainer, pressed && { opacity: 0.95 }]}
-            >
-              <ImageBackground
-                source={{ uri: plan.imageUrl }}
-                style={styles.cardBackground}
-                imageStyle={styles.cardImage}
-              >
-                <View style={styles.cardOverlay}>
-                  <Text style={styles.cardTitle}>{plan.title}</Text>
-                  <Text style={styles.cardSubtitle}>
-                    {plan.date} • {plan.placesCount} lugares
-                  </Text>
-
-                  <View style={styles.avatarRow}>
-                    {plan.avatars.map((avatarUri, index) => (
-                      <Image
-                        key={index}
-                        source={{ uri: avatarUri }}
-                        style={[styles.avatar, { zIndex: plan.avatars.length - index }]}
-                      />
-                    ))}
-                  </View>
-                </View>
-              </ImageBackground>
-            </Pressable>
-          ))}
+        <View style={styles.tabs}>
+          <SegmentedControl options={TABS} value={activeTab} onChange={setActiveTab} />
         </View>
+
+        {plans.status === 'loading' && (
+          <ActivityIndicator color={colors.primary} style={styles.loading} />
+        )}
+
+        {plans.status === 'error' && (
+          <EmptyState
+            icon={<CloudOff size={28} color={colors.primary} />}
+            title={messages.plans.loadListFailedTitle}
+            message={plans.error}
+            actionLabel="Reintentar"
+            onAction={plans.retry}
+          />
+        )}
+
+        {plans.status === 'ready' && visiblePlans.length === 0 && (
+          <EmptyState
+            icon={
+              activeTab === 'upcoming' ? (
+                <CalendarPlus size={28} color={colors.primary} />
+              ) : (
+                <CalendarDays size={28} color={colors.primary} />
+              )
+            }
+            title={
+              activeTab === 'upcoming'
+                ? 'No tienes planes próximos'
+                : 'Todavía no tienes planes pasados'
+            }
+            message={
+              activeTab === 'upcoming'
+                ? 'Crea uno con los lugares que quieres visitar, o únete con el código que te compartieron.'
+                : 'Aquí verás los planes cuando ya hayan pasado.'
+            }
+            actionLabel={activeTab === 'upcoming' ? 'Crear plan' : undefined}
+            onAction={createPlan}
+          />
+        )}
+
+        {plans.status === 'ready' && visiblePlans.length > 0 && (
+          <View style={styles.cardsList}>
+            {visiblePlans.map((plan) => (
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                coverUrl={plans.getCoverUrl(plan)}
+                isFavorite={isFavoritePlan(plan.id)}
+                onToggleFavorite={() => togglePlan(plan.id)}
+                onPress={() => navigation.navigate('PlanDetail', { plan })}
+              />
+            ))}
+          </View>
+        )}
       </ScrollView>
 
       <View style={styles.fabContainer}>
-        <Button variant="primary" style={styles.fabButton} onPress={() => {}}>
+        <Button variant="primary" style={styles.fabButton} onPress={createPlan}>
           <Plus size={18} color={colors.white} strokeWidth={2.5} style={styles.fabIcon} />
           <Text style={styles.fabText}>Nuevo plan</Text>
         </Button>
       </View>
+
+      <JoinPlanModal visible={joinOpen} onClose={() => setJoinOpen(false)} onJoin={joinPlan} />
     </View>
   );
 }
@@ -102,91 +178,42 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 96,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 18,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: colors.textPrimary,
-    marginBottom: 18,
   },
-  segmentContainer: {
+  joinButton: {
     flexDirection: 'row',
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: 24,
-    padding: 4,
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 36,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    backgroundColor: colors.primaryLight,
+  },
+  joinText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.primaryDark,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  tabs: {
     marginBottom: 20,
   },
-  segmentButton: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  segmentButtonActive: {
-    backgroundColor: colors.primary,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  segmentText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  segmentTextActive: {
-    color: colors.white,
-    fontWeight: '700',
+  loading: {
+    marginTop: 40,
   },
   cardsList: {
     gap: 16,
-  },
-  cardContainer: {
-    height: 142,
-    borderRadius: 18,
-    overflow: 'hidden',
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  cardBackground: {
-    flex: 1,
-  },
-  cardImage: {
-    borderRadius: 18,
-  },
-  cardOverlay: {
-    flex: 1,
-    padding: 16,
-    justifyContent: 'flex-start',
-    backgroundColor: 'rgba(255, 255, 255, 0.42)',
-  },
-  cardTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  cardSubtitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: colors.textBody,
-    marginTop: 4,
-    marginBottom: 12,
-  },
-  avatarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: colors.white,
-    marginRight: 6,
   },
   fabContainer: {
     position: 'absolute',

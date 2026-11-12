@@ -28,6 +28,29 @@ await db.exec(`
   grant usage on schema auth to anon, authenticated;
   grant usage on schema public to anon, authenticated;
   alter default privileges in schema public grant all on tables to anon, authenticated;
+
+  -- Storage: solo las columnas y la función que usan las políticas de las fotos de perfil
+  create schema storage;
+  create table storage.buckets (
+    id text primary key,
+    name text not null,
+    public boolean default false,
+    file_size_limit bigint,
+    allowed_mime_types text[]
+  );
+  create table storage.objects (
+    id uuid primary key default gen_random_uuid(),
+    bucket_id text references storage.buckets (id),
+    name text not null,
+    owner uuid default auth.uid()
+  );
+  alter table storage.objects enable row level security;
+  create function storage.foldername(name text) returns text[] language sql immutable as $$
+    select (string_to_array(name, '/'))[1:array_length(string_to_array(name, '/'), 1) - 1]
+  $$;
+  grant usage on schema storage to anon, authenticated;
+  grant all on storage.objects to anon, authenticated;
+  grant select on storage.buckets to anon, authenticated;
 `);
 
 // Usuario registrado antes de las migraciones (prueba el backfill de perfiles)
@@ -96,6 +119,51 @@ check(
   'B puede editar su perfil',
   (await as(B, `update public.profiles set full_name = 'Beto G.' where id = $1`, [B])).affected ===
     1
+);
+
+// --- Fotos de perfil (Storage)
+const bucket = (
+  await db.query(`select public, file_size_limit from storage.buckets where id = 'avatars'`)
+).rows[0];
+check('existe el bucket público avatars', bucket?.public === true, JSON.stringify(bucket));
+const uploadAvatar = (userId, name) =>
+  as(
+    userId,
+    `insert into storage.objects (bucket_id, name) values ('avatars', $1) returning name`,
+    [name]
+  );
+check('A sube una foto a su carpeta', (await uploadAvatar(A, `${A}/1.jpg`)).rows.length === 1);
+check(
+  'A no puede subir a la carpeta de B',
+  !!(await uploadAvatar(A, `${B}/1.jpg`)).error,
+  'se permitió'
+);
+check(
+  'A no puede subir fuera de una carpeta',
+  !!(await uploadAvatar(A, 'suelta.jpg')).error,
+  'se permitió'
+);
+check(
+  'anon no puede subir fotos',
+  !!(
+    await asAnon(`insert into storage.objects (bucket_id, name) values ('avatars', $1)`, [
+      `${A}/2.jpg`,
+    ])
+  ).error,
+  'se permitió'
+);
+check(
+  'B no ve los archivos de A',
+  (await as(B, `select name from storage.objects`)).rows.length === 0
+);
+check('A ve sus archivos', (await as(A, `select name from storage.objects`)).rows.length === 1);
+check(
+  'B no puede borrar la foto de A',
+  (await as(B, `delete from storage.objects where name = $1`, [`${A}/1.jpg`])).affected === 0
+);
+check(
+  'A borra su foto',
+  (await as(A, `delete from storage.objects where name = $1`, [`${A}/1.jpg`])).affected === 1
 );
 
 // --- Planes
@@ -222,6 +290,367 @@ check(
   'B no puede guardar favoritos a nombre de A',
   !!(await as(B, `insert into public.favorites (user_id, place_id) values ($1, 'gp_x')`, [A])).error
 );
+
+// --- Crear plan con lugares (create_plan)
+const rpc = await as(
+  A,
+  `select public.create_plan('  Día de museo  ', now() + interval '1 week', array['gp_museo', 'gp_cafe', 'gp_museo']) as id`
+);
+check('A crea un plan con lugares (create_plan)', !rpc.error && !!rpc.rows[0]?.id, rpc.error);
+const rpcPlanId = rpc.rows[0]?.id;
+const rpcPlan = await as(A, `select title, owner_id from public.plans where id = $1`, [rpcPlanId]);
+check(
+  'create_plan recorta el título y deja a A como dueño',
+  rpcPlan.rows[0]?.title === 'Día de museo' && rpcPlan.rows[0]?.owner_id === A,
+  JSON.stringify(rpcPlan)
+);
+const rpcPlaces = await as(
+  A,
+  `select place_id, sort_order from public.plan_places where plan_id = $1 order by sort_order`,
+  [rpcPlanId]
+);
+check(
+  'create_plan guarda los lugares en orden y sin duplicados',
+  JSON.stringify(rpcPlaces.rows.map((row) => [row.place_id, row.sort_order])) ===
+    JSON.stringify([
+      ['gp_museo', 0],
+      ['gp_cafe', 1],
+    ]),
+  JSON.stringify(rpcPlaces)
+);
+const blankTitle = await as(A, `select public.create_plan('   ', now(), array['gp_x'])`);
+check('create_plan rechaza títulos vacíos', !!blankTitle.error, 'se permitió');
+const blankLeftovers = await as(A, `select id from public.plans where title = ''`);
+check('un create_plan fallido no deja planes a medias', blankLeftovers.rows.length === 0);
+check(
+  'anon no puede usar create_plan',
+  !!(await asAnon(`select public.create_plan('x', now(), array['gp_x'])`)).error
+);
+
+// --- Planes favoritos
+await as(A, `select public.add_plan_member_by_email($1, 'beto@test.com')`, [rpcPlanId]);
+check(
+  'B (miembro) guarda el plan en favoritos',
+  !(await as(B, `insert into public.favorite_plans (plan_id) values ($1)`, [rpcPlanId])).error
+);
+check(
+  'C (no miembro) no puede guardar el plan en favoritos',
+  !!(await as(C, `insert into public.favorite_plans (plan_id) values ($1)`, [rpcPlanId])).error
+);
+check(
+  'A no ve los planes favoritos de B',
+  (await as(A, `select * from public.favorite_plans`)).rows.length === 0
+);
+check(
+  'B ve su plan favorito',
+  (await as(B, `select * from public.favorite_plans`)).rows.length === 1
+);
+await as(B, `delete from public.plan_members where plan_id = $1 and user_id = $2`, [rpcPlanId, B]);
+check(
+  'al salir del plan, B deja de ver el favorito',
+  (await as(B, `select * from public.favorite_plans`)).rows.length === 0
+);
+check(
+  'A guarda y quita su plan de favoritos',
+  !(await as(A, `insert into public.favorite_plans (plan_id) values ($1)`, [rpcPlanId])).error &&
+    (await as(A, `delete from public.favorite_plans where plan_id = $1`, [rpcPlanId])).affected ===
+      1
+);
+await as(A, `delete from public.plans where id = $1`, [rpcPlanId]);
+
+// --- Editar plan (update_plan) y administrar miembros desde el detalle
+const editPlanId = (
+  await as(
+    A,
+    `select public.create_plan('Plan a editar', now() + interval '2 days', array['gp_a', 'gp_b', 'gp_c']) as id`
+  )
+).rows[0]?.id;
+await as(A, `select public.add_plan_member_by_email($1, 'beto@test.com')`, [editPlanId]);
+const planPlaces = async () =>
+  (
+    await as(
+      A,
+      `select place_id, sort_order from public.plan_places where plan_id = $1 order by sort_order`,
+      [editPlanId]
+    )
+  ).rows.map((row) => [row.place_id, row.sort_order]);
+
+const edit = await as(
+  A,
+  `select public.update_plan($1, '  Plan editado  ', '2030-01-15 18:30:00+00', array['gp_c', 'gp_d', 'gp_a', 'gp_d'])`,
+  [editPlanId]
+);
+check('A edita su plan con update_plan', !edit.error, edit.error);
+const edited = await as(A, `select title, starts_at from public.plans where id = $1`, [editPlanId]);
+check(
+  'update_plan recorta el título y cambia la fecha',
+  edited.rows[0]?.title === 'Plan editado' &&
+    new Date(edited.rows[0]?.starts_at).toISOString() === '2030-01-15T18:30:00.000Z',
+  JSON.stringify(edited)
+);
+check(
+  'update_plan quita, agrega y reordena lugares sin duplicados',
+  JSON.stringify(await planPlaces()) ===
+    JSON.stringify([
+      ['gp_c', 0],
+      ['gp_d', 1],
+      ['gp_a', 2],
+    ]),
+  JSON.stringify(await planPlaces())
+);
+
+const memberEdit = await as(B, `select public.update_plan($1, 'De B', now(), array['gp_x'])`, [
+  editPlanId,
+]);
+check(
+  'B (miembro) no puede editar el plan',
+  /dueño/.test(memberEdit.error ?? ''),
+  memberEdit.error
+);
+const strangerEdit = await as(C, `select public.update_plan($1, 'De C', now(), array['gp_x'])`, [
+  editPlanId,
+]);
+check('C (no miembro) no puede editar el plan', !!strangerEdit.error, 'se permitió');
+const blankEdit = await as(A, `select public.update_plan($1, '   ', now(), array['gp_x'])`, [
+  editPlanId,
+]);
+check('update_plan rechaza títulos vacíos', !!blankEdit.error, 'se permitió');
+check(
+  'un update_plan fallido no cambia el plan',
+  (await as(A, `select title from public.plans where id = $1`, [editPlanId])).rows[0]?.title ===
+    'Plan editado' && (await planPlaces()).length === 3
+);
+check(
+  'anon no puede usar update_plan',
+  !!(await asAnon(`select public.update_plan($1, 'x', now(), array['gp_x'])`, [editPlanId])).error
+);
+
+// --- Organizador: tiempo en cada lugar, transporte, presupuesto y notas
+const stops = async (id) =>
+  (
+    await as(
+      A,
+      `select place_id, sort_order, stay_minutes from public.plan_places where plan_id = $1 order by sort_order`,
+      [id]
+    )
+  ).rows.map((row) => [row.place_id, row.sort_order, row.stay_minutes]);
+const planExtras = async (id) =>
+  (
+    await as(A, `select transport_mode, budget_per_person, notes from public.plans where id = $1`, [
+      id,
+    ])
+  ).rows[0];
+
+const organized = await as(
+  A,
+  `select public.create_plan('Ruta', now() + interval '3 days', array['gp_1', 'gp_2'], array[45, 120], 'transit', 30000, '  Lleven efectivo  ') as id`
+);
+const organizedId = organized.rows[0]?.id;
+check('create_plan guarda el organizador', !organized.error && !!organizedId, organized.error);
+check(
+  'create_plan guarda transporte, presupuesto y notas (recortadas)',
+  JSON.stringify(await planExtras(organizedId)) ===
+    JSON.stringify({
+      transport_mode: 'transit',
+      budget_per_person: 30000,
+      notes: 'Lleven efectivo',
+    }),
+  JSON.stringify(await planExtras(organizedId))
+);
+check(
+  'create_plan guarda el tiempo en cada lugar',
+  JSON.stringify(await stops(organizedId)) ===
+    JSON.stringify([
+      ['gp_1', 0, 45],
+      ['gp_2', 1, 120],
+    ]),
+  JSON.stringify(await stops(organizedId))
+);
+const legacy = await as(A, `select public.create_plan('Viejo', now(), array['gp_1']) as id`);
+check(
+  'la versión anterior de la app puede seguir creando planes (valores por defecto)',
+  JSON.stringify(await planExtras(legacy.rows[0]?.id)) ===
+    JSON.stringify({ transport_mode: 'walk', budget_per_person: null, notes: null }) &&
+    (await stops(legacy.rows[0]?.id))[0]?.[2] === 60,
+  legacy.error
+);
+
+const organizedEdit = await as(
+  A,
+  `select public.update_plan($1, 'Ruta', now() + interval '3 days', array['gp_2', 'gp_3'], array[30, 90], 'drive', 50000, '   ')`,
+  [organizedId]
+);
+check('update_plan guarda el organizador', !organizedEdit.error, organizedEdit.error);
+check(
+  'update_plan cambia transporte y presupuesto, y deja las notas vacías en null',
+  JSON.stringify(await planExtras(organizedId)) ===
+    JSON.stringify({ transport_mode: 'drive', budget_per_person: 50000, notes: null }),
+  JSON.stringify(await planExtras(organizedId))
+);
+check(
+  'update_plan reordena y cambia el tiempo en cada lugar',
+  JSON.stringify(await stops(organizedId)) ===
+    JSON.stringify([
+      ['gp_2', 0, 30],
+      ['gp_3', 1, 90],
+    ]),
+  JSON.stringify(await stops(organizedId))
+);
+for (const [name, sql] of [
+  ['un transporte desconocido', `array['gp_1'], array[60], 'bike', null, null`],
+  ['un tiempo en un lugar de 0 minutos', `array['gp_1'], array[0], 'walk', null, null`],
+  ['un presupuesto negativo', `array['gp_1'], array[60], 'walk', -1, null`],
+  ['notas de más de 500 caracteres', `array['gp_1'], array[60], 'walk', null, repeat('a', 501)`],
+]) {
+  check(
+    `create_plan rechaza ${name}`,
+    !!(await as(A, `select public.create_plan('x', now(), ${sql})`)).error,
+    'se permitió'
+  );
+}
+
+const addPlace = (userId, placeId) =>
+  as(userId, `select public.add_plan_place($1, $2, 75) as added`, [organizedId, placeId]);
+await as(A, `select public.add_plan_member_by_email($1, 'beto@test.com')`, [organizedId]);
+check('A agrega un lugar al final de su plan', (await addPlace(A, 'gp_4')).rows[0]?.added === true);
+check(
+  'add_plan_place lo deja de último con su tiempo',
+  JSON.stringify((await stops(organizedId)).at(-1)) === JSON.stringify(['gp_4', 2, 75]),
+  JSON.stringify(await stops(organizedId))
+);
+check(
+  'add_plan_place avisa si el lugar ya estaba',
+  (await addPlace(A, 'gp_4')).rows[0]?.added === false
+);
+check('B (miembro) puede agregar un lugar', (await addPlace(B, 'gp_5')).rows[0]?.added === true);
+check(
+  'C (no miembro) no puede agregar lugares',
+  !!(await addPlace(C, 'gp_6')).error,
+  'se permitió'
+);
+check(
+  'anon no puede usar add_plan_place',
+  !!(await asAnon(`select public.add_plan_place($1, 'gp_7', 60)`, [organizedId])).error
+);
+await as(A, `delete from public.plans where id = any($1)`, [[organizedId, legacy.rows[0]?.id]]);
+
+const removed = await as(
+  A,
+  `delete from public.plan_members where plan_id = $1 and user_id = $2 returning user_id`,
+  [editPlanId, B]
+);
+check('A quita a B del plan (delete ... returning)', removed.rows[0]?.user_id === B, removed.error);
+await as(A, `select public.add_plan_member_by_email($1, 'beto@test.com')`, [editPlanId]);
+const left = await as(
+  B,
+  `delete from public.plan_members where plan_id = $1 and user_id = $2 returning user_id`,
+  [editPlanId, B]
+);
+check('B sale del plan (delete ... returning)', left.rows[0]?.user_id === B, left.error);
+check(
+  'B no puede eliminar un plan ajeno',
+  (await as(B, `delete from public.plans where id = $1 returning id`, [editPlanId])).rows.length ===
+    0
+);
+check(
+  'A elimina el plan (delete ... returning)',
+  (await as(A, `delete from public.plans where id = $1 returning id`, [editPlanId])).rows[0]?.id ===
+    editPlanId
+);
+
+// --- Unirse con código
+const codePlan = (
+  await as(
+    A,
+    `select public.create_plan('Con código', now() + interval '4 days', array['gp_1']) as id`
+  )
+).rows[0]?.id;
+const codeOf = async (userId, id) =>
+  (await as(userId, `select invite_code from public.plans where id = $1`, [id])).rows[0]
+    ?.invite_code;
+const joinWith = (userId, value) =>
+  as(userId, `select plan_id, already_member from public.join_plan_by_code($1)`, [value]);
+const roleOf = async (userId) =>
+  (
+    await db.query(`select role from public.plan_members where plan_id = $1 and user_id = $2`, [
+      codePlan,
+      userId,
+    ])
+  ).rows[0]?.role;
+
+const code = await codeOf(A, codePlan);
+check(
+  'cada plan tiene un código de 8 caracteres sin 0, O, 1, I ni L',
+  /^[A-HJKMNP-Z2-9]{8}$/.test(code ?? ''),
+  code
+);
+check(
+  'C no ve el código de un plan ajeno',
+  (await as(C, `select invite_code from public.plans where id = $1`, [codePlan])).rows.length === 0
+);
+const typed = `${code.slice(0, 4)}-${code.slice(4)}`.toLowerCase();
+const joined = await joinWith(C, typed);
+check(
+  'C se une con el código (en minúsculas y con guion)',
+  joined.rows[0]?.plan_id === codePlan && joined.rows[0]?.already_member === false,
+  JSON.stringify(joined)
+);
+check('C queda como invitado', (await roleOf(C)) === 'member');
+check('C ve el código y puede compartirlo', (await codeOf(C, codePlan)) === code);
+check(
+  'unirse otra vez avisa que ya era miembro',
+  (await joinWith(C, code)).rows[0]?.already_member === true
+);
+check(
+  'el dueño con su propio código no cambia de rol',
+  (await joinWith(A, code)).rows[0]?.already_member === true && (await roleOf(A)) === 'owner'
+);
+check(
+  'un código que no existe da error',
+  /código/.test((await joinWith(B, 'ZZZZZZZZ')).error ?? ''),
+  'se permitió'
+);
+check(
+  'anon no puede unirse con código',
+  !!(await asAnon(`select * from public.join_plan_by_code($1)`, [code])).error
+);
+
+check(
+  'un invitado no puede cambiar el código',
+  !!(await as(C, `select public.regenerate_plan_invite_code($1)`, [codePlan])).error,
+  'se permitió'
+);
+const regenerated = await as(A, `select public.regenerate_plan_invite_code($1) as code`, [
+  codePlan,
+]);
+const newCode = regenerated.rows[0]?.code;
+check(
+  'el dueño cambia el código',
+  !!newCode && newCode !== code && newCode === (await codeOf(A, codePlan)),
+  regenerated.error
+);
+check('el código anterior deja de servir', !!(await joinWith(B, code)).error, 'se permitió');
+check(
+  'con el código nuevo sí se puede unir',
+  (await joinWith(B, newCode)).rows[0]?.already_member === false
+);
+check(
+  'cambiar el código no saca a nadie del plan',
+  (
+    await db.query(`select count(*)::int as n from public.plan_members where plan_id = $1`, [
+      codePlan,
+    ])
+  ).rows[0].n === 3
+);
+check(
+  'los códigos no se repiten',
+  (
+    await db.query(
+      `select count(distinct private.generate_invite_code())::int as n from generate_series(1, 300)`
+    )
+  ).rows[0].n === 300
+);
+await as(A, `delete from public.plans where id = $1`, [codePlan]);
 
 // --- Usuario sin sesión
 check('anon no ve planes', (await asAnon(`select * from public.plans`)).rows.length === 0);

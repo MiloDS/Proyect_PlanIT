@@ -27,4 +27,13 @@ export const colors = {
   successBorder: '#86EFAC',
 
   weather: '#38BDF8',
+  weatherNight: '#1E40AF',
+
+  // Categorías de lugares (íconos y marcadores del mapa)
+  categoryNature: '#27ae60',
+  categoryFood: '#F97316',
+  categoryCulture: '#8B5CF6',
+  categoryEntertainment: '#EC4899',
+  categoryOther: '#3B82F6',
+  rating: '#F59E0B',
 };

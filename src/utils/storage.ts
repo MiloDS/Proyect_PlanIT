@@ -16,3 +16,28 @@ export async function hasSeenOnboarding(): Promise<boolean> {
 export async function resetOnboarding(): Promise<void> {
   await AsyncStorage.removeItem(ONBOARDING_KEY);
 }
+
+// Recordatorios de planes: es una preferencia de este teléfono, no de la cuenta
+const REMINDERS_KEY = 'planReminders';
+
+export type ReminderSettings = {
+  enabled: boolean;
+  minutesBefore: number;
+};
+
+export const DEFAULT_REMINDER_SETTINGS: ReminderSettings = { enabled: false, minutesBefore: 60 };
+
+export async function getReminderSettings(): Promise<ReminderSettings> {
+  try {
+    const value = await AsyncStorage.getItem(REMINDERS_KEY);
+    return value
+      ? { ...DEFAULT_REMINDER_SETTINGS, ...JSON.parse(value) }
+      : DEFAULT_REMINDER_SETTINGS;
+  } catch {
+    return DEFAULT_REMINDER_SETTINGS;
+  }
+}
+
+export async function saveReminderSettings(settings: ReminderSettings): Promise<void> {
+  await AsyncStorage.setItem(REMINDERS_KEY, JSON.stringify(settings));
+}
