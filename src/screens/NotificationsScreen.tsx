@@ -19,14 +19,16 @@ import { Banner } from '../components/Banner';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { PlanReminders, REMINDER_OPTIONS, ReminderPermission } from '../services/planReminders';
 import { PlansService } from '../services/plansService';
-import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { ReminderSettings, getReminderSettings, saveReminderSettings } from '../utils/storage';
 import { messages } from '../utils/messages';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Notifications'>;
 
 export function NotificationsScreen({ navigation }: Props) {
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors);
   const [settings, setSettings] = useState<ReminderSettings | null>(null);
   const [permission, setPermission] = useState<ReminderPermission | null>(null);
   const [askedPermission, setAskedPermission] = useState(false);
@@ -57,7 +59,7 @@ export function NotificationsScreen({ navigation }: Props) {
 
   if (!settings || !permission) {
     return (
-      <View style={globalStyles.screen}>
+      <View style={[globalStyles.screen, { backgroundColor: colors.background }]}>
         <ScreenHeader title="Notificaciones" onBack={() => navigation.goBack()} />
         <ActivityIndicator color={colors.primary} style={styles.loading} />
       </View>
@@ -98,8 +100,8 @@ export function NotificationsScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: colors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScreenHeader
         title="Notificaciones"
         subtitle="Recordatorios de tus planes"
@@ -181,119 +183,121 @@ export function NotificationsScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  loading: {
-    marginTop: 40,
-  },
-  content: {
-    paddingHorizontal: 24,
-    paddingTop: 22,
-    paddingBottom: 32,
-  },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: 16,
-  },
-  iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardText: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  cardDescription: {
-    fontSize: 12,
-    lineHeight: 17,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  warning: {
-    gap: 8,
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: colors.dangerSurface,
-    borderWidth: 1,
-    borderColor: colors.dangerBorder,
-    marginBottom: 16,
-  },
-  warningText: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: colors.danger,
-  },
-  link: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginTop: 8,
-    marginBottom: 10,
-  },
-  options: {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    overflow: 'hidden',
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 54,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.white,
-  },
-  pressed: {
-    backgroundColor: colors.surface,
-  },
-  optionLabel: {
-    fontSize: 14,
-    color: colors.textPrimary,
-  },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: colors.inactive,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioSelected: {
-    borderColor: colors.primary,
-  },
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.primary,
-  },
-  footnote: {
-    fontSize: 12,
-    lineHeight: 17,
-    color: colors.textMuted,
-    marginTop: 20,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    loading: {
+      marginTop: 40,
+    },
+    content: {
+      paddingHorizontal: 24,
+      paddingTop: 22,
+      paddingBottom: 32,
+    },
+    card: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 16,
+      borderRadius: 16,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 16,
+    },
+    iconCircle: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.card,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cardText: {
+      flex: 1,
+    },
+    cardTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    cardDescription: {
+      fontSize: 12,
+      lineHeight: 17,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    warning: {
+      gap: 8,
+      padding: 14,
+      borderRadius: 12,
+      backgroundColor: colors.dangerSurface,
+      borderWidth: 1,
+      borderColor: colors.dangerBorder,
+      marginBottom: 16,
+    },
+    warningText: {
+      fontSize: 13,
+      lineHeight: 18,
+      color: colors.danger,
+    },
+    link: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    sectionTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginTop: 8,
+      marginBottom: 10,
+    },
+    options: {
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      overflow: 'hidden',
+    },
+    option: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      minHeight: 54,
+      paddingHorizontal: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.card,
+    },
+    pressed: {
+      backgroundColor: colors.surface,
+    },
+    optionLabel: {
+      fontSize: 14,
+      color: colors.textPrimary,
+    },
+    radio: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      borderWidth: 2,
+      borderColor: colors.inactive,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    radioSelected: {
+      borderColor: colors.primary,
+    },
+    radioDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: colors.primary,
+    },
+    footnote: {
+      fontSize: 12,
+      lineHeight: 17,
+      color: colors.textMuted,
+      marginTop: 20,
+    },
+  });
+}

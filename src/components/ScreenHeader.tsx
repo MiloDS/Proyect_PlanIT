@@ -3,12 +3,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft } from 'lucide-react-native';
 
 import { ScreenHeaderProps } from '../types/components';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 // Encabezado de las pantallas que se abren encima de las pestañas (Sorpréndeme,
 // Recomendaciones, Crear plan): botón para volver, título y subtítulo centrados
 export function ScreenHeader({ title, subtitle, onBack, children }: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
 
   return (
     <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
@@ -34,39 +36,41 @@ export function ScreenHeader({ title, subtitle, onBack, children }: ScreenHeader
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    paddingBottom: 18,
-    paddingHorizontal: 64,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backButtonPressed: {
-    backgroundColor: colors.borderStrong,
-    transform: [{ scale: 0.95 }],
-  },
-  title: {
-    color: colors.textPrimary,
-    fontSize: 21,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  subtitle: {
-    color: colors.textMuted,
-    fontSize: 12,
-    fontWeight: '500',
-    marginTop: 3,
-    textAlign: 'center',
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    header: {
+      paddingBottom: 18,
+      paddingHorizontal: 64,
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    backButton: {
+      position: 'absolute',
+      left: 20,
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: colors.surfaceMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    backButtonPressed: {
+      backgroundColor: colors.borderStrong,
+      transform: [{ scale: 0.95 }],
+    },
+    title: {
+      color: colors.textPrimary,
+      fontSize: 21,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    subtitle: {
+      color: colors.textMuted,
+      fontSize: 12,
+      fontWeight: '500',
+      marginTop: 3,
+      textAlign: 'center',
+    },
+  });
+}

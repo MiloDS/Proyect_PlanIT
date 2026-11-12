@@ -71,7 +71,7 @@ PlanIt/
 │   ├── navigation/         # React Navigation setup
 │   ├── screens/            # App screens
 │   ├── services/           # Auth, profile, places, weather, recommendations, favorites, plans, reminders and location services, contexts and hooks
-│   ├── styles/             # Colors and global styles
+│   ├── styles/             # Light and dark color palettes and global styles
 │   ├── types/              # Shared types (navigation, component props, auth, places, plans, weather)
 │   └── utils/              # Utilities (Supabase client, form rules, messages, AsyncStorage, user data, dates, place icons, weather codes)
 ├── supabase/               # Migrations, RLS tests and the `places` Edge Function (Google Places)
@@ -119,7 +119,7 @@ flowchart TD
 | `PlanDetailScreen` | Date, start and estimated end time, transport, budget per person, notes, the itinerary (arrival time at each place and travel time between them) and members; the plan code, which any member can share or show as a QR; the owner invites people by email, changes the code, removes guests, edits and deletes the plan; guests can leave |
 | `CreatePlanScreen` | Plan organizer: name, date, start time, how the group travels, places in visiting order (nearby, favorites or search) with the time spent at each, travel times, estimated end time, budget per person and notes. Opens the new plan when saved; also edits an existing plan |
 | `FavoritesScreen` | Favorite places and plans (All / Places / Plans); pull down to refresh |
-| `ProfileScreen` | User data, settings menu, and logout |
+| `ProfileScreen` | User data, settings menu (including dark mode), and logout |
 | `EditProfileScreen` | Change the name and the photo other people see in your plans (the email is read-only) |
 | `NotificationsScreen` | Turn plan reminders on or off and choose when they arrive |
 | `HelpScreen` | Frequently asked questions and information about the app |
@@ -218,6 +218,12 @@ The screen shows a note explaining how the weather and the company changed the o
 In **Profile → Notificaciones** each person can turn on a reminder before their plans (30 minutes, 1 hour, 3 hours or 1 day before). They are local notifications scheduled on the phone with `expo-notifications` (`src/services/planReminders.ts`), so they arrive with the app closed and need no server; the preference is stored on the device. Reminders are rescheduled every time the app loads plans (on startup, in Mis planes and in a plan's detail), so changes made by other members are picked up; leaving or deleting a plan and signing out cancel them, and tapping a reminder opens the plan.
 
 Local notifications work in Expo Go. Push notifications don't (that would need a development build), which is why the app hides the two warnings `expo-notifications` prints about them in Expo Go (`src/utils/devWarnings.ts`).
+
+### Dark mode
+
+The app follows the phone's light or dark setting until the person chooses one in **Profile → Modo oscuro**; that choice is stored on the device (`src/utils/storage.ts`) and is used from then on. Both palettes live in `src/styles/colors.ts` (`lightColors` and `darkColors`). `ThemeContext` (`src/services/ThemeContext.tsx`) picks one, and screens, components, the navigation theme and the status bar read it with `useTheme()`. A few things keep fixed colors on purpose: the launch screen, the map markers, the QR code (it needs a white background to be scanned) and white text on green.
+
+For the phone's setting to reach the app, `app.json` sets `userInterfaceStyle` to `automatic`, and `expo-system-ui` applies it on Android.
 
 ### Running the app
 
@@ -372,7 +378,7 @@ PlanIt/
 │   ├── navigation/         # Configuración de React Navigation
 │   ├── screens/            # Pantallas de la app
 │   ├── services/           # Servicios de auth, perfil, lugares, clima, recomendaciones, favoritos, planes, recordatorios y ubicación; contextos y hooks
-│   ├── styles/             # Colores y estilos globales
+│   ├── styles/             # Paletas de colores clara y oscura y estilos globales
 │   ├── types/              # Tipos compartidos (navegación, props de componentes, auth, lugares, planes, clima)
 │   └── utils/              # Utilidades (cliente de Supabase, reglas de los formularios, mensajes, AsyncStorage, datos del usuario, fechas, íconos de lugares, códigos del clima)
 ├── supabase/               # Migraciones, pruebas de RLS y la Edge Function `places` (Google Places)
@@ -420,7 +426,7 @@ flowchart TD
 | `PlanDetailScreen` | Fecha, hora de inicio y de fin aproximada, transporte, presupuesto por persona, notas, el itinerario (hora de llegada a cada lugar y traslado entre ellos) y las personas; el código del plan, que cualquier miembro puede compartir o mostrar como QR; el dueño invita por correo, cambia el código, quita invitados, edita y elimina el plan; los invitados pueden salirse |
 | `CreatePlanScreen` | Organizador del plan: nombre, fecha, hora de inicio, cómo se mueven, lugares en el orden de visita (cercanos, favoritos o búsqueda) con el tiempo en cada uno, traslados, hora de fin aproximada, presupuesto por persona y notas. Al guardar abre el plan nuevo; también edita un plan existente |
 | `FavoritesScreen` | Lugares y planes favoritos (Todos / Lugares / Planes); se actualizan al deslizar hacia abajo |
-| `ProfileScreen` | Datos del usuario, menú de ajustes y cierre de sesión |
+| `ProfileScreen` | Datos del usuario, menú de ajustes (con el modo oscuro) y cierre de sesión |
 | `EditProfileScreen` | Cambiar el nombre y la foto que ven las personas de tus planes (el correo es de solo lectura) |
 | `NotificationsScreen` | Activar o desactivar los recordatorios de planes y elegir cuándo llegan |
 | `HelpScreen` | Preguntas frecuentes e información sobre la app |
@@ -519,6 +525,12 @@ La pantalla muestra una nota que explica cómo cambiaron el orden el clima y la 
 En **Perfil → Notificaciones** cada persona puede activar un recordatorio antes de sus planes (30 minutos, 1 hora, 3 horas o 1 día antes). Son notificaciones locales que se programan en el teléfono con `expo-notifications` (`src/services/planReminders.ts`), así que llegan con la app cerrada y no necesitan servidor; la preferencia se guarda en el dispositivo. Los recordatorios se reprograman cada vez que la app carga los planes (al abrirla, en Mis planes y en el detalle de un plan), así se enteran de los cambios que hagan otras personas; salir de un plan, eliminarlo o cerrar sesión los cancela, y tocar un recordatorio abre el plan.
 
 Las notificaciones locales funcionan en Expo Go. Las push no (necesitarían un development build), por eso la app oculta los dos avisos que `expo-notifications` muestra sobre ellas en Expo Go (`src/utils/devWarnings.ts`).
+
+### Modo oscuro
+
+La app sigue el tema claro u oscuro del teléfono hasta que la persona elige uno en **Perfil → Modo oscuro**; esa elección se guarda en el dispositivo (`src/utils/storage.ts`) y se usa desde entonces. Las dos paletas están en `src/styles/colors.ts` (`lightColors` y `darkColors`). `ThemeContext` (`src/services/ThemeContext.tsx`) elige una, y las pantallas, los componentes, el tema de la navegación y la barra de estado la leen con `useTheme()`. Algunas cosas mantienen colores fijos a propósito: la pantalla de carga, los marcadores del mapa, el código QR (necesita fondo blanco para que se pueda escanear) y el texto blanco sobre verde.
+
+Para que el tema del teléfono llegue a la app, `app.json` pone `userInterfaceStyle` en `automatic` y `expo-system-ui` lo aplica en Android.
 
 ### Ejecución
 

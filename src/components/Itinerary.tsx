@@ -16,7 +16,7 @@ import {
 import { ItineraryListProps, ItinerarySummaryProps } from '../types/components';
 import { RouteLeg, TransportMode } from '../types/plans';
 import { PlaceListItem } from './PlaceListItem';
-import { colors } from '../styles/colors';
+import { ThemeColors, useTheme } from '../services/ThemeContext';
 import { formatDuration, formatTime } from '../utils/date';
 import { formatDistance } from '../utils/geo';
 
@@ -45,6 +45,9 @@ function IconButton({
   onPress: () => void;
   disabled?: boolean;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+
   return (
     <Pressable
       onPress={onPress}
@@ -76,6 +79,8 @@ export function ItineraryList({
   onRemove,
   onChangeStay,
 }: ItineraryListProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const editable = !!onMove;
   const LegIcon = TRANSPORT_ICONS[transportMode];
 
@@ -169,6 +174,9 @@ export function ItinerarySummary({
   legsError,
   onRetryLegs,
 }: ItinerarySummaryProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+
   if (!itinerary.endsAt) return null;
 
   const details: string[] = [];
@@ -202,127 +210,129 @@ export function ItinerarySummary({
   );
 }
 
-const styles = StyleSheet.create({
-  stopHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  stopNumber: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primary,
-  },
-  stopNumberText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.white,
-  },
-  stopTime: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  stopStay: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  controls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  stayChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    minHeight: 36,
-    paddingHorizontal: 12,
-    borderRadius: 18,
-    backgroundColor: colors.primaryLight,
-  },
-  stayChipText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.primaryDark,
-  },
-  moveButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceMuted,
-  },
-  leg: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    minHeight: 44,
-    paddingLeft: 4,
-    marginVertical: 4,
-  },
-  legLine: {
-    position: 'absolute',
-    left: 10,
-    top: 0,
-    bottom: 0,
-    borderLeftWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: colors.borderStrong,
-  },
-  legText: {
-    flex: 1,
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginLeft: 8,
-  },
-  summary: {
-    gap: 4,
-    marginTop: 14,
-    padding: 14,
-    borderRadius: 14,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  summaryTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  summaryText: {
-    fontSize: 13,
-    color: colors.textBody,
-    marginLeft: 26,
-  },
-  summaryNote: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginLeft: 26,
-  },
-  retry: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.primary,
-    marginLeft: 26,
-    marginTop: 2,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    stopHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 8,
+    },
+    stopNumber: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primary,
+    },
+    stopNumberText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.white,
+    },
+    stopTime: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    stopStay: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    controls: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 8,
+    },
+    stayChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      minHeight: 36,
+      paddingHorizontal: 12,
+      borderRadius: 18,
+      backgroundColor: colors.primaryLight,
+    },
+    stayChipText: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.primaryDark,
+    },
+    moveButtons: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    iconButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surfaceMuted,
+    },
+    leg: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      minHeight: 44,
+      paddingLeft: 4,
+      marginVertical: 4,
+    },
+    legLine: {
+      position: 'absolute',
+      left: 10,
+      top: 0,
+      bottom: 0,
+      borderLeftWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: colors.borderStrong,
+    },
+    legText: {
+      flex: 1,
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginLeft: 8,
+    },
+    summary: {
+      gap: 4,
+      marginTop: 14,
+      padding: 14,
+      borderRadius: 14,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    summaryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    summaryTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    summaryText: {
+      fontSize: 13,
+      color: colors.textBody,
+      marginLeft: 26,
+    },
+    summaryNote: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginLeft: 26,
+    },
+    retry: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.primary,
+      marginLeft: 26,
+      marginTop: 2,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+  });
+}

@@ -26,8 +26,8 @@ import { PlaceMarker } from '../components/PlaceMarker';
 import { useFavorites } from '../services/FavoritesContext';
 import { LocationService } from '../services/locationService';
 import { NEARBY_RADIUS_METERS, PlacesService, SEARCH_CATEGORIES } from '../services/placesService';
-import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { distanceKm } from '../utils/geo';
 
 type Props = CompositeScreenProps<
@@ -68,6 +68,8 @@ function radiusForRegion(region: Region): number {
 export function SearchScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors);
   const { isFavoritePlace, togglePlace } = useFavorites();
 
   const [position, setPosition] = useState<DevicePosition | null>(null);
@@ -152,8 +154,8 @@ export function SearchScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: colors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
 
       {position ? (
         <MapView
@@ -333,147 +335,151 @@ export function SearchScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  mapLoading: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surfaceMuted,
-  },
-  header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginHorizontal: 16,
-    paddingHorizontal: 14,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.white,
-    elevation: 4,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: colors.textPrimary,
-    paddingVertical: 0,
-  },
-  chips: {
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  statusRow: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    maxWidth: '90%',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 18,
-    backgroundColor: colors.white,
-    elevation: 3,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.12,
-    shadowRadius: 3,
-  },
-  statusText: {
-    fontSize: 12,
-    color: colors.textBody,
-    flexShrink: 1,
-  },
-  errorText: {
-    color: colors.danger,
-  },
-  retryText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  locateButton: {
-    position: 'absolute',
-    right: 16,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-  },
-  card: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 12,
-    borderRadius: 18,
-    backgroundColor: colors.white,
-    elevation: 6,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-  },
-  cardImage: {
-    width: 84,
-    height: 84,
-    borderRadius: 12,
-  },
-  cardInfo: {
-    flex: 1,
-  },
-  cardName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  cardCategory: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  cardMeta: {
-    fontSize: 12,
-    color: colors.textBody,
-    marginTop: 4,
-  },
-  cardRating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 4,
-  },
-  cardRatingText: {
-    fontSize: 12,
-    color: colors.textBody,
-  },
-  pressed: {
-    opacity: 0.8,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    mapLoading: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.surfaceMuted,
+    },
+    header: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+    },
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginHorizontal: 16,
+      paddingHorizontal: 14,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.card,
+      elevation: 4,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.12,
+      shadowRadius: 4,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 15,
+      color: colors.textPrimary,
+      paddingVertical: 0,
+    },
+    chips: {
+      gap: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    statusRow: {
+      alignItems: 'center',
+      gap: 8,
+    },
+    statusPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      maxWidth: '90%',
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 18,
+      backgroundColor: colors.card,
+      elevation: 3,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.12,
+      shadowRadius: 3,
+    },
+    statusText: {
+      fontSize: 12,
+      color: colors.textBody,
+      flexShrink: 1,
+    },
+    errorText: {
+      color: colors.danger,
+    },
+    retryText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    locateButton: {
+      position: 'absolute',
+      right: 16,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      alignItems: 'center',
+      justifyContent: 'center',
+      elevation: 4,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.15,
+      shadowRadius: 3,
+    },
+    card: {
+      position: 'absolute',
+      left: 16,
+      right: 16,
+      bottom: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 12,
+      borderRadius: 18,
+      backgroundColor: colors.card,
+      elevation: 6,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.15,
+      shadowRadius: 6,
+    },
+    cardImage: {
+      width: 84,
+      height: 84,
+      borderRadius: 12,
+    },
+    cardInfo: {
+      flex: 1,
+    },
+    cardName: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    cardCategory: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    cardMeta: {
+      fontSize: 12,
+      color: colors.textBody,
+      marginTop: 4,
+    },
+    cardRating: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: 4,
+    },
+    cardRatingText: {
+      fontSize: 12,
+      color: colors.textBody,
+    },
+    pressed: {
+      opacity: 0.8,
+    },
+  });
+}

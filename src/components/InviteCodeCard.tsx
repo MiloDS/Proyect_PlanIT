@@ -14,7 +14,7 @@ import { LucideIcon, QrCode as QrCodeIcon, RefreshCw, Share2 } from 'lucide-reac
 import { InviteCodeCardProps } from '../types/components';
 import { Button } from './Button';
 import { QrCode } from './QrCode';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { formatInviteCode, getInviteQrValue } from '../utils/inviteCode';
 import { messages } from '../utils/messages';
 
@@ -25,11 +25,15 @@ function CardAction({
   label,
   onPress,
   busy = false,
+  styles,
+  primaryColor,
 }: {
   Icon: LucideIcon;
   label: string;
   onPress: () => void;
   busy?: boolean;
+  styles: ReturnType<typeof makeStyles>;
+  primaryColor: string;
 }) {
   return (
     <Pressable
@@ -40,9 +44,9 @@ function CardAction({
       style={({ pressed }) => [styles.action, pressed && styles.pressed]}
     >
       {busy ? (
-        <ActivityIndicator size="small" color={colors.primary} />
+        <ActivityIndicator size="small" color={primaryColor} />
       ) : (
-        <Icon size={17} color={colors.primary} />
+        <Icon size={17} color={primaryColor} />
       )}
       <Text style={styles.actionText}>{label}</Text>
     </Pressable>
@@ -54,6 +58,8 @@ function CardAction({
  * Cualquiera del plan lo puede compartir; solo el dueño lo cambia.
  */
 export function InviteCodeCard({ code, planTitle, onRegenerate }: InviteCodeCardProps) {
+  const { colors: themeColors } = useTheme();
+  const styles = makeStyles(themeColors);
   const [qrOpen, setQrOpen] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const formatted = formatInviteCode(code);
@@ -94,14 +100,28 @@ export function InviteCodeCard({ code, planTitle, onRegenerate }: InviteCodeCard
       </Text>
 
       <View style={styles.actions}>
-        <CardAction Icon={Share2} label="Compartir" onPress={share} />
-        <CardAction Icon={QrCodeIcon} label="Ver QR" onPress={() => setQrOpen(true)} />
+        <CardAction
+          Icon={Share2}
+          label="Compartir"
+          onPress={share}
+          styles={styles}
+          primaryColor={themeColors.primary}
+        />
+        <CardAction
+          Icon={QrCodeIcon}
+          label="Ver QR"
+          onPress={() => setQrOpen(true)}
+          styles={styles}
+          primaryColor={themeColors.primary}
+        />
         {!!onRegenerate && (
           <CardAction
             Icon={RefreshCw}
             label="Cambiar"
             onPress={confirmRegenerate}
             busy={regenerating}
+            styles={styles}
+            primaryColor={themeColors.primary}
           />
         )}
       </View>
@@ -144,107 +164,109 @@ export function InviteCodeCard({ code, planTitle, onRegenerate }: InviteCodeCard
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    marginTop: 14,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: colors.primaryLight,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.primaryDark,
-  },
-  code: {
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: 3,
-    color: colors.textPrimary,
-    marginTop: 4,
-  },
-  hint: {
-    fontSize: 12,
-    lineHeight: 17,
-    color: colors.textBody,
-    marginTop: 4,
-  },
-  actions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 12,
-  },
-  action: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    minHeight: 40,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: colors.white,
-  },
-  actionText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  overlay: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-    backgroundColor: colors.overlay,
-  },
-  qrCard: {
-    width: '100%',
-    maxWidth: 340,
-    alignItems: 'center',
-    padding: 24,
-    borderRadius: 24,
-    backgroundColor: colors.white,
-  },
-  qrTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    textAlign: 'center',
-  },
-  qrFrame: {
-    marginTop: 16,
-    padding: 8,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.white,
-  },
-  qrCode: {
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: 3,
-    color: colors.textPrimary,
-    marginTop: 14,
-  },
-  qrHint: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 6,
-  },
-  closeButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
-    marginTop: 8,
-    alignSelf: 'stretch',
-  },
-  closeText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textSecondary,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    card: {
+      marginTop: 14,
+      padding: 16,
+      borderRadius: 16,
+      backgroundColor: colors.primaryLight,
+    },
+    label: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.primaryDark,
+    },
+    code: {
+      fontSize: 28,
+      fontWeight: '800',
+      letterSpacing: 3,
+      color: colors.textPrimary,
+      marginTop: 4,
+    },
+    hint: {
+      fontSize: 12,
+      lineHeight: 17,
+      color: colors.textBody,
+      marginTop: 4,
+    },
+    actions: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 12,
+    },
+    action: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      minHeight: 40,
+      paddingHorizontal: 14,
+      borderRadius: 20,
+      backgroundColor: colors.card,
+    },
+    actionText: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    overlay: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 24,
+      backgroundColor: colors.overlay,
+    },
+    qrCard: {
+      width: '100%',
+      maxWidth: 340,
+      alignItems: 'center',
+      padding: 24,
+      borderRadius: 24,
+      backgroundColor: colors.card,
+    },
+    qrTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      textAlign: 'center',
+    },
+    qrFrame: {
+      marginTop: 16,
+      padding: 8,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.white,
+    },
+    qrCode: {
+      fontSize: 22,
+      fontWeight: '800',
+      letterSpacing: 3,
+      color: colors.textPrimary,
+      marginTop: 14,
+    },
+    qrHint: {
+      fontSize: 13,
+      lineHeight: 19,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      marginTop: 6,
+    },
+    closeButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 48,
+      marginTop: 8,
+      alignSelf: 'stretch',
+    },
+    closeText: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textSecondary,
+    },
+  });
+}

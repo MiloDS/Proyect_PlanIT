@@ -5,7 +5,7 @@ import { Check } from 'lucide-react-native';
 
 import { OptionsSheetProps, SheetOption } from '../types/components';
 import { Button } from './Button';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 /**
  * Hoja inferior con una lista de acciones, por ejemplo tomar o elegir una foto. Reemplaza
@@ -13,6 +13,8 @@ import { colors } from '../styles/colors';
  */
 export function OptionsSheet({ visible, title, options, onClose }: OptionsSheetProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   // En iOS no se puede abrir otra pantalla (como la cámara) mientras la hoja se cierra:
   // la acción espera a que termine de cerrarse
   const pendingAction = useRef<(() => void) | null>(null);
@@ -84,73 +86,75 @@ export function OptionsSheet({ visible, title, options, onClose }: OptionsSheetP
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: colors.overlay,
-  },
-  backdrop: {
-    flex: 1,
-  },
-  sheet: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingTop: 10,
-  },
-  handle: {
-    alignSelf: 'center',
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.borderStrong,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 19,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 8,
-  },
-  options: {
-    maxHeight: 420,
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    minHeight: 56,
-    paddingHorizontal: 4,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  optionPressed: {
-    backgroundColor: colors.surface,
-  },
-  optionText: {
-    flex: 1,
-  },
-  optionLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  optionDescription: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  cancelButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
-    marginTop: 8,
-  },
-  cancelText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textSecondary,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: colors.overlay,
+    },
+    backdrop: {
+      flex: 1,
+    },
+    sheet: {
+      backgroundColor: colors.card,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingHorizontal: 24,
+      paddingTop: 10,
+    },
+    handle: {
+      alignSelf: 'center',
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.borderStrong,
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 19,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginBottom: 8,
+    },
+    options: {
+      maxHeight: 420,
+    },
+    option: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+      minHeight: 56,
+      paddingHorizontal: 4,
+      paddingVertical: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    optionPressed: {
+      backgroundColor: colors.surface,
+    },
+    optionText: {
+      flex: 1,
+    },
+    optionLabel: {
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    optionDescription: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    cancelButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 48,
+      marginTop: 8,
+    },
+    cancelText: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textSecondary,
+    },
+  });
+}

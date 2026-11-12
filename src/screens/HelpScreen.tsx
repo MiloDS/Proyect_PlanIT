@@ -6,8 +6,8 @@ import { ChevronDown, ChevronUp } from 'lucide-react-native';
 
 import { AppStackParamList } from '../types/navigation';
 import { ScreenHeader } from '../components/ScreenHeader';
-import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Help'>;
 
@@ -79,7 +79,17 @@ const QUESTIONS = [
   },
 ];
 
-function Question({ question, answer }: { question: string; answer: string }) {
+function Question({
+  question,
+  answer,
+  styles,
+  chevronColor,
+}: {
+  question: string;
+  answer: string;
+  styles: ReturnType<typeof makeStyles>;
+  chevronColor: string;
+}) {
   const [expanded, setExpanded] = useState(false);
   const Chevron = expanded ? ChevronUp : ChevronDown;
 
@@ -92,7 +102,7 @@ function Question({ question, answer }: { question: string; answer: string }) {
         style={({ pressed }) => [styles.questionRow, pressed && styles.pressed]}
       >
         <Text style={styles.question}>{question}</Text>
-        <Chevron size={18} color={colors.textSecondary} />
+        <Chevron size={18} color={chevronColor} />
       </Pressable>
       {expanded && <Text style={styles.answer}>{answer}</Text>}
     </View>
@@ -100,9 +110,12 @@ function Question({ question, answer }: { question: string; answer: string }) {
 }
 
 export function HelpScreen({ navigation }: Props) {
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
+
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: themeColors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScreenHeader
         title="Ayuda y soporte"
         subtitle="Preguntas frecuentes"
@@ -112,7 +125,12 @@ export function HelpScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.list}>
           {QUESTIONS.map((item) => (
-            <Question key={item.question} {...item} />
+            <Question
+              key={item.question}
+              {...item}
+              styles={styles}
+              chevronColor={themeColors.textSecondary}
+            />
           ))}
         </View>
 
@@ -127,58 +145,61 @@ export function HelpScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    paddingHorizontal: 24,
-    paddingTop: 18,
-    paddingBottom: 32,
-  },
-  list: {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    overflow: 'hidden',
-  },
-  item: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  questionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    minHeight: 54,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  pressed: {
-    backgroundColor: colors.surface,
-  },
-  question: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-  answer: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: colors.textBody,
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginTop: 26,
-    marginBottom: 6,
-  },
-  about: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: colors.textSecondary,
-    marginBottom: 6,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    content: {
+      paddingHorizontal: 24,
+      paddingTop: 18,
+      paddingBottom: 32,
+    },
+    list: {
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      overflow: 'hidden',
+    },
+    item: {
+      backgroundColor: colors.card,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    questionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      minHeight: 54,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    pressed: {
+      backgroundColor: colors.surface,
+    },
+    question: {
+      flex: 1,
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    answer: {
+      fontSize: 13,
+      lineHeight: 19,
+      color: colors.textBody,
+      paddingHorizontal: 16,
+      paddingBottom: 14,
+    },
+    sectionTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginTop: 26,
+      marginBottom: 6,
+    },
+    about: {
+      fontSize: 13,
+      lineHeight: 19,
+      color: colors.textSecondary,
+      marginBottom: 6,
+    },
+  });
+}
