@@ -16,6 +16,7 @@ import { LocationService } from '../services/locationService';
 import { RecommendationsService } from '../services/recommendationsService';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { distanceKm } from '../utils/geo';
 import { messages } from '../utils/messages';
 
@@ -40,6 +41,8 @@ const NOTE_ICONS: Record<RecommendationNote['kind'], LucideIcon> = {
 export function RecommendationsScreen({ navigation, route }: Props) {
   const { preferences } = route.params;
   const insets = useSafeAreaInsets();
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
   const { isFavoritePlace, togglePlace } = useFavorites();
   const [state, setState] = useState<RecommendationsState>({
     status: 'loading',
@@ -87,8 +90,8 @@ export function RecommendationsScreen({ navigation, route }: Props) {
   const usesWeather = state.notes.some((note) => ['rain', 'night', 'sun'].includes(note.kind));
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: themeColors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
 
       <ScreenHeader title="Recomendaciones para ti" onBack={() => navigation.goBack()}>
         <View style={styles.summary}>
@@ -172,63 +175,65 @@ export function RecommendationsScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  summary: {
-    marginTop: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-    backgroundColor: colors.primaryLight,
-  },
-  summaryText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.primaryDark,
-    textAlign: 'center',
-  },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 18,
-  },
-  loading: {
-    alignItems: 'center',
-    paddingVertical: 48,
-    gap: 12,
-  },
-  loadingText: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  notes: {
-    gap: 8,
-    padding: 12,
-    borderRadius: 14,
-    backgroundColor: colors.primaryLight,
-    marginBottom: 16,
-  },
-  note: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-  },
-  noteText: {
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 18,
-    color: colors.primaryDark,
-  },
-  noteCredit: {
-    fontSize: 10,
-    color: colors.primaryDark,
-    opacity: 0.7,
-    textAlign: 'right',
-  },
-  list: {
-    gap: 12,
-  },
-  attribution: {
-    fontSize: 10,
-    color: colors.textMuted,
-    marginTop: 12,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    summary: {
+      marginTop: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 14,
+      backgroundColor: colors.primaryLight,
+    },
+    summaryText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.primaryDark,
+      textAlign: 'center',
+    },
+    content: {
+      paddingHorizontal: 20,
+      paddingTop: 18,
+    },
+    loading: {
+      alignItems: 'center',
+      paddingVertical: 48,
+      gap: 12,
+    },
+    loadingText: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    notes: {
+      gap: 8,
+      padding: 12,
+      borderRadius: 14,
+      backgroundColor: colors.primaryLight,
+      marginBottom: 16,
+    },
+    note: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 8,
+    },
+    noteText: {
+      flex: 1,
+      fontSize: 13,
+      lineHeight: 18,
+      color: colors.primaryDark,
+    },
+    noteCredit: {
+      fontSize: 10,
+      color: colors.primaryDark,
+      opacity: 0.7,
+      textAlign: 'right',
+    },
+    list: {
+      gap: 12,
+    },
+    attribution: {
+      fontSize: 10,
+      color: colors.textMuted,
+      marginTop: 12,
+    },
+  });
+}

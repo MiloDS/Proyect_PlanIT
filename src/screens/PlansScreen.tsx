@@ -28,6 +28,7 @@ import { usePlans } from '../services/usePlans';
 import { usePullToRefresh } from '../services/usePullToRefresh';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { isUpcoming } from '../utils/date';
 import { messages } from '../utils/messages';
 
@@ -45,6 +46,8 @@ const TABS: { value: Tab; label: string }[] = [
 
 export function PlansScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
   const plans = usePlans();
   const { isFavoritePlan, togglePlan } = useFavorites();
   const [activeTab, setActiveTab] = useState<Tab>('upcoming');
@@ -74,8 +77,8 @@ export function PlansScreen({ navigation }: Props) {
   const createPlan = () => navigation.navigate('CreatePlan');
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: themeColors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16 }]}
         showsVerticalScrollIndicator={false}
@@ -83,8 +86,8 @@ export function PlansScreen({ navigation }: Props) {
           <RefreshControl
             refreshing={pullToRefresh.refreshing}
             onRefresh={pullToRefresh.onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
+            colors={[themeColors.primary]}
+            tintColor={themeColors.primary}
             progressViewOffset={insets.top}
           />
         }
@@ -98,7 +101,7 @@ export function PlansScreen({ navigation }: Props) {
             hitSlop={8}
             style={({ pressed }) => [styles.joinButton, pressed && styles.pressed]}
           >
-            <ScanLine size={17} color={colors.primary} />
+            <ScanLine size={17} color={themeColors.primary} />
             <Text style={styles.joinText}>Unirme</Text>
           </Pressable>
         </View>
@@ -173,69 +176,71 @@ export function PlansScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 96,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 18,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  joinButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    minHeight: 36,
-    paddingHorizontal: 14,
-    borderRadius: 18,
-    backgroundColor: colors.primaryLight,
-  },
-  joinText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.primaryDark,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  tabs: {
-    marginBottom: 20,
-  },
-  loading: {
-    marginTop: 40,
-  },
-  cardsList: {
-    gap: 16,
-  },
-  fabContainer: {
-    position: 'absolute',
-    left: 24,
-    right: 24,
-    bottom: 16,
-  },
-  fabButton: {
-    flexDirection: 'row',
-    borderRadius: 24,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  fabIcon: {
-    marginRight: 6,
-  },
-  fabText: {
-    color: colors.white,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    scrollContent: {
+      paddingHorizontal: 24,
+      paddingBottom: 96,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 18,
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    joinButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      minHeight: 36,
+      paddingHorizontal: 14,
+      borderRadius: 18,
+      backgroundColor: colors.primaryLight,
+    },
+    joinText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.primaryDark,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    tabs: {
+      marginBottom: 20,
+    },
+    loading: {
+      marginTop: 40,
+    },
+    cardsList: {
+      gap: 16,
+    },
+    fabContainer: {
+      position: 'absolute',
+      left: 24,
+      right: 24,
+      bottom: 16,
+    },
+    fabButton: {
+      flexDirection: 'row',
+      borderRadius: 24,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.18,
+      shadowRadius: 6,
+      elevation: 5,
+    },
+    fabIcon: {
+      marginRight: 6,
+    },
+    fabText: {
+      color: colors.white,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+  });
+}

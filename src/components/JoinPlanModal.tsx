@@ -8,7 +8,7 @@ import { JoinPlanModalProps } from '../types/components';
 import { Banner } from './Banner';
 import { Button } from './Button';
 import { InputField } from './InputField';
-import { colors } from '../styles/colors';
+import { ThemeColors, useTheme } from '../services/ThemeContext';
 import { globalStyles } from '../styles/globalStyles';
 import { formatInviteCode, getInviteCodeFromQr } from '../utils/inviteCode';
 import { messages } from '../utils/messages';
@@ -22,6 +22,8 @@ const WRONG_QR_PAUSE_MS = 2500;
 // Hoja inferior para unirse a un plan con su código, escrito o escaneando el QR
 export function JoinPlanModal({ visible, onClose, onJoin }: JoinPlanModalProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [permission, requestPermission] = useCameraPermissions();
   const [code, setCode] = useState('');
   const [fieldError, setFieldError] = useState('');
@@ -165,72 +167,74 @@ export function JoinPlanModal({ visible, onClose, onJoin }: JoinPlanModalProps) 
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: colors.overlay,
-  },
-  backdrop: {
-    flex: 1,
-  },
-  sheet: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingTop: 10,
-  },
-  handle: {
-    alignSelf: 'center',
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.borderStrong,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 19,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  description: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: colors.textSecondary,
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  camera: {
-    height: 280,
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginBottom: 8,
-    backgroundColor: colors.black,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cameraFrame: {
-    width: 190,
-    height: 190,
-    borderRadius: 20,
-    borderWidth: 3,
-    borderColor: colors.white,
-  },
-  button: {
-    borderRadius: 16,
-  },
-  secondaryButton: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
-    marginTop: 4,
-  },
-  secondaryText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: colors.overlay,
+    },
+    backdrop: {
+      flex: 1,
+    },
+    sheet: {
+      backgroundColor: colors.card,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingHorizontal: 24,
+      paddingTop: 10,
+    },
+    handle: {
+      alignSelf: 'center',
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.borderStrong,
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 19,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    description: {
+      fontSize: 13,
+      lineHeight: 19,
+      color: colors.textSecondary,
+      marginTop: 4,
+      marginBottom: 16,
+    },
+    camera: {
+      height: 280,
+      borderRadius: 20,
+      overflow: 'hidden',
+      marginBottom: 8,
+      backgroundColor: colors.black,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cameraFrame: {
+      width: 190,
+      height: 190,
+      borderRadius: 20,
+      borderWidth: 3,
+      borderColor: colors.white,
+    },
+    button: {
+      borderRadius: 16,
+    },
+    secondaryButton: {
+      flexDirection: 'row',
+      gap: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 48,
+      marginTop: 4,
+    },
+    secondaryText: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+  });
+}

@@ -19,10 +19,10 @@ import { PlaceCard } from '../components/PlaceCard';
 import { Button } from '../components/Button';
 import { MemberAvatar } from '../components/MemberAvatar';
 import { WeatherCard } from '../components/WeatherCard';
-import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
 import { useAuth } from '../services/AuthContext';
 import { useProfile } from '../services/ProfileContext';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { useNearbyPlaces } from '../services/useNearbyPlaces';
 import { usePullToRefresh } from '../services/usePullToRefresh';
 import { useWeather } from '../services/useWeather';
@@ -36,6 +36,8 @@ type Props = CompositeScreenProps<
 
 export function HomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
   const { user } = useAuth();
   const { profile } = useProfile();
   const nearby = useNearbyPlaces();
@@ -50,8 +52,8 @@ export function HomeScreen({ navigation }: Props) {
   });
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: themeColors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
         showsVerticalScrollIndicator={false}
@@ -59,8 +61,8 @@ export function HomeScreen({ navigation }: Props) {
           <RefreshControl
             refreshing={pullToRefresh.refreshing}
             onRefresh={pullToRefresh.onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
+            colors={[themeColors.primary]}
+            tintColor={themeColors.primary}
             progressViewOffset={insets.top}
           />
         }
@@ -70,7 +72,7 @@ export function HomeScreen({ navigation }: Props) {
           accessible
           accessibilityLabel={`Ubicación: ${locationLabel}`}
         >
-          <MapPin size={16} color={colors.textPrimary} />
+          <MapPin size={16} color={themeColors.textPrimary} />
           <Text style={styles.locationText}>{locationLabel}</Text>
         </View>
 
@@ -101,7 +103,7 @@ export function HomeScreen({ navigation }: Props) {
             onPress={() => navigation.navigate('SurpriseMe')}
           >
             <Text style={styles.surpriseButtonText}>Sorpréndeme</Text>
-            <Sparkles size={16} color={colors.white} />
+            <Sparkles size={16} color={themeColors.white} />
           </Button>
         </View>
 
@@ -117,7 +119,7 @@ export function HomeScreen({ navigation }: Props) {
         </View>
 
         {nearby.status === 'loading' && (
-          <ActivityIndicator color={colors.primary} style={styles.placesStatus} />
+          <ActivityIndicator color={themeColors.primary} style={styles.placesStatus} />
         )}
 
         {nearby.status === 'error' && (
@@ -166,105 +168,107 @@ export function HomeScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 24,
-    marginBottom: 20,
-  },
-  locationText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginHorizontal: 4,
-  },
-  greeting: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  subGreeting: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginTop: 2,
-    marginBottom: 20,
-  },
-  surpriseCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 24,
-  },
-  surpriseHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  surpriseAvatar: {
-    marginRight: 12,
-  },
-  surpriseText: {
-    flex: 1,
-  },
-  surpriseTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  surpriseDescription: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  surpriseButton: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    minHeight: 44,
-  },
-  surpriseButtonText: {
-    color: colors.white,
-    fontWeight: '700',
-    fontSize: 14,
-    marginRight: 6,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  sectionLink: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  placesRow: {
-    paddingRight: 24,
-  },
-  placesStatus: {
-    paddingVertical: 24,
-    alignItems: 'center',
-    gap: 8,
-  },
-  placesMessage: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  attribution: {
-    fontSize: 10,
-    color: colors.textMuted,
-    marginTop: 8,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    scrollContent: {
+      paddingHorizontal: 24,
+      paddingTop: 16,
+      paddingBottom: 24,
+    },
+    locationRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      minHeight: 24,
+      marginBottom: 20,
+    },
+    locationText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.textPrimary,
+      marginHorizontal: 4,
+    },
+    greeting: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    subGreeting: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginTop: 2,
+      marginBottom: 20,
+    },
+    surpriseCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginBottom: 24,
+    },
+    surpriseHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 14,
+    },
+    surpriseAvatar: {
+      marginRight: 12,
+    },
+    surpriseText: {
+      flex: 1,
+    },
+    surpriseTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    surpriseDescription: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    surpriseButton: {
+      flexDirection: 'row',
+      paddingVertical: 12,
+      minHeight: 44,
+    },
+    surpriseButtonText: {
+      color: colors.white,
+      fontWeight: '700',
+      fontSize: 14,
+      marginRight: 6,
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    sectionLink: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+    placesRow: {
+      paddingRight: 24,
+    },
+    placesStatus: {
+      paddingVertical: 24,
+      alignItems: 'center',
+      gap: 8,
+    },
+    placesMessage: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+    attribution: {
+      fontSize: 10,
+      color: colors.textMuted,
+      marginTop: 8,
+    },
+  });
+}

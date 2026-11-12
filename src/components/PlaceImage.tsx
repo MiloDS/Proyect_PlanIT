@@ -3,13 +3,15 @@ import { Image } from 'expo-image';
 
 import { PlaceImageProps } from '../types/components';
 import { useImageFallback } from '../services/useImageFallback';
-import { colors } from '../styles/colors';
+import { ThemeColors, useTheme } from '../services/ThemeContext';
 import { getPlaceCategoryStyle } from '../utils/placeCategories';
 
 // Foto de un lugar o, si no tiene o no carga, el ícono de su categoría.
 // expo-image guarda las fotos en memoria y en disco: al volver a una pantalla no se
 // descargan otra vez, y aparecen con un fundido corto en vez de saltar
 export function PlaceImage({ uri, placeType, style, iconSize = 24 }: PlaceImageProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { showImage, onError } = useImageFallback(uri);
 
   if (showImage && uri) {
@@ -33,13 +35,15 @@ export function PlaceImage({ uri, placeType, style, iconSize = 24 }: PlaceImageP
   );
 }
 
-const styles = StyleSheet.create({
-  // El mismo fondo mientras la foto carga, para que no quede un hueco blanco
-  base: {
-    backgroundColor: colors.surfaceMuted,
-  },
-  placeholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    // El mismo fondo mientras la foto carga, para que no quede un hueco blanco
+    base: {
+      backgroundColor: colors.surfaceMuted,
+    },
+    placeholder: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });
+}

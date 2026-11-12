@@ -2,7 +2,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { MapPin } from 'lucide-react-native';
 import { PlaceCardProps } from '../types/components';
 import { PlaceImage } from './PlaceImage';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 export function PlaceCard({
   imageUrl,
@@ -12,6 +12,8 @@ export function PlaceCard({
   distanceKm,
   onPress,
 }: PlaceCardProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const distanceText = `${distanceKm.toFixed(1)} km`;
 
   return (
@@ -38,42 +40,44 @@ export function PlaceCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    width: 140,
-    marginRight: 12,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  image: {
-    width: '100%',
-    height: 90,
-    borderRadius: 12,
-    marginBottom: 6,
-  },
-  info: {
-    paddingHorizontal: 2,
-  },
-  name: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-  category: {
-    fontSize: 11,
-    color: colors.textMuted,
-    marginTop: 1,
-  },
-  distanceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  distance: {
-    fontSize: 11,
-    color: colors.primary,
-    fontWeight: '600',
-    marginLeft: 3,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    card: {
+      width: 140,
+      marginRight: 12,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    image: {
+      width: '100%',
+      height: 90,
+      borderRadius: 12,
+      marginBottom: 6,
+    },
+    info: {
+      paddingHorizontal: 2,
+    },
+    name: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.textPrimary,
+    },
+    category: {
+      fontSize: 11,
+      color: colors.textMuted,
+      marginTop: 1,
+    },
+    distanceRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 4,
+    },
+    distance: {
+      fontSize: 11,
+      color: colors.primary,
+      fontWeight: '600',
+      marginLeft: 3,
+    },
+  });
+}

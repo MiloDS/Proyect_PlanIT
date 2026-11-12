@@ -12,8 +12,8 @@ import { InputField } from '../components/InputField';
 import { PromptLink } from '../components/PromptLink';
 import { SocialButton } from '../components/SocialButton';
 import { useGoogleSignIn } from '../services/useGoogleSignIn';
-import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { validateEmail, validatePassword } from '../utils/validation';
 import { messages } from '../utils/messages';
 import { AuthService } from '../services/authService';
@@ -21,6 +21,8 @@ import { AuthService } from '../services/authService';
 type Props = NativeStackScreenProps<AppStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation, route }: Props) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
@@ -137,14 +139,16 @@ export function LoginScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
-  },
-  forgotPasswordText: {
-    color: colors.primary,
-    fontSize: 13,
-    fontWeight: '600',
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    forgotPassword: {
+      alignSelf: 'flex-end',
+      marginBottom: 24,
+    },
+    forgotPasswordText: {
+      color: colors.primary,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+  });
+}

@@ -12,6 +12,7 @@ import { CustomSlider } from '../components/CustomSlider';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { ACTIVITY_PLACE_TYPES, BUDGET_PRICE_LEVELS } from '../services/placesService';
 import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { COMPANY_OPTIONS } from '../utils/recommendations';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'SurpriseMe'>;
@@ -23,6 +24,8 @@ const MAX_DISTANCE_KM = 50;
 
 export function SurpriseMeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
   const [selectedActivities, setSelectedActivities] = useState<string[]>(['Aire libre']);
   const [selectedBudget, setSelectedBudget] = useState('Bajo');
   const [maxDistance, setMaxDistance] = useState(5);
@@ -50,7 +53,7 @@ export function SurpriseMeScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
 
       <ScreenHeader
         title="Sorpréndeme"
@@ -147,124 +150,126 @@ export function SurpriseMeScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.white,
-  },
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  /* Formulario */
-  form: {
-    flex: 1,
-  },
-  formContent: {
-    paddingHorizontal: 24,
-    paddingTop: 22,
-    paddingBottom: 25,
-  },
-  section: {
-    marginBottom: 27,
-  },
-  sectionTitle: {
-    color: colors.textPrimary,
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 12,
-  },
-  activityContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 9,
-  },
-  activityButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-    borderRadius: 16,
-  },
-  budgetContainer: {
-    flexDirection: 'row',
-    gap: 9,
-  },
-  budgetButton: {
-    flex: 1,
-    paddingVertical: 11,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  companyContainer: {
-    flexDirection: 'row',
-    gap: 7,
-  },
-  companyButton: {
-    flex: 1,
-    paddingVertical: 11,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    /* Formulario */
+    form: {
+      flex: 1,
+    },
+    formContent: {
+      paddingHorizontal: 24,
+      paddingTop: 22,
+      paddingBottom: 25,
+    },
+    section: {
+      marginBottom: 27,
+    },
+    sectionTitle: {
+      color: colors.textPrimary,
+      fontSize: 14,
+      fontWeight: '700',
+      marginBottom: 12,
+    },
+    activityContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 9,
+    },
+    activityButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 11,
+      borderRadius: 16,
+    },
+    budgetContainer: {
+      flexDirection: 'row',
+      gap: 9,
+    },
+    budgetButton: {
+      flex: 1,
+      paddingVertical: 11,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    companyContainer: {
+      flexDirection: 'row',
+      gap: 7,
+    },
+    companyButton: {
+      flex: 1,
+      paddingVertical: 11,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  /* Distancia */
-  distanceHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  distanceBadge: {
-    backgroundColor: colors.surfaceMuted,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  distanceText: {
-    color: colors.textPrimary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  sliderContainer: {
-    paddingHorizontal: 4,
-    paddingTop: 2,
-  },
-  sliderLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 2,
-  },
-  sliderLabel: {
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: '500',
-  },
+    /* Distancia */
+    distanceHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    distanceBadge: {
+      backgroundColor: colors.surfaceMuted,
+      paddingHorizontal: 12,
+      paddingVertical: 5,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    distanceText: {
+      color: colors.textPrimary,
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    sliderContainer: {
+      paddingHorizontal: 4,
+      paddingTop: 2,
+    },
+    sliderLabels: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 2,
+    },
+    sliderLabel: {
+      color: colors.textMuted,
+      fontSize: 10,
+      fontWeight: '500',
+    },
 
-  /* Botón inferior */
-  bottomAction: {
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    backgroundColor: colors.white,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    elevation: 6,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-  },
-  recommendButton: {
-    height: 52,
-    borderRadius: 16,
-    flexDirection: 'row',
-    gap: 8,
-    elevation: 4,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-  },
-  recommendButtonText: {
-    color: colors.white,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-});
+    /* Botón inferior */
+    bottomAction: {
+      paddingHorizontal: 20,
+      paddingTop: 14,
+      backgroundColor: colors.card,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      elevation: 6,
+      shadowColor: colors.black,
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 4,
+    },
+    recommendButton: {
+      height: 52,
+      borderRadius: 16,
+      flexDirection: 'row',
+      gap: 8,
+      elevation: 4,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.25,
+      shadowRadius: 5,
+    },
+    recommendButtonText: {
+      color: colors.white,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+  });
+}

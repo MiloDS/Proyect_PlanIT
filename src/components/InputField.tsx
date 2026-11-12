@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react-native';
 
 import { CustomInputFieldProps } from '../types/components';
 import { Button } from './Button';
-import { colors } from '../styles/colors';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 
 export function InputField({
   label,
@@ -21,6 +21,8 @@ export function InputField({
   error,
 }: CustomInputFieldProps) {
   const [hidePassword, setHidePassword] = useState(secureTextEntry ?? false);
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const isPassword = secureTextEntry;
   const PasswordIcon = hidePassword ? EyeOff : Eye;
 
@@ -58,46 +60,48 @@ export function InputField({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { marginBottom: 16 },
-  label: {
-    fontSize: 13,
-    color: colors.textBody,
-    marginBottom: 6,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-    borderRadius: 12,
-    minHeight: 52,
-    paddingHorizontal: 14,
-    paddingRight: 40,
-    backgroundColor: colors.surface,
-    color: colors.textPrimary,
-    fontSize: 16,
-  },
-  multiline: {
-    minHeight: 96,
-    paddingTop: 14,
-    paddingBottom: 14,
-    textAlignVertical: 'top',
-  },
-  inputError: {
-    borderColor: colors.danger,
-  },
-  errorText: {
-    color: colors.danger,
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
-  },
-  icon: {
-    position: 'absolute',
-    right: 12,
-    top: 11,
-    width: 30,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: { marginBottom: 16 },
+    label: {
+      fontSize: 13,
+      color: colors.textBody,
+      marginBottom: 6,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+      borderRadius: 12,
+      minHeight: 52,
+      paddingHorizontal: 14,
+      paddingRight: 40,
+      backgroundColor: colors.surface,
+      color: colors.textPrimary,
+      fontSize: 16,
+    },
+    multiline: {
+      minHeight: 96,
+      paddingTop: 14,
+      paddingBottom: 14,
+      textAlignVertical: 'top',
+    },
+    inputError: {
+      borderColor: colors.danger,
+    },
+    errorText: {
+      color: colors.danger,
+      fontSize: 12,
+      marginTop: 4,
+      marginLeft: 4,
+    },
+    icon: {
+      position: 'absolute',
+      right: 12,
+      top: 11,
+      width: 30,
+      height: 30,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });
+}

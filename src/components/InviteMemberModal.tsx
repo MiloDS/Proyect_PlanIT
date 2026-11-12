@@ -6,13 +6,15 @@ import { InviteMemberModalProps } from '../types/components';
 import { Banner } from './Banner';
 import { Button } from './Button';
 import { InputField } from './InputField';
-import { colors } from '../styles/colors';
+import { ThemeColors, useTheme } from '../services/ThemeContext';
 import { globalStyles } from '../styles/globalStyles';
 import { validateEmail } from '../utils/validation';
 
 // Hoja inferior para agregar personas a un plan con el correo de su cuenta
 export function InviteMemberModal({ visible, onClose, onInvite }: InviteMemberModalProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [email, setEmail] = useState('');
   const [fieldError, setFieldError] = useState('');
   const [result, setResult] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
@@ -91,54 +93,56 @@ export function InviteMemberModal({ visible, onClose, onInvite }: InviteMemberMo
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: colors.overlay,
-  },
-  backdrop: {
-    flex: 1,
-  },
-  sheet: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingTop: 10,
-  },
-  handle: {
-    alignSelf: 'center',
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.borderStrong,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 19,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  description: {
-    fontSize: 13,
-    lineHeight: 19,
-    color: colors.textSecondary,
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  button: {
-    borderRadius: 16,
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
-    marginTop: 4,
-  },
-  secondaryText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textSecondary,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: colors.overlay,
+    },
+    backdrop: {
+      flex: 1,
+    },
+    sheet: {
+      backgroundColor: colors.card,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingHorizontal: 24,
+      paddingTop: 10,
+    },
+    handle: {
+      alignSelf: 'center',
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.borderStrong,
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 19,
+      fontWeight: '700',
+      color: colors.textPrimary,
+    },
+    description: {
+      fontSize: 13,
+      lineHeight: 19,
+      color: colors.textSecondary,
+      marginTop: 4,
+      marginBottom: 16,
+    },
+    button: {
+      borderRadius: 16,
+    },
+    secondaryButton: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 48,
+      marginTop: 4,
+    },
+    secondaryText: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textSecondary,
+    },
+  });
+}

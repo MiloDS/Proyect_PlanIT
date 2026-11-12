@@ -25,8 +25,8 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { useAuth } from '../services/AuthContext';
 import { PhotoService, PhotoSource } from '../services/photoService';
 import { useProfile } from '../services/ProfileContext';
-import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { messages } from '../utils/messages';
 import { getDisplayAvatar, getDisplayName } from '../utils/user';
 import { validateName } from '../utils/validation';
@@ -37,6 +37,8 @@ const AVATAR_SIZE = 96;
 
 export function EditProfileScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
+  const styles = makeStyles(colors);
   const { user } = useAuth();
   const { profile, updateFullName, updateAvatar, removeAvatar } = useProfile();
   const currentName = getDisplayName(user, profile);
@@ -119,8 +121,8 @@ export function EditProfileScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: colors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScreenHeader
         title="Información personal"
         subtitle="Así te ven en tus planes"
@@ -218,91 +220,93 @@ export function EditProfileScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 24,
-  },
-  avatarSection: {
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 24,
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  avatarBusy: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: AVATAR_SIZE,
-    height: AVATAR_SIZE,
-    borderRadius: AVATAR_SIZE / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.overlay,
-  },
-  cameraBadge: {
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.primaryDark,
-  },
-  changePhotoText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  photoErrorBox: {
-    alignSelf: 'stretch',
-  },
-  label: {
-    fontSize: 13,
-    color: colors.textBody,
-    marginBottom: 6,
-  },
-  readOnlyField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-    minHeight: 52,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    backgroundColor: colors.surfaceMuted,
-  },
-  readOnlyText: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.textSecondary,
-  },
-  hint: {
-    fontSize: 12,
-    lineHeight: 17,
-    color: colors.textSecondary,
-    marginTop: 6,
-  },
-  bottomAction: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    backgroundColor: colors.white,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  saveButton: {
-    borderRadius: 16,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    content: {
+      paddingHorizontal: 24,
+      paddingTop: 24,
+      paddingBottom: 24,
+    },
+    avatarSection: {
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 24,
+    },
+    pressed: {
+      opacity: 0.7,
+    },
+    avatarBusy: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: AVATAR_SIZE,
+      height: AVATAR_SIZE,
+      borderRadius: AVATAR_SIZE / 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.overlay,
+    },
+    cameraBadge: {
+      position: 'absolute',
+      right: 0,
+      bottom: 0,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      borderWidth: 2,
+      borderColor: colors.card,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primaryDark,
+    },
+    changePhotoText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    photoErrorBox: {
+      alignSelf: 'stretch',
+    },
+    label: {
+      fontSize: 13,
+      color: colors.textBody,
+      marginBottom: 6,
+    },
+    readOnlyField: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+      minHeight: 52,
+      paddingHorizontal: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 12,
+      backgroundColor: colors.surfaceMuted,
+    },
+    readOnlyText: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    hint: {
+      fontSize: 12,
+      lineHeight: 17,
+      color: colors.textSecondary,
+      marginTop: 6,
+    },
+    bottomAction: {
+      paddingHorizontal: 24,
+      paddingTop: 12,
+      backgroundColor: colors.card,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    saveButton: {
+      borderRadius: 16,
+    },
+  });
+}

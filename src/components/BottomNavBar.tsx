@@ -3,7 +3,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Home, Search, Calendar, Heart, User } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MainTabParamList } from '../types/navigation';
-import { colors } from '../styles/colors';
+import { useTheme } from '../services/ThemeContext';
 import { Button } from './Button';
 
 const TAB_ICONS: Record<keyof MainTabParamList, typeof Home> = {
@@ -16,13 +16,19 @@ const TAB_ICONS: Record<keyof MainTabParamList, typeof Home> = {
 
 export function BottomNavBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const bottomPadding = Math.max(insets.bottom, 10);
 
   return (
     <View
       style={[
         styles.bottomNavigation,
-        { paddingBottom: bottomPadding, height: 56 + bottomPadding },
+        {
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
+          paddingBottom: bottomPadding,
+          height: 56 + bottomPadding,
+        },
       ]}
     >
       {state.routes.map((route, index) => {
@@ -47,7 +53,11 @@ export function BottomNavBar({ state, descriptors, navigation }: BottomTabBarPro
           <Button key={route.key} onPress={onPress} style={styles.navButton}>
             <Icon size={21} color={isFocused ? colors.primary : colors.textMuted} />
             <Text
-              style={[styles.navText, isFocused ? styles.navTextActive : styles.navTextInactive]}
+              style={[
+                styles.navText,
+                { color: isFocused ? colors.primary : colors.textMuted },
+                isFocused && styles.navTextActive,
+              ]}
             >
               {label}
             </Text>
@@ -60,15 +70,13 @@ export function BottomNavBar({ state, descriptors, navigation }: BottomTabBarPro
 
 const styles = StyleSheet.create({
   bottomNavigation: {
-    backgroundColor: colors.white,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
     paddingTop: 8,
     elevation: 8,
-    shadowColor: colors.black,
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.08,
     shadowRadius: 4,
@@ -82,13 +90,9 @@ const styles = StyleSheet.create({
   navText: {
     fontSize: 10,
     marginTop: 4,
+    fontWeight: '500',
   },
   navTextActive: {
-    color: colors.primary,
     fontWeight: '700',
-  },
-  navTextInactive: {
-    color: colors.textMuted,
-    fontWeight: '500',
   },
 });

@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import {
+  DefaultTheme,
+  DarkTheme,
+  NavigationContainer,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as SplashScreen from 'expo-splash-screen';
 
 import { AppStackParamList, MainTabParamList } from '../types/navigation';
 import { HomeScreen } from '../screens/HomeScreen';
-import { IntroScreen } from '../screens/IntroScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { RegisterScreen } from '../screens/RegisterScreen';
 import { ForgotPasswordScreen } from '../screens/ForgotPasswordScreen';
@@ -27,7 +31,9 @@ import { BottomNavBar } from '../components/BottomNavBar';
 import { useAuth } from '../services/AuthContext';
 import { FavoritesProvider } from '../services/FavoritesContext';
 import { ProfileProvider } from '../services/ProfileContext';
+import { useTheme } from '../services/ThemeContext';
 import { useOpenPlanFromNotification, usePlanReminderSync } from '../services/usePlanReminders';
+import { IntroScreen } from '../screens/IntroScreen';
 import { hasSeenOnboarding } from '../utils/storage';
 import { colors } from '../styles/colors';
 
@@ -60,12 +66,30 @@ export function AppNavigator() {
   // Mientras alguien crea una contraseña nueva ya hay sesión, pero sigue en las pantallas
   // de acceso; entra a la app cuando la guarda
   const session = isRecoveringPassword ? null : authSession;
-  const [seenOnboarding, setSeenOnboarding] = useState<boolean | null>(null);
+  const { isDark, colors: themeColors } = useTheme();
   const [navigationReady, setNavigationReady] = useState(false);
   const userId = session?.user.id ?? null;
 
+  const navigationTheme = {
+    ...(isDark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+      primary: themeColors.primary,
+      background: themeColors.background,
+      card: themeColors.card,
+      text: themeColors.textPrimary,
+      border: themeColors.border,
+    },
+  };
+
+  // La Intro sale solo la primera vez: IntroScreen guarda la marca en el teléfono al terminar
+  const [seenOnboarding, setSeenOnboarding] = useState<boolean | null>(null);
+
   useEffect(() => {
-    hasSeenOnboarding().then(setSeenOnboarding);
+    hasSeenOnboarding()
+      .then(setSeenOnboarding)
+      // Si el almacenamiento falla, se muestra la Intro en vez de dejar la pantalla de carga
+      .catch(() => setSeenOnboarding(false));
   }, []);
 
   usePlanReminderSync(isLoading ? undefined : userId);
@@ -105,7 +129,11 @@ export function AppNavigator() {
   return (
     <ProfileProvider userId={userId}>
       <FavoritesProvider userId={userId}>
-        <NavigationContainer ref={navigationRef} onReady={() => setNavigationReady(true)}>
+        <NavigationContainer
+          ref={navigationRef}
+          theme={navigationTheme}
+          onReady={() => setNavigationReady(true)}
+        >
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             {session ? (
               <>

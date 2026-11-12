@@ -27,6 +27,7 @@ import { usePlans } from '../services/usePlans';
 import { usePullToRefresh } from '../services/usePullToRefresh';
 import { colors } from '../styles/colors';
 import { globalStyles } from '../styles/globalStyles';
+import { useTheme, ThemeColors } from '../services/ThemeContext';
 import { distanceKm } from '../utils/geo';
 import { messages } from '../utils/messages';
 
@@ -43,12 +44,16 @@ const TABS: { value: Tab; label: string }[] = [
   { value: 'plans', label: 'Planes' },
 ];
 
-function SectionTitle({ children }: { children: string }) {
-  return <Text style={styles.sectionTitle}>{children}</Text>;
+function SectionTitle({ children, color }: { children: string; color: string }) {
+  const { colors: themeColors } = useTheme();
+  const styles = makeStyles(themeColors);
+  return <Text style={[styles.sectionTitle, { color }]}>{children}</Text>;
 }
 
 export function FavoritesScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
+  const { colors: themeColors, isDark } = useTheme();
+  const styles = makeStyles(themeColors);
   const position = useDevicePosition();
   const favorites = useFavorites();
   const plans = usePlans();
@@ -159,8 +164,8 @@ export function FavoritesScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={globalStyles.screen}>
-      <StatusBar style="dark" />
+    <View style={[globalStyles.screen, { backgroundColor: themeColors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16 }]}
         showsVerticalScrollIndicator={false}
@@ -168,8 +173,8 @@ export function FavoritesScreen({ navigation }: Props) {
           <RefreshControl
             refreshing={pullToRefresh.refreshing}
             onRefresh={pullToRefresh.onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
+            colors={[themeColors.primary]}
+            tintColor={themeColors.primary}
             progressViewOffset={insets.top}
           />
         }
@@ -181,12 +186,12 @@ export function FavoritesScreen({ navigation }: Props) {
         </View>
 
         {favorites.status === 'loading' && (
-          <ActivityIndicator color={colors.primary} style={styles.loading} />
+          <ActivityIndicator color={themeColors.primary} style={styles.loading} />
         )}
 
         {favorites.status === 'error' && (
           <EmptyState
-            icon={<CloudOff size={28} color={colors.primary} />}
+            icon={<CloudOff size={28} color={themeColors.primary} />}
             title={messages.favorites.loadFailedTitle}
             message={favorites.error}
             actionLabel="Reintentar"
@@ -196,7 +201,7 @@ export function FavoritesScreen({ navigation }: Props) {
 
         {favorites.status === 'ready' && activeTab === 'all' && nothingSaved && (
           <EmptyState
-            icon={<Heart size={28} color={colors.primary} />}
+            icon={<Heart size={28} color={themeColors.primary} />}
             title="Aún no tienes favoritos"
             message="Guarda lugares y planes tocando el corazón para encontrarlos aquí."
             actionLabel="Explorar lugares"
@@ -209,7 +214,7 @@ export function FavoritesScreen({ navigation }: Props) {
             {showPlaces && (
               <>
                 {activeTab === 'all' && favorites.places.length > 0 && (
-                  <SectionTitle>Lugares</SectionTitle>
+                  <SectionTitle color={themeColors.textPrimary}>Lugares</SectionTitle>
                 )}
                 {renderPlaces()}
               </>
@@ -217,7 +222,7 @@ export function FavoritesScreen({ navigation }: Props) {
             {showPlans && (
               <>
                 {activeTab === 'all' && favorites.plans.length > 0 && (
-                  <SectionTitle>Planes</SectionTitle>
+                  <SectionTitle color={themeColors.textPrimary}>Planes</SectionTitle>
                 )}
                 {renderPlans()}
               </>
@@ -232,36 +237,38 @@ export function FavoritesScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 18,
-  },
-  tabs: {
-    marginBottom: 20,
-  },
-  loading: {
-    marginVertical: 32,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 10,
-    marginTop: 4,
-  },
-  list: {
-    gap: 12,
-    marginBottom: 18,
-  },
-  attribution: {
-    fontSize: 10,
-    color: colors.textMuted,
-  },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    scrollContent: {
+      paddingHorizontal: 24,
+      paddingBottom: 32,
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginBottom: 18,
+    },
+    tabs: {
+      marginBottom: 20,
+    },
+    loading: {
+      marginVertical: 32,
+    },
+    sectionTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.textPrimary,
+      marginBottom: 10,
+      marginTop: 4,
+    },
+    list: {
+      gap: 12,
+      marginBottom: 18,
+    },
+    attribution: {
+      fontSize: 10,
+      color: colors.textMuted,
+    },
+  });
+}

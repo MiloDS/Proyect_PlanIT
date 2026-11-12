@@ -7,7 +7,7 @@ import {
   GestureResponderEvent,
 } from 'react-native';
 import { CustomSliderProps } from '../types/components';
-import { colors } from '../styles/colors';
+import { useTheme } from '../services/ThemeContext';
 
 const THUMB_SIZE = 22;
 
@@ -17,10 +17,14 @@ export function CustomSlider({
   step = 1,
   value,
   onValueChange,
-  minimumTrackTintColor = colors.primary,
-  maximumTrackTintColor = colors.primaryLight,
-  thumbTintColor = colors.primary,
+  minimumTrackTintColor,
+  maximumTrackTintColor,
+  thumbTintColor,
 }: CustomSliderProps) {
+  const { colors } = useTheme();
+  const minTrackColor = minimumTrackTintColor ?? colors.primary;
+  const maxTrackColor = maximumTrackTintColor ?? colors.primaryLight;
+  const thumbColor = thumbTintColor ?? colors.primary;
   const [trackWidth, setTrackWidth] = useState(0);
   // Dónde empezó el toque: locationX dentro de la barra y pageX en la pantalla
   const gestureStartRef = useRef({ locationX: 0, pageX: 0 });
@@ -72,19 +76,16 @@ export function CustomSlider({
       accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
       onAccessibilityAction={handleAccessibilityAction}
     >
-      <View style={[styles.track, { backgroundColor: maximumTrackTintColor }]}>
+      <View style={[styles.track, { backgroundColor: maxTrackColor }]}>
         <View
-          style={[
-            styles.filledTrack,
-            { width: thumbPosition, backgroundColor: minimumTrackTintColor },
-          ]}
+          style={[styles.filledTrack, { width: thumbPosition, backgroundColor: minTrackColor }]}
         />
         <View
           style={[
             styles.thumb,
             {
               left: thumbPosition - THUMB_SIZE / 2,
-              backgroundColor: thumbTintColor,
+              backgroundColor: thumbColor,
             },
           ]}
         />
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
     borderRadius: THUMB_SIZE / 2,
     position: 'absolute',
     elevation: 3,
-    shadowColor: colors.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
